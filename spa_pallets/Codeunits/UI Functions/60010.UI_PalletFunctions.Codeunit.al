@@ -479,7 +479,6 @@ codeunit 60010 "UI Pallet Functions"
             pContent := Json_Text + '}'
         else
             pContent := 'No Data';
-        pContent := 'Blah Blah';
     end;
 
     //Create Pallet by Json
