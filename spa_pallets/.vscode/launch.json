@@ -12,7 +12,6 @@
             "startupObjectType": "Page",
             "startupObjectId": 9006,
             "breakOnError": true,            
-            //"breakOnRecordWrite": true,
             "launchBrowser": true,
             "schemaUpdateMode": "ForceSync",
             "enableLongRunningSqlStatements": true,

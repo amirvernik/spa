@@ -2,7 +2,7 @@
   "id": "00ae09bd-0a01-4297-a02f-759565c5abe9",
   "name": "Pallets",
   "publisher": "Prodware",
-  "version": "16.0.0.11",
+  "version": "16.0.0.12",
   "brief": "",
   "description": "",
   "privacyStatement": "",
@@ -27,13 +27,13 @@
       "id": "a31793cd-8095-4628-8926-ab24dc0c807b",
       "publisher": "Prodware",
       "name": "SPA_UI",
-      "version": "16.0.0.0"
+      "version": "16.0.0.1"
     },   
     {
       "id": "f30b585b-e976-4c84-a87b-c93c6e8b7a4f",
       "publisher": "Prodware",
       "name": "SPA_Purchase",
-      "version": "16.0.0.4"
+      "version": "16.0.0.6"
     }     
   ],
   "screenshots": [],
