@@ -12,6 +12,10 @@ table 60016 "Packing Materials Select"
         {
             DataClassification = ToBeClassified;
         }
+        field(25; "Pallet Packing Line No."; integer)
+        {
+            DataClassification = ToBeClassified;
+        }
         field(30; "PM Item Description"; text[50])
         {
             DataClassification = ToBeClassified;
@@ -29,7 +33,7 @@ table 60016 "Packing Materials Select"
 
     keys
     {
-        key(PK; "Pallet ID", "PM Item No.")
+        key(PK; "Pallet Packing Line No.", "Pallet ID", "PM Item No.")
         {
             Clustered = true;
         }

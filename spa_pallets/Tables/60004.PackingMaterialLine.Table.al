@@ -35,6 +35,17 @@ table 60004 "Packing Material Line"
             Caption = 'Location Code';
             DataClassification = ToBeClassified;
         }
+        field(8; Returned; Boolean)
+        {
+            Caption = 'Returned';
+            DataClassification = ToBeClassified;
+        }
+        field(9;"Line No.";integer)
+        {
+            Caption = 'Line No.';
+            DataClassification = ToBeClassified;
+        }
+        
     }
 
     keys

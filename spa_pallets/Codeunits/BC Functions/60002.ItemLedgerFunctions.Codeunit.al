@@ -52,6 +52,7 @@ codeunit 60002 "Item Ledger Functions"
 
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", pPalletHeader."Pallet ID");
+        PackingMaterials.setrange(returned, true);
         if PackingMaterials.findset then
             repeat
                 RecGItemJournalLine.init;

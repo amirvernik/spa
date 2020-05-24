@@ -59,10 +59,6 @@ codeunit 60001 "Pallet Functions"
             pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Open;
             pPalletHeader.modify;
 
-            //Amir Vernik 14/05/2020
-            //ChoosePackingMaterials(pPalletHeader);
-            //Amir Vernik 14/05/2020
-
             TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
             ItemLedgerFunctions.PosItemLedgerEntry(pPalletHeader); //Positive on Item Journal Packing Material
             PalletLedgerFunctions.NegPalletLedger(pPalletHeader); //Negative on Pallet Ledger
@@ -117,6 +113,7 @@ codeunit 60001 "Pallet Functions"
                             PackingMaterials.init;
                             PackingMaterials."Pallet ID" := PalletLines."Pallet ID";
                             PackingMaterials."Item No." := BomComponent."No.";
+                            packingmaterials."Line No." := GetLastEntryPacking();
                             PackingMaterials.Description := BomComponent.Description;
                             PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
                             PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
@@ -227,6 +224,7 @@ codeunit 60001 "Pallet Functions"
     procedure ChoosePackingMaterials(var pPalletHeader: Record "Pallet Header")
     var
         PackingMaterialConfirm: Label 'Do you want to return the packing material into stock?';
+        PalletLedgerEntry: Record "Pallet Ledger Entry";
         ItemRec: Record Item;
         PMSelect: Record "Packing Materials Select" temporary;
         RecGItemJournalLine: Record "Item Journal Line";
@@ -245,42 +243,35 @@ codeunit 60001 "Pallet Functions"
                     PMSelect.init;
                     PMSelect."Pallet ID" := pPalletHeader."Pallet ID";
                     PMSelect."PM Item No." := PackingMaterials."Item No.";
+                    PMSelect."Pallet Packing Line No." := PackingMaterials."Line No.";
                     PMSelect."PM Item Description" := PackingMaterials.Description;
                     PMSelect.Quantity := PackingMaterials.Quantity;
                     pmselect.insert;
                 until PackingMaterials.next = 0;
             page.runmodal(page::"Packing Materials Select", PMSelect);
-
-            PMSelect.reset;
-            PMSelect.setrange(Select, true);
-            if PMSelect.findset then
-                repeat
-                    PalletSetup.get();
-                    RecGItemJournalLine.reset;
-                    RecGItemJournalLine.setrange("Journal Template Name", 'ITEM');
-                    RecGItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
-                    if RecGItemJournalLine.FindLast() then
-                        LineNumber := RecGItemJournalLine."Line No." + 10000
-                    else
-                        LineNumber := 10000;
-
-                    RecGItemJournalLine.init;
-                    RecGItemJournalLine."Journal Template Name" := 'ITEM';
-                    RecGItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
-                    RecGItemJournalLine."Line No." := LineNumber;
-                    RecGItemJournalLine.insert;
-                    RecGItemJournalLine."Entry Type" := RecGItemJournalLine."Entry Type"::"Positive Adjmt.";
-                    RecGItemJournalLine."Posting Date" := Today;
-                    RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
-                    RecGItemJournalLine.Description := PMSelect."PM Item Description";
-                    RecGItemJournalLine.validate("Item No.", PMSelect."PM Item No.");
-                    RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
-                    RecGItemJournalLine.validate(Quantity, PMSelect.Quantity);
-                    RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
-                    RecGItemJournalLine.modify;
-                    lineNumber += 10000;
-                until PMSelect.next = 0;
         end;
+    end;
+
+    local procedure GetLastEntry(): Integer
+    var
+        PalletLedgerEntry: Record "Pallet Ledger Entry";
+    begin
+        PalletLedgerEntry.reset;
+        if PalletLedgerEntry.findlast then
+            exit(PalletLedgerEntry."Entry No." + 1)
+        else
+            exit(1);
+    end;
+
+    local procedure GetLastEntryPacking(): Integer
+    var
+        PackingMaterialLine: Record "Packing Material Line";
+    begin
+        PackingMaterialLine.reset;
+        if PackingMaterialLine.findlast then
+            exit(PackingMaterialLine."Line No." + 1)
+        else
+            exit(1);
     end;
 
     var

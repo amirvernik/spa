@@ -11,7 +11,10 @@ page 60007 "Pallet Materials SubPage"
         {
             repeater(General)
             {
-
+                field("Line No."; "Line No.")
+                {
+                    ApplicationArea = All;
+                }
                 field("Item No."; "Item No.")
                 {
                     ApplicationArea = All;
@@ -31,6 +34,10 @@ page 60007 "Pallet Materials SubPage"
                 field(Quantity; Quantity)
                 {
                     ApplicationArea = All;
+                }
+                field(Returned; Returned)
+                {
+                    ApplicationArea = all;
                 }
 
             }

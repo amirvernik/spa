@@ -364,6 +364,7 @@ codeunit 60010 "UI Pallet Functions"
     local procedure GetItemAttributeValues(VAR pFunction: Text[50]; VAR pContent: Text)
     var
         ItemAttributeValue: Record "Item Attribute Value";
+        ItemVariant: Record "Item Variant";
         Attr_OM: label 'OM';
         Attr_Size: label 'Size';
         Attr_PackageType: label 'Primary Packaging Type';
@@ -377,6 +378,7 @@ codeunit 60010 "UI Pallet Functions"
         Json_Grade: Text;
         json_Color: text;
         Json_Text: Text;
+        Json_Variant: Text;
 
 
 
@@ -474,6 +476,27 @@ codeunit 60010 "UI Pallet Functions"
             json_Color += ' ],';
             Json_Text += json_Color;
         end;
+
+        //Item Variants
+        ItemVariant.reset;
+        if ItemVariant.findset then begin
+            Json_Variant := '"Varieties": [';
+            repeat
+                Json_Variant +=
+                    '{"Item": "'
+                    + format(ItemVariant."Item No.") +
+                    '","Variety": "'
+                    + ItemVariant.Code +
+                    '","Variety Description": "'
+                    + ItemVariant.Description +
+                    '"},';
+            until ItemVariant.next = 0;
+
+            Json_Variant := copystr(Json_Variant, 1, strlen(Json_Variant) - 1);
+            Json_Variant += ' ],';
+            Json_Text += Json_Variant;
+        end;
+
         Json_Text := copystr(Json_Text, 1, strlen(Json_Text) - 1);
         if Json_Text <> '' then
             pContent := Json_Text + '}'
@@ -671,6 +694,7 @@ codeunit 60010 "UI Pallet Functions"
                                 ',"Item List":[';
                 repeat
                     Obj_JsonText += '{"Item No" :"' + PalletLine."Item No." + '",' +
+                                 '"Variety":"' + PalletLine."Variant Code" + '",' +
                                  '"Item Description":"' + PalletLine.Description + '",' +
                                  '"location":"' + PalletLine."Location Code" + '",' +
                                  '"Lot":"' + PalletLine."Lot Number" + '",' +

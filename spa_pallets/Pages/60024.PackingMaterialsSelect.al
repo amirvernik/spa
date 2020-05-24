@@ -17,6 +17,7 @@ page 60024 "Packing Materials Select"
                 {
                     ApplicationArea = All;
                 }
+
                 field("PM Item No."; "PM Item No.")
                 {
                     ApplicationArea = All;
@@ -41,4 +42,23 @@ page 60024 "Packing Materials Select"
             }
         }
     }
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        PackingTrackingLine: Record "Packing Material Line";
+    begin
+        if CloseAction = action::OK then begin
+            rec.reset;
+            rec.setrange(Select, true);
+            if rec.findset then
+                repeat
+                    PackingTrackingLine.reset;
+                    PackingTrackingLine.setrange("Line No.", "Pallet Packing Line No.");
+                    PackingTrackingLine.setrange("Pallet ID", "Pallet ID");
+                    if PackingTrackingLine.findfirst then begin
+                        PackingTrackingLine.Returned := true;
+                        PackingTrackingLine.modify;
+                    end;
+                until rec.Next = 0;
+        end;
+    end;
 }

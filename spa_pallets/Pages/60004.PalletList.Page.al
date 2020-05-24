@@ -106,7 +106,10 @@ page 60004 "Pallet List"
                 Enabled = ShowReopen;
 
                 trigger OnAction()
+                var
+                    packingma: Record "Packing Material Line";
                 begin
+                    PalletFunctions.ChoosePackingMaterials(rec);
                     PalletFunctions.ReOpenPallet(rec);
                 end;
             }

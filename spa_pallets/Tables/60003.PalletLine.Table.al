@@ -88,11 +88,24 @@ table 60003 "Pallet Line"
             DataClassification = ToBeClassified;
 
         }
-        field(60020;"Variant Code";code[20])
+        field(60020; "Variant Code"; code[20])
         {
-            caption='Variety';
-            DataClassification=ToBeClassified;
-            TableRelation="Item Variant".Code WHERE ("Item No."=field("Item No."));
+            caption = 'Variety';
+            DataClassification = ToBeClassified;
+            TableRelation = "Item Variant".Code WHERE("Item No." = field("Item No."));
+            trigger OnValidate()
+            var
+                ItemVariant: Record "Item Variant";
+            begin
+                ItemVariant.reset;
+                ItemVariant.setrange("Item No.", rec."Item No.");
+                ItemVariant.setrange(code, rec."Variant Code");
+                if ItemVariant.findfirst then begin
+                    rec.Description := ItemVariant.Description;
+                    rec.modify;
+                end;
+            end;
+
         }
     }
 
