@@ -5,6 +5,7 @@ codeunit 60010 "UI Pallet Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPallets(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
+        PackingMaterials: Record "Packing Material Line";
         PalletHeader: Record "Pallet Header";
         PalletLines: Record "Pallet Line";
         Obj_JsonText: Text;
@@ -28,8 +29,25 @@ codeunit 60010 "UI Pallet Functions"
                             format(PalletHeader."Pallet Status") +
                             '",' +
                             '"Exist in Shipment": "' +
-                            format(PalletHeader."Exist in warehouse shipment") +
-                            '"},'
+                            format(PalletHeader."Exist in warehouse shipment");
+
+                PackingMaterials.reset;
+                PackingMaterials.setrange("Pallet ID", palletheader."Pallet ID");
+                if PackingMaterials.findset then begin
+                    Obj_JsonText += '","Packing Materials": [';
+                    repeat
+                        Obj_JsonText += '{' +
+                        '"Code": "' + PackingMaterials."Item No." +
+                        '",' +
+                        '"Description": "' + PackingMaterials.Description +
+                        '",' +
+                        '"Quantity": "' + format(PackingMaterials.Quantity) +
+                        '"},';
+                    until PackingMaterials.next = 0;
+                    Obj_JsonText += ']},';
+                end
+                else
+                    Obj_JsonText += '"},';
             until PalletHeader.next = 0;
 
         Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
@@ -40,7 +58,8 @@ codeunit 60010 "UI Pallet Functions"
 
     //Create Pallet by Json
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
-    local procedure CreatePalletFromJson(VAR pFunction: Text[50]; VAR pContent: Text)
+    local procedure CreatePalletFromJson(VAR pFunction: Text[50]; VAR
+                                                                      pContent: Text)
     VAR
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
