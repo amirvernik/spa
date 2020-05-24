@@ -1,0 +1,50 @@
+{
+  "id": "00ae09bd-0a01-4297-a02f-759565c5abe9",
+  "name": "Pallets",
+  "publisher": "Prodware",
+  "version": "16.0.0.10",
+  "brief": "",
+  "description": "",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "./logo/prodware_pallets.png",
+  "dependencies": [
+    {
+      "id": "63ca2fa4-4f03-4f2b-a480-172fef340d3f",
+      "publisher": "Microsoft",
+      "name": "System Application",
+      "version": "1.0.0.0"
+    },
+    {
+      "id": "437dbf0e-84ff-417a-965d-ed2bb9650972",
+      "publisher": "Microsoft",
+      "name": "Base Application",
+      "version": "16.0.0.0"
+    },
+    {
+      "id": "a31793cd-8095-4628-8926-ab24dc0c807b",
+      "publisher": "Prodware",
+      "name": "SPA_UI",
+      "version": "16.0.0.0"
+    },   
+    {
+      "id": "f30b585b-e976-4c84-a87b-c93c6e8b7a4f",
+      "publisher": "Prodware",
+      "name": "SPA_Purchase",
+      "version": "16.0.0.4"
+    }     
+  ],
+  "screenshots": [],
+  "platform": "16.0.0.0",
+  "idRanges": [
+    {
+      "from": 60000,
+      "to": 60999
+    }
+  ],
+  "contextSensitiveHelpUrl": "https://Pallets.com/help/",
+  "showMyCode": false,
+  "runtime": "5.0"
+}

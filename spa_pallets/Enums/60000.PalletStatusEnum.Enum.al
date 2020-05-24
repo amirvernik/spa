@@ -1,0 +1,25 @@
+enum 60000 "Pallet Status"
+{
+    Extensible = true;
+
+    value(0; Open)
+    {
+        Caption = 'Open';
+    }
+    value(1; Closed)
+    {
+        Caption = 'Closed';
+    }
+    value(2; Shipped)
+    {
+        Caption = 'Shipped';
+    }
+    value(3; "Consumed")
+    {
+        Caption = 'Consumed';
+    }
+    value(4;Disposed)
+    {
+        caption='Disposed';
+    }
+}
