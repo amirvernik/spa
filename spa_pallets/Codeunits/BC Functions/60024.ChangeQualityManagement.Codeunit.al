@@ -13,4 +13,13 @@ codeunit 60024 "Change Quality Management"
             rec.modify;
         end;
     end;
+
+    [EventSubscriber(ObjectType::table, database::"Pallet Line Change Quality", 'OnAfterValidateEvent', 'Replaced Qty', true, true)]
+    local procedure OnAfterValidateReplacedQty(var Rec: Record "Pallet Line Change Quality")
+    var
+        ErrReplacedQty: label 'You cannot replace quantity %1 that is bigger than %2';
+    begin
+        if rec."Replaced Qty" > rec.Quantity then
+            error(ErrReplacedQty, format(rec."Replaced Qty"), format(rec.Quantity));
+    end;
 }

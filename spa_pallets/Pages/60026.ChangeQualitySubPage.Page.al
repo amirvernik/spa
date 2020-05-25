@@ -26,11 +26,11 @@ page 60026 "Change Quality SubPage"
                 {
                     ApplicationArea = all;
                 }
-                field(Description; Description)
+                field("New Variant Code"; "New Variant Code")
                 {
                     ApplicationArea = all;
                 }
-                field("New Variant Code"; "New Variant Code")
+                field(Description; Description)
                 {
                     ApplicationArea = all;
                 }

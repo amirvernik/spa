@@ -137,7 +137,27 @@ page 60003 "Pallet Card"
                     PalletDisposalMgmt.DisposePallet(rec);
                 end;
             }
+            action("Change Item Quality")
+            {
+                ApplicationArea = All;
+                image = TaskQualityMeasure;
+                Promoted = true;
+                PromotedCategory = Process;
 
+                trigger OnAction()
+                var
+                    ChangeQualityPage: page "Pallet Change Quality";
+                    MsgCannotChange: Label 'Change item quality in the pallet is available only for closed status pallets';
+                begin
+                    if "Pallet Status" = "Pallet Status"::Closed then begin
+                        ChangeQualityPage.SetPalletID(rec."Pallet ID");
+                        ChangeQualityPage.CalcChangeQuality(rec."Pallet ID");
+                        ChangeQualityPage.run;
+                    end
+                    else
+                        message(MsgCannotChange);
+                end;
+            }
             action("Pallet Reservations")
             {
                 ApplicationArea = All;
@@ -271,6 +291,7 @@ page 60003 "Pallet Card"
         ShowReopen: Boolean;
         PackingExists: Boolean;
         ShowDisposed: Boolean;
+        ShowChanged: Boolean;
         PackingMaterials: Record "Packing Material Line";
 
 }

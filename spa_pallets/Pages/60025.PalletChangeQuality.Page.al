@@ -1,6 +1,5 @@
 page 60025 "Pallet Change Quality"
 {
-
     PageType = Worksheet;
     SourceTable = "Pallet Line change quality";
     Caption = 'Pallet Line Change Quality';
@@ -18,35 +17,13 @@ page 60025 "Pallet Change Quality"
             {
                 field(PalletID; PalletID)
                 {
-                    editable = true;
+                    editable = PalletSelect;
                     Caption = 'Pallet ID';
                     ApplicationArea = All;
-                    TableRelation = "Pallet Header";
+                    TableRelation = "Pallet Header" where("Pallet Status" = filter(Closed));
                     trigger OnValidate()
-                    var
-                        PalletChangeQuality: Record "Pallet Change Quality";
-                        PalletLineChangeQuality: Record "Pallet Line Change Quality";
                     begin
-
-                        PalletLineChangeQuality.reset;
-                        PalletLineChangeQuality.SetRange("User ID", UserId);
-                        if PalletLineChangeQuality.findset then
-                            PalletLineChangeQuality.DeleteAll();
-
-                        PalletChangeQuality.reset;
-                        PalletChangeQuality.setrange("User Created", UserId);
-                        if PalletChangeQuality.findset then
-                            PalletChangeQuality.DeleteAll();
-
-                        PalletLine.reset;
-                        PalletLine.setrange("Pallet ID", PalletID);
-                        if PalletLine.findset then
-                            repeat
-                                PalletLineChangeQuality.init;
-                                PalletLineChangeQuality.TransferFields(PalletLine);
-                                PalletLineChangeQuality."User ID" := UserId;
-                                PalletLineChangeQuality.insert;
-                            until palletline.next = 0;
+                        CalcChangeQuality(PalletID)
                     end;
                 }
 
@@ -55,33 +32,44 @@ page 60025 "Pallet Change Quality"
             repeater(Group)
             {
                 Caption = 'Pallet Change Quality';
-                Editable = false;
+                Editable = true;
                 ShowCaption = true;
 
 
                 field("Item No."; "Item No.")
                 {
+                    Editable = false;
                     ApplicationArea = All;
                 }
                 field("Variant Code"; "Variant Code")
                 {
+                    Editable = false;
                     ApplicationArea = all;
                 }
 
                 field(Description; Description)
                 {
+                    Editable = false;
                     ApplicationArea = all;
                 }
                 field("Lot Number"; "Lot Number")
                 {
+                    Editable = false;
                     ApplicationArea = all;
                 }
                 field(Quantity; Quantity)
                 {
+                    Editable = false;
+                    ApplicationArea = all;
+                }
+                field("Replaced Qty"; "Replaced Qty")
+                {
+                    editable = true;
                     ApplicationArea = all;
                 }
                 field("Expiration Date"; "Expiration Date")
                 {
+                    Editable = false;
                     ApplicationArea = all;
                 }
             }
@@ -101,15 +89,14 @@ page 60025 "Pallet Change Quality"
         area(Processing)
         {
 
-            action("Change")
+            action("Change Items")
             {
                 Promoted = true;
                 PromotedCategory = process;
                 ApplicationArea = All;
                 Image = Change;
                 trigger OnAction()
-
-
+                var
                 begin
                 end;
 
@@ -126,14 +113,55 @@ page 60025 "Pallet Change Quality"
         PalletLineChangeQuality.SetRange("User ID", UserId);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
+        if PalletID = '' then
+            PalletSelect := true
+        else
+            palletselect := false;
 
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("User Created", UserId);
         if PalletChangeQuality.findset then
             PalletChangeQuality.DeleteAll();
+
+        if PalletID <> '' then
+            CalcChangeQuality(PalletID);
+        CurrPage.update;
+    end;
+
+    procedure SetPalletID(var pPalletID: code[20])
+    begin
+        PalletID := pPalletID;
+    end;
+
+    procedure CalcChangeQuality(var pPalletID: code[20])
+    begin
+        PalletLineChangeQuality.reset;
+        PalletLineChangeQuality.SetRange("User ID", UserId);
+        if PalletLineChangeQuality.findset then
+            PalletLineChangeQuality.DeleteAll();
+
+        PalletChangeQuality.reset;
+        PalletChangeQuality.setrange("User Created", UserId);
+        if PalletChangeQuality.findset then
+            PalletChangeQuality.DeleteAll();
+
+        PalletLine.reset;
+        PalletLine.setrange("Pallet ID", pPalletID);
+        if PalletLine.findset then
+            repeat
+                PalletLineChangeQuality.init;
+                PalletLineChangeQuality.TransferFields(PalletLine);
+                PalletLineChangeQuality."User ID" := UserId;
+                PalletLineChangeQuality."Replaced Qty" := PalletLine.Quantity;
+                PalletLineChangeQuality.insert;
+            until palletline.next = 0;
     end;
 
     var
         PalletID: code[20];
         PalletLine: Record "Pallet Line";
+        PalletChangeQuality: Record "Pallet Change Quality";
+        PalletLineChangeQuality: Record "Pallet Line Change Quality";
+        PalletSelect: Boolean;
+
 }
