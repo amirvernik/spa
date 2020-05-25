@@ -33,7 +33,8 @@ table 60016 "Packing Materials Select"
 
     keys
     {
-        key(PK; "Pallet Packing Line No.", "Pallet ID", "PM Item No.")
+        //key(PK; "Pallet Packing Line No.", "Pallet ID", "PM Item No.")
+        key(PK; "Pallet ID", "PM Item No.")
         {
             Clustered = true;
         }

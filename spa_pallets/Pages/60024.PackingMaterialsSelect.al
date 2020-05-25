@@ -52,7 +52,8 @@ page 60024 "Packing Materials Select"
             if rec.findset then
                 repeat
                     PackingTrackingLine.reset;
-                    PackingTrackingLine.setrange("Line No.", "Pallet Packing Line No.");
+                    //PackingTrackingLine.setrange("Line No.", "Pallet Packing Line No.");
+                    PackingTrackingLine.setrange("Item No.", "PM Item No.");
                     PackingTrackingLine.setrange("Pallet ID", "Pallet ID");
                     if PackingTrackingLine.findfirst then begin
                         PackingTrackingLine.Returned := true;
