@@ -9,51 +9,41 @@ codeunit 60010 "UI Pallet Functions"
         PalletHeader: Record "Pallet Header";
         PalletLines: Record "Pallet Line";
         Obj_JsonText: Text;
-
+        JsonObj: JsonObject;
+        JsonObjPM: JsonObject;
+        JsonArr: JsonArray;
+        JsonArrPM: JsonArray;
     begin
         IF pFunction <> 'GetListOfPallets' THEN
             EXIT;
-        Obj_JsonText := '[';
 
         PalletHeader.reset;
         if PalletHeader.findset then
             repeat
-                Obj_JsonText += '{' +
-                            '"Pallet ID": ' +
-                            '"' + palletheader."Pallet ID" + '"' +
-                            ',' +
-                            '"Location Code": "' +
-                            PalletHeader."Location Code" +
-                            '",' +
-                            '"Status": "' +
-                            format(PalletHeader."Pallet Status") +
-                            '",' +
-                            '"Exist in Shipment": "' +
-                            format(PalletHeader."Exist in warehouse shipment");
+                JsonObj.add('Pallet ID', PalletHeader."Pallet ID");
+                JsonObj.add('Location', PalletHeader."Location Code");
+                JsonObj.add('Status', format(PalletHeader."Pallet Status"));
+                JsonObj.add('Exist in Shipment', PalletHeader."Exist in warehouse shipment");
 
+                //Packing Materials
                 PackingMaterials.reset;
-                PackingMaterials.setrange("Pallet ID", palletheader."Pallet ID");
-                if PackingMaterials.findset then begin
-                    Obj_JsonText += '","Packing Materials": [';
+                PackingMaterials.setrange("Pallet ID", PalletHeader."Pallet ID");
+                if PackingMaterials.findset then
                     repeat
-                        Obj_JsonText += '{' +
-                        '"Code": "' + PackingMaterials."Item No." +
-                        '",' +
-                        '"Description": "' + PackingMaterials.Description +
-                        '",' +
-                        '"Quantity": "' + format(PackingMaterials.Quantity) +
-                        '"},';
+                        Clear(JsonObjPM);
+                        JsonObjPM.add('Code', PackingMaterials."Item No.");
+                        JsonObjPM.add('Description', PackingMaterials.Description);
+                        JsonObjPM.add('Quantity', PackingMaterials.Quantity);
+                        JsonArrPM.Add(JsonObjPM);
                     until PackingMaterials.next = 0;
-                    Obj_JsonText += ']},';
-                end
-                else
-                    Obj_JsonText += '"},';
-            until PalletHeader.next = 0;
 
-        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-        Obj_JsonText += ']';
-        pContent := Obj_JsonText;
-
+                if JsonArrPM.Count > 0 then
+                    JsonObj.add('Packing Materials', JsonArrPM);
+                clear(JsonArrPM);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
+            until palletheader.next = 0;
+        JsonArr.WriteTo(pContent);
     end;
 
     //Create Pallet by Json
