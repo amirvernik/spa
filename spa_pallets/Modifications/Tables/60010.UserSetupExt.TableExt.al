@@ -12,6 +12,17 @@ tableextension 60010 UserSetupExt extends "User Setup"
             DataClassification = ToBeClassified;
         }
 
+        field(60002; "UI Password"; Text[50])
+        {
+            DataClassification = ToBeClassified;
+            ExtendedDatatype = Masked;
+        }
+        field(60003; "WS Access Key"; Text[50])
+        {
+            DataClassification = ToBeClassified;
+            ExtendedDatatype = Masked;
+        }
+
     }
 
     var

@@ -13,6 +13,18 @@ pageextension 60011 UserSetpExt extends "User Setup"
                 ApplicationArea = all;
             }
         }
+
+        addafter("User ID")
+        {
+            field("UI Password"; "UI Password")
+            {
+                ApplicationArea = All;
+            }
+            field("WS Access Key"; "WS Access Key")
+            {
+                ApplicationArea = All;
+            }
+        }
     }
 
     actions
