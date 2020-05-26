@@ -1,6 +1,6 @@
 codeunit 60012 "UI Inventory Functions"
 {
-    //Close Pallet - By Pallet ID
+    //Close Pallet - By Pallet ID - ClosePallet [8496]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure ClosePallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -79,7 +79,7 @@ codeunit 60012 "UI Inventory Functions"
             pContent := 'Pallet does not exist : ' + PalletID;
     end;
 
-    //Open Pallet - By Pallet ID
+    //Open Pallet - By Pallet ID - OpenPallet [8298]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure OpenPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -113,7 +113,7 @@ codeunit 60012 "UI Inventory Functions"
             pContent := 'Error';
     end;
 
-    //Get All Locations 
+    //Get All Locations - GetAllLocations [8502] 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetAllLocations(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -142,7 +142,7 @@ codeunit 60012 "UI Inventory Functions"
         pContent := Obj_JsonText;
     end;
 
-    //Create Purchase Order Line
+    //Create Purchase Order Line - CreatePurchaseOrderLine [8642]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CreatePurchaseOrderLine(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR

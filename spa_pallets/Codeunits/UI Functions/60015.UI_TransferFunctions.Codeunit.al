@@ -1,6 +1,6 @@
 codeunit 60015 "UI Transfer Functions"
 {
-    //Close Pallet - By Pallet ID
+    //Transfer Pallet - TransferPallet [8559]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure TransferPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR

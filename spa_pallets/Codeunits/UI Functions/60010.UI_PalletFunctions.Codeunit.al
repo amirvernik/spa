@@ -1,7 +1,7 @@
 codeunit 60010 "UI Pallet Functions"
 {
 
-    //Get List Of Pallets
+    //Get List Of Pallets - GetListOfPallets [8279]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPallets(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -46,7 +46,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArr.WriteTo(pContent);
     end;
 
-    //Create Pallet by Json
+    //Create Pallet by Json - CreatePalletFromJson [8301]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CreatePalletFromJson(VAR pFunction: Text[50]; VAR
                                                                       pContent: Text)
@@ -249,7 +249,7 @@ codeunit 60010 "UI Pallet Functions"
     end;
 
 
-    //Get List Of Items by Attributes
+    //Get List Of Items by Attributes - GetListOfItemsByAttr [8506]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfItemsByAttr(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -368,7 +368,7 @@ codeunit 60010 "UI Pallet Functions"
             pcontent := 'No Items';
     end;
 
-    //Get List Of Items by Attributes
+    //Get List Of Items by Attributes - GetItemAttributeValues [8509]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetItemAttributeValues(VAR pFunction: Text[50]; VAR pContent: Text)
     var
@@ -513,7 +513,7 @@ codeunit 60010 "UI Pallet Functions"
             pContent := 'No Data';
     end;
 
-    //Create Pallet by Json
+    //Add Item to Pallet - AddItemToPallet [8616]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure AddItemToPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -666,7 +666,7 @@ codeunit 60010 "UI Pallet Functions"
         end;
     end;
 
-    //Get List of Pallet Lines
+    //Get List of Pallet Lines - GetListOfPalletLines [8627]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPalletLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -723,7 +723,7 @@ codeunit 60010 "UI Pallet Functions"
             pContent := 'No Pallet Exist';
     end;
 
-    //Get LOT Numbers by Item
+    //Get LOT Numbers by Item - GetLotNumbersByItem [8556]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetLotNumbersByItem(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR

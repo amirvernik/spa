@@ -1,7 +1,7 @@
 codeunit 60019 "UI Pallet Availability"
 {
 
-    //Post Warehouse Shipment
+    //Post Warehouse Shipment - PostWarehouseShipment [8798]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure PostWarehouseShipment(VAR pFunction: Text[50]; VAR pContent: Text)
     var
@@ -101,7 +101,7 @@ codeunit 60019 "UI Pallet Availability"
             pContent := 'Success';
     end;
 
-    //Check Pallet Availability
+    //Check Pallet Availability - CheckPalletAvailability [8795]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListForMWPallets(VAR pFunction: Text[50]; VAR pContent: Text)
     var

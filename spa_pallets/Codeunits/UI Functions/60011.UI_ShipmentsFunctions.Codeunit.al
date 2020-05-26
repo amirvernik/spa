@@ -1,7 +1,7 @@
 codeunit 60011 "UI Shipments Functions"
 {
 
-    //Get List Of Items - By Json Object
+    //Get List Of Items - GetListOfItems [8295]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfItems(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -49,7 +49,7 @@ codeunit 60011 "UI Shipments Functions"
 
     end;
 
-    //Get Item Description - by Item
+    //Get Item Description - by Item - GetItemName [8497]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetItemName(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -77,7 +77,7 @@ codeunit 60011 "UI Shipments Functions"
 
     end;
 
-    //Get All Customers 
+    //Get All Customers - GetAllCustomers [8512]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetAllCustomers(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -106,7 +106,7 @@ codeunit 60011 "UI Shipments Functions"
         pContent := Obj_JsonText;
     end;
 
-    //Get All Vendors 
+    //Get All Vendors - GetAllVendors [8513]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetAllVendors(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -138,7 +138,7 @@ codeunit 60011 "UI Shipments Functions"
         pContent := Obj_JsonText;
     end;
 
-    //Get List of Sales Orders
+    //Get List of Sales Orders - GetListOfSalesOrders [8515]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfSalesOrders(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -214,7 +214,7 @@ codeunit 60011 "UI Shipments Functions"
         end;
     end;
 
-    //Get List of Sales Order Lines
+    //Get List of Sales Order Lines - GetListOfSalesOrderLines [8588]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfSalesOrderLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -320,7 +320,7 @@ codeunit 60011 "UI Shipments Functions"
         end;
     end;
 
-    //Get Customer Ship-to Addresses
+    //Get Customer Ship-to Addresses - GetCustomerShipToAddresses [8589]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetCustomerShipToAddresses(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -383,7 +383,7 @@ codeunit 60011 "UI Shipments Functions"
         end;
     end;
 
-    //Get List of Sales Order Lines
+    //Get List of Sales Order Lines - GetListOfOpenPurchaseOrders [8754]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfOpenPurchaseOrders(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR

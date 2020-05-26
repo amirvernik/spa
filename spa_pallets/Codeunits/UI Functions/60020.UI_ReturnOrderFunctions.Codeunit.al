@@ -1,6 +1,6 @@
 codeunit 60020 "UI Sales Return Orders"
 {
-    //Get Sales Shipments By Customer
+    //Get Sales Shipments By Customer - GetSalesShipmentsByCustomer [8807]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetSalesShipmentsByCustomer(VAR pFunction: Text[50]; VAR pContent: Text)
     var
@@ -42,7 +42,7 @@ codeunit 60020 "UI Sales Return Orders"
             pContent := 'No shipments for Customer or customer does not exist';
     end;
 
-    //Post Return Order
+    //Post Return Order - PostReturnOrder [8808]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure PostReturnOrder(VAR pFunction: Text[50]; VAR pContent: Text)
     var
@@ -79,7 +79,7 @@ codeunit 60020 "UI Sales Return Orders"
 
     end;
 
-    //Create Sales Return Order
+    //Create Sales Return Order - CreateSalesReturnOrder [8806]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CreateSalesReturnOrder(VAR pFunction: Text[50]; VAR pContent: Text)
     var
