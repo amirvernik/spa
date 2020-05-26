@@ -25,4 +25,3 @@ pageextension 60035 UserCardExt extends "User Card"
     var
         UserSetUp: Record "User Setup";
 }
- No newline at end of file
