@@ -118,28 +118,31 @@ codeunit 60012 "UI Inventory Functions"
     local procedure GetAllLocations(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         LocationRec: Record Location;
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
     begin
         IF pFunction <> 'GetAllLocations' THEN
             EXIT;
-        Obj_JsonText := '[';
-
         LocationRec.reset;
         if LocationRec.findset then
             repeat
-                Obj_JsonText += '{' +
+                /*Obj_JsonText += '{' +
                             '"Location": ' +
                             '"' + LocationRec.code + '"' +
                             ',' +
                             '"Description": "' +
                             LocationRec.Name +
-                            '"},'
-
+                            '"},'*/
+                JsonObj.add('Location', LocationRec.code);
+                JsonObj.add('Description', LocationRec.Name);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
             until LocationRec.next = 0;
 
-        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-        Obj_JsonText += ']';
-        pContent := Obj_JsonText;
+        //Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
+        //Obj_JsonText += ']';
+        //pContent := Obj_JsonText;
+        JsonArr.WriteTo(pContent);
     end;
 
     //Create Purchase Order Line - CreatePurchaseOrderLine [8642]

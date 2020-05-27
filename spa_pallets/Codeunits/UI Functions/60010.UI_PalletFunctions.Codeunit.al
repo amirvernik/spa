@@ -8,7 +8,6 @@ codeunit 60010 "UI Pallet Functions"
         PackingMaterials: Record "Packing Material Line";
         PalletHeader: Record "Pallet Header";
         PalletLines: Record "Pallet Line";
-        Obj_JsonText: Text;
         JsonObj: JsonObject;
         JsonObjPM: JsonObject;
         JsonArr: JsonArray;
@@ -260,8 +259,6 @@ codeunit 60010 "UI Pallet Functions"
         ItemAttributeManagement: Codeunit "Item Attribute Management";
         FilterText: text;
         ParameterCount: Integer;
-
-        Obj_JsonText: Text;
         JsonBuffer: Record "JSON Buffer" temporary;
         JsonText: Text;
         Attr_OM: Text;
@@ -271,7 +268,8 @@ codeunit 60010 "UI Pallet Functions"
         Attr_Grade: Text;
         Attr_Color: Text;
         DescText: Text;
-
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
     begin
         IF pFunction <> 'GetListOfItemsByAttr' THEN
             EXIT;
@@ -340,7 +338,6 @@ codeunit 60010 "UI Pallet Functions"
                 end;
             UNTIL JSONBuffer.NEXT = 0;
         end;
-        Obj_JsonText := '[';
         ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempItemFilteredFromAttributes);
         FilterText := ItemAttributeManagement.GetItemNoFilterText(TempItemFilteredFromAttributes, ParameterCount);
         if TempItemFilteredFromAttributes.findset then begin
@@ -351,18 +348,12 @@ codeunit 60010 "UI Pallet Functions"
                         DescText := ConvertStr(TempItemFilteredFromAttributes.Description, '"', ' ')
                     else
                         DescText := TempItemFilteredFromAttributes.Description;
-                    Obj_JsonText += '{' +
-                                '"Item No.": ' +
-                                '"' + TempItemFilteredFromAttributes."No." + '"' +
-                                ',' +
-                                '"Description": "' +
-                                DescText +
-                                '"},'
+                    JsonObj.add('Item No.', TempItemFilteredFromAttributes."No.");
+                    JsonObj.add('Description', DescText);
+                    JsonArr.Add(JsonObj);
+                    clear(JsonObj);
                 until TempItemFilteredFromAttributes.next = 0;
-            Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-            Obj_JsonText += ']';
-            pContent := Obj_JsonText;
-
+            JsonArr.WriteTo(pContent);
         end
         else
             pcontent := 'No Items';
@@ -674,8 +665,10 @@ codeunit 60010 "UI Pallet Functions"
         PalletID: code[20];
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
-        Obj_JsonText: Text;
-
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        JsonObjItems: JsonObject;
+        JsonArrItems: JsonArray;
     begin
         IF pFunction <> 'GetListOfPalletLines' THEN
             EXIT;
@@ -692,32 +685,29 @@ codeunit 60010 "UI Pallet Functions"
             until JsonBuffer.next = 0;
 
         if PalletHeader.GET(PalletID) then begin
-
-            Obj_JsonText := '[';
-            //Create Purchase Receipt
             PalletLine.reset;
             PalletLine.setrange(PalletLine."Pallet ID", PalletHeader."Pallet ID");
             if PalletLine.findset then begin
-                Obj_JsonText += '{"Pallet ID": ' +
-                                '"' + PalletID + '"' +
-                                ',"Item List":[';
+                JsonObj.add('Pallet ID', PalletHeader."Pallet ID");
                 repeat
-                    Obj_JsonText += '{"Item No" :"' + PalletLine."Item No." + '",' +
-                                 '"Variety":"' + PalletLine."Variant Code" + '",' +
-                                 '"Item Description":"' + PalletLine.Description + '",' +
-                                 '"location":"' + PalletLine."Location Code" + '",' +
-                                 '"Lot":"' + PalletLine."Lot Number" + '",' +
-                                 '"Unit of Measure":"' + PalletLine."Unit of Measure" + '",' +
-                                  '"Item Qty" :"' + format(palletline.Quantity) + '"},';
+                    Clear(JsonObjItems);
+                    JsonObjItems.add('Item No', PalletLine."Item No.");
+                    JsonObjItems.add('Variety', PalletLine."Variant Code");
+                    JsonObjItems.add('Item Description', PalletLine.Description);
+                    JsonObjItems.add('Location', PalletLine."Location Code");
+                    JsonObjItems.add('Lot', PalletLine."Variant Code");
+                    JsonObjItems.add('Unit of Measure', PalletLine."Unit of Measure");
+                    JsonObjItems.add('Item Qty', format(palletline.Quantity));
+                    JsonArrItems.Add(JsonObjItems);
 
                 until PalletLine.next = 0;
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']},';
-
+                if JsonArrItems.Count > 0 then
+                    JsonObj.add('Item List', JsonArrItems);
+                clear(JsonArrItems);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
             end;
-            Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-            Obj_JsonText += ']';
-            pContent := Obj_JsonText;
+            JsonArr.WriteTo(pContent);
         end
         else
             pContent := 'No Pallet Exist';
@@ -731,7 +721,8 @@ codeunit 60010 "UI Pallet Functions"
         ItemNo: code[20];
         Locationcode: code[20];
         ItemLedgerEntry: Record "Item Ledger Entry";
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
         LotSelection: Record "Lot Selection" temporary;
         ItemTemp: Record Item temporary;
         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
@@ -755,8 +746,6 @@ codeunit 60010 "UI Pallet Functions"
                     IF JSONBuffer.Path = 'locationcode' THEN
                         Locationcode := JSONBuffer.Value;
             until jsonbuffer.next = 0;
-
-            Obj_JsonText := '[';
 
             if LotSelection.findset then
                 LotSelection.deleteall;
@@ -795,28 +784,16 @@ codeunit 60010 "UI Pallet Functions"
                     end;
                 until ItemLedgerEntry.next = 0;
 
-
-            /*ItemTemp.reset;
-            ItemTemp.setrange(ItemTemp."Unit Price", 0);
-            if ItemTemp.findset then
-                ItemTemp.deleteall;*/
-
             ItemTemp.reset;
             if ItemTemp.findset then begin
                 repeat
-                    Obj_JsonText += '{"Lot No": ' +
-                        '"' + ItemTemp."No." + '"' +
-                        ',' +
-                        '"Qty": "' +
-                        format(ItemTemp."Price Unit Conversion") +
-                        '",' +
-                        '"Reserved": "' +
-                        format(ItemTemp."Budget Quantity") +
-                        '"},';
-                until itemtemp.next = 0;
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']';
-                pContent := Obj_JsonText;
+                    JsonObj.add('Lot No', ItemTemp."No.");
+                    JsonObj.add('Qty', format(ItemTemp."Price Unit Conversion"));
+                    JsonObj.add('Reserved', format(ItemTemp."Budget Quantity"));
+                    JsonArr.Add(JsonObj);
+                    clear(JsonObj);
+                until ItemTemp.next = 0;
+                JsonArr.WriteTo(pContent);
             end
             else
                 pContent := 'No Entries Found';
