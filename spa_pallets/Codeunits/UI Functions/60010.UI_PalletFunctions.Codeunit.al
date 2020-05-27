@@ -13,6 +13,7 @@ codeunit 60010 "UI Pallet Functions"
         ItemVariety: Record "Item Variant";
         ItemVarietyDescription: Text;
         Obj_JsonText: Text;
+
         JsonObj: JsonObject;
         JsonObjPM: JsonObject;
         JsonArr: JsonArray;
