@@ -346,7 +346,7 @@ codeunit 60021 "Purch. UI Functions"
         end;
     end;
 
-    //Complete Purchsae Order Batch 
+    //Complete Purchsae Order Batch - CompleteMicrowaveBatch [8818]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CompleteMicrowaveBatch(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -485,7 +485,7 @@ codeunit 60021 "Purch. UI Functions"
             end;
     end;
 
-    //Complete Purchsae Order Batch 
+    //Complete Purchsae Order Batch - AddPalletsToMWPurchaseOrder [8820]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure AddPalletsToMWPurchaseOrder(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR

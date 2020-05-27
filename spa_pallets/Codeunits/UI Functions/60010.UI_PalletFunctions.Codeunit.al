@@ -1,7 +1,7 @@
 codeunit 60010 "UI Pallet Functions"
 {
 
-    //Get List Of Pallets
+    //Get List Of Pallets - GetListOfPallets [8279]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPallets(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -67,7 +67,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArr.WriteTo(pContent);
     end;
 
-    //Create Pallet by Json
+    //Create Pallet by Json - CreatePalletFromJson [8301]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CreatePalletFromJson(VAR pFunction: Text[50]; VAR
                                                                       pContent: Text)
@@ -270,7 +270,7 @@ codeunit 60010 "UI Pallet Functions"
     end;
 
 
-    //Get List Of Items by Attributes
+    //Get List Of Items by Attributes - GetListOfItemsByAttr [8506]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfItemsByAttr(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -281,8 +281,6 @@ codeunit 60010 "UI Pallet Functions"
         ItemAttributeManagement: Codeunit "Item Attribute Management";
         FilterText: text;
         ParameterCount: Integer;
-
-        Obj_JsonText: Text;
         JsonBuffer: Record "JSON Buffer" temporary;
         JsonText: Text;
         Attr_OM: Text;
@@ -292,7 +290,8 @@ codeunit 60010 "UI Pallet Functions"
         Attr_Grade: Text;
         Attr_Color: Text;
         DescText: Text;
-
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
     begin
         IF pFunction <> 'GetListOfItemsByAttr' THEN
             EXIT;
@@ -361,7 +360,6 @@ codeunit 60010 "UI Pallet Functions"
                 end;
             UNTIL JSONBuffer.NEXT = 0;
         end;
-        Obj_JsonText := '[';
         ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempItemFilteredFromAttributes);
         FilterText := ItemAttributeManagement.GetItemNoFilterText(TempItemFilteredFromAttributes, ParameterCount);
         if TempItemFilteredFromAttributes.findset then begin
@@ -372,24 +370,18 @@ codeunit 60010 "UI Pallet Functions"
                         DescText := ConvertStr(TempItemFilteredFromAttributes.Description, '"', ' ')
                     else
                         DescText := TempItemFilteredFromAttributes.Description;
-                    Obj_JsonText += '{' +
-                                '"Item No.": ' +
-                                '"' + TempItemFilteredFromAttributes."No." + '"' +
-                                ',' +
-                                '"Description": "' +
-                                DescText +
-                                '"},'
+                    JsonObj.add('Item No.', TempItemFilteredFromAttributes."No.");
+                    JsonObj.add('Description', DescText);
+                    JsonArr.Add(JsonObj);
+                    clear(JsonObj);
                 until TempItemFilteredFromAttributes.next = 0;
-            Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-            Obj_JsonText += ']';
-            pContent := Obj_JsonText;
-
+            JsonArr.WriteTo(pContent);
         end
         else
             pcontent := 'No Items';
     end;
 
-    //Get List Of Items by Attributes
+    //Get List Of Items by Attributes - GetItemAttributeValues [8509]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetItemAttributeValues(VAR pFunction: Text[50]; VAR pContent: Text)
     var
@@ -534,7 +526,7 @@ codeunit 60010 "UI Pallet Functions"
             pContent := 'No Data';
     end;
 
-    //Create Pallet by Json
+    //Add Item to Pallet - AddItemToPallet [8616]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure AddItemToPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -687,7 +679,7 @@ codeunit 60010 "UI Pallet Functions"
         end;
     end;
 
-    //Get List of Pallet Lines
+    //Get List of Pallet Lines - GetListOfPalletLines [8627]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPalletLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -695,8 +687,10 @@ codeunit 60010 "UI Pallet Functions"
         PalletID: code[20];
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
-        Obj_JsonText: Text;
-
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        JsonObjItems: JsonObject;
+        JsonArrItems: JsonArray;
     begin
         IF pFunction <> 'GetListOfPalletLines' THEN
             EXIT;
@@ -713,38 +707,35 @@ codeunit 60010 "UI Pallet Functions"
             until JsonBuffer.next = 0;
 
         if PalletHeader.GET(PalletID) then begin
-
-            Obj_JsonText := '[';
-            //Create Purchase Receipt
             PalletLine.reset;
             PalletLine.setrange(PalletLine."Pallet ID", PalletHeader."Pallet ID");
             if PalletLine.findset then begin
-                Obj_JsonText += '{"Pallet ID": ' +
-                                '"' + PalletID + '"' +
-                                ',"Item List":[';
+                JsonObj.add('Pallet ID', PalletHeader."Pallet ID");
                 repeat
-                    Obj_JsonText += '{"Item No" :"' + PalletLine."Item No." + '",' +
-                                 '"Variety":"' + PalletLine."Variant Code" + '",' +
-                                 '"Item Description":"' + PalletLine.Description + '",' +
-                                 '"location":"' + PalletLine."Location Code" + '",' +
-                                 '"Lot":"' + PalletLine."Lot Number" + '",' +
-                                 '"Unit of Measure":"' + PalletLine."Unit of Measure" + '",' +
-                                  '"Item Qty" :"' + format(palletline.Quantity) + '"},';
+                    Clear(JsonObjItems);
+                    JsonObjItems.add('Item No', PalletLine."Item No.");
+                    JsonObjItems.add('Variety', PalletLine."Variant Code");
+                    JsonObjItems.add('Item Description', PalletLine.Description);
+                    JsonObjItems.add('Location', PalletLine."Location Code");
+                    JsonObjItems.add('Lot', PalletLine."Variant Code");
+                    JsonObjItems.add('Unit of Measure', PalletLine."Unit of Measure");
+                    JsonObjItems.add('Item Qty', format(palletline.Quantity));
+                    JsonArrItems.Add(JsonObjItems);
 
                 until PalletLine.next = 0;
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']},';
-
+                if JsonArrItems.Count > 0 then
+                    JsonObj.add('Item List', JsonArrItems);
+                clear(JsonArrItems);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
             end;
-            Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-            Obj_JsonText += ']';
-            pContent := Obj_JsonText;
+            JsonArr.WriteTo(pContent);
         end
         else
             pContent := 'No Pallet Exist';
     end;
 
-    //Get LOT Numbers by Item
+    //Get LOT Numbers by Item - GetLotNumbersByItem [8556]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetLotNumbersByItem(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -752,7 +743,8 @@ codeunit 60010 "UI Pallet Functions"
         ItemNo: code[20];
         Locationcode: code[20];
         ItemLedgerEntry: Record "Item Ledger Entry";
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
         LotSelection: Record "Lot Selection" temporary;
         ItemTemp: Record Item temporary;
         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
@@ -776,8 +768,6 @@ codeunit 60010 "UI Pallet Functions"
                     IF JSONBuffer.Path = 'locationcode' THEN
                         Locationcode := JSONBuffer.Value;
             until jsonbuffer.next = 0;
-
-            Obj_JsonText := '[';
 
             if LotSelection.findset then
                 LotSelection.deleteall;
@@ -816,28 +806,16 @@ codeunit 60010 "UI Pallet Functions"
                     end;
                 until ItemLedgerEntry.next = 0;
 
-
-            /*ItemTemp.reset;
-            ItemTemp.setrange(ItemTemp."Unit Price", 0);
-            if ItemTemp.findset then
-                ItemTemp.deleteall;*/
-
             ItemTemp.reset;
             if ItemTemp.findset then begin
                 repeat
-                    Obj_JsonText += '{"Lot No": ' +
-                        '"' + ItemTemp."No." + '"' +
-                        ',' +
-                        '"Qty": "' +
-                        format(ItemTemp."Price Unit Conversion") +
-                        '",' +
-                        '"Reserved": "' +
-                        format(ItemTemp."Budget Quantity") +
-                        '"},';
-                until itemtemp.next = 0;
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']';
-                pContent := Obj_JsonText;
+                    JsonObj.add('Lot No', ItemTemp."No.");
+                    JsonObj.add('Qty', format(ItemTemp."Price Unit Conversion"));
+                    JsonObj.add('Reserved', format(ItemTemp."Budget Quantity"));
+                    JsonArr.Add(JsonObj);
+                    clear(JsonObj);
+                until ItemTemp.next = 0;
+                JsonArr.WriteTo(pContent);
             end
             else
                 pContent := 'No Entries Found';

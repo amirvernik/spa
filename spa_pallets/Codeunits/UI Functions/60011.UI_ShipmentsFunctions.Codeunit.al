@@ -1,20 +1,20 @@
 codeunit 60011 "UI Shipments Functions"
 {
 
-    //Get List Of Items - By Json Object
+    //Get List Of Items - GetListOfItems [8295]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfItems(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        Item: Record item;
+        Item: Record Item;
         ItemUOM: Record "Item Unit of Measure";
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
         DescText: Text;
         QtyPerPallet: Decimal;
 
     begin
         IF pFunction <> 'GetListOfItems' THEN
             EXIT;
-        Obj_JsonText := '[';
         Item.reset;
         if Item.findset then
             repeat
@@ -25,37 +25,26 @@ codeunit 60011 "UI Shipments Functions"
                     DescText := ConvertStr(item.Description, '"', ' ')
                 else
                     DescText := item.Description;
-                Obj_JsonText += '{' +
-                            '"Item No.": ' +
-                            '"' + item."No." +
-                            '",' +
-                            '"Description": "' +
-                            DescText +
-                            '",' +
-                            '"ItemCategory": "' +
-                            Item."Item Category Code" +
-                            '",' +
-                            '"BaseUnitOfMeasure": "' +
-                            Item."Base Unit of Measure" +
-                            '",' +
-                            '"QtyPerPallet": "' +
-                           format(QtyPerPallet) +
+                JsonObj.add('Item No.', item."No.");
+                JsonObj.add('Description', DescText);
+                JsonObj.add('ItemCategory', Item."Item Category Code");
+                JsonObj.add('BaseUnitOfMeasure', Item."Base Unit of Measure");
+                JsonObj.add('QtyPerPallet', format(QtyPerPallet));
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
 
-                            '"},'
             until item.next = 0;
-        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-        Obj_JsonText += ']';
-        pContent := Obj_JsonText;
-
+        JsonArr.WriteTo(pContent);
     end;
 
-    //Get Item Description - by Item
+    //Get Item Description - by Item - GetItemName [8497]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetItemName(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         ItemRec: Record Item;
         JsonBuffer: Record "JSON Buffer" temporary;
         ItemNo: code[20];
+        JsonObj: JsonObject;
     begin
         IF pFunction <> 'GetItemName' THEN
             EXIT;
@@ -70,75 +59,60 @@ codeunit 60011 "UI Shipments Functions"
                     IF STRPOS(JSONBuffer.Path, 'itemno') > 0 THEN
                         ItemNo := JSONBuffer.Value;
             until JsonBuffer.next = 0;
-        if ItemRec.GET(ItemNo) then
-            pContent := '{"Item Name":"' + ItemRec.Description + '"}'
+        if ItemRec.GET(ItemNo) then begin
+            JsonObj.add('Item Name', ItemRec.Description);
+            JsonObj.WriteTo(pContent);
+        end
         else
             pContent := 'Error: Item does not exist';
 
     end;
 
-    //Get All Customers 
+    //Get All Customers - GetAllCustomers [8512]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetAllCustomers(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         CustomerRec: Record Customer;
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
     begin
         IF pFunction <> 'GetAllCustomers' THEN
             EXIT;
-        Obj_JsonText := '[';
-
         CustomerRec.reset;
         if CustomerRec.findset then
             repeat
-                Obj_JsonText += '{' +
-                            '"Customer No.": ' +
-                            '"' + CustomerRec."No." + '"' +
-                            ',' +
-                            '"Name": "' +
-                            CustomerRec.Name +
-                            '"},'
-
+                JsonObj.add('Customer No.', CustomerRec."No.");
+                JsonObj.add('Name', CustomerRec.Name);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
             until CustomerRec.next = 0;
-
-        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-        Obj_JsonText += ']';
-        pContent := Obj_JsonText;
+        JsonArr.WriteTo(pContent);
     end;
 
-    //Get All Vendors 
+    //Get All Vendors - GetAllVendors [8513]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetAllVendors(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         VendorRec: Record Vendor;
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+
     begin
         IF pFunction <> 'GetAllVendors' THEN
             EXIT;
-        Obj_JsonText := '[';
-
         VendorRec.reset;
         if VendorRec.findset then
             repeat
-                Obj_JsonText += '{' +
-                            '"Vendor No.": ' +
-                            '"' + VendorRec."No." + '"' +
-                            ',' +
-                            '"PostingGroup": ' +
-                            '"' + vendorrec."Vendor Posting Group" + '"' +
-                            ',' +
-                            '"Name": "' +
-                            VendorRec.Name +
-                            '"},'
-
+                JsonObj.add('Vendor No.', VendorRec."No.");
+                JsonObj.add('PostingGroup', VendorRec."Vendor Posting Group");
+                JsonObj.add('Name', VendorRec.name);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
             until VendorRec.next = 0;
-
-        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-        Obj_JsonText += ']';
-        pContent := Obj_JsonText;
+        JsonArr.WriteTo(pContent);
     end;
 
-    //Get List of Sales Orders
+    //Get List of Sales Orders - GetListOfSalesOrders [8515]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfSalesOrders(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -214,7 +188,7 @@ codeunit 60011 "UI Shipments Functions"
         end;
     end;
 
-    //Get List of Sales Order Lines
+    //Get List of Sales Order Lines - GetListOfSalesOrderLines [8588]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfSalesOrderLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -320,7 +294,7 @@ codeunit 60011 "UI Shipments Functions"
         end;
     end;
 
-    //Get Customer Ship-to Addresses
+    //Get Customer Ship-to Addresses - GetCustomerShipToAddresses [8589]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetCustomerShipToAddresses(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -328,7 +302,8 @@ codeunit 60011 "UI Shipments Functions"
         CustomerRec: Record Customer;
         JsonBuffer: Record "JSON Buffer" temporary;
         CustomerNo: code[20];
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
 
     begin
         IF pFunction <> 'GetCustomerShipToAddresses' THEN
@@ -346,53 +321,39 @@ codeunit 60011 "UI Shipments Functions"
 
             UNTIL JSONBuffer.NEXT = 0;
 
-            Obj_JsonText := '[';
             if CustomerRec.get(customerno) then begin
                 ShipToAddress.reset;
                 ShipToAddress.SetRange("Customer No.", CustomerNo);
                 if ShipToAddress.findset then
                     repeat
-                        Obj_JsonText += '{"Customer No": "' +
-                                        ShipToAddress."Customer No." +
-                                        '",' +
-                                        '"Ship-To Address Code":' +
-                                        '"' + ShipToAddress.Code +
-                                        '",' +
-                                        '"Name": "' +
-                                        ShipToAddress.Name +
-                                        '",' +
-                                        '"Name 2": "' +
-                                        ShipToAddress."Name 2" +
-                                        '",' +
-                                        '"Address": "' +
-                                        ShipToAddress.Address +
-                                        '",' +
-                                        '"Address 2": "' +
-                                        ShipToAddress."Address 2" +
-                                        '",' +
-                                        '"City": "' +
-                                        ShipToAddress.City +
-                                        '"},';
-
+                        JsonObj.add('Customer No', ShipToAddress."Customer No.");
+                        JsonObj.add('Ship-To Address Code', ShipToAddress.Code);
+                        JsonObj.add('Name', ShipToAddress.Name);
+                        JsonObj.add('Name 2', ShipToAddress."Name 2");
+                        JsonObj.add('Address', ShipToAddress.Address);
+                        JsonObj.add('Address 2', ShipToAddress."Address 2");
+                        JsonObj.add('City', ShipToAddress.City);
+                        JsonArr.Add(JsonObj);
+                        clear(JsonObj);
                     until ShipToAddress.next = 0;
-
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']';
-                pContent := Obj_JsonText;
+                if JsonArr.count > 0 then
+                    JsonArr.WriteTo(pContent)
+                else
+                    pContent := 'No Customer Ship to Addresses';
             end;
         end;
     end;
 
-    //Get List of Sales Order Lines
+    //Get List of Sales Order Lines - GetListOfOpenPurchaseOrders [8754]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfOpenPurchaseOrders(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         JsonBuffer: Record "JSON Buffer" temporary;
         purchaseHeader: Record "Purchase Header";
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
         PurchaseType: text;
         OrderType: Text;
-
     begin
         IF pFunction <> 'GetListOfOpenPurchaseOrders' THEN
             EXIT;
@@ -408,7 +369,6 @@ codeunit 60011 "UI Shipments Functions"
                         PurchaseType := JSONBuffer.Value;
             UNTIL JSONBuffer.NEXT = 0;
 
-            Obj_JsonText := '[';
             purchaseHeader.reset;
             purchaseHeader.SetRange(purchaseHeader."Document Type", purchaseHeader."Document Type"::order);
             if PurchaseType = 'grade' then
@@ -427,51 +387,25 @@ codeunit 60011 "UI Shipments Functions"
                             OrderType := 'GradingPO';
                         if purchaseHeader."Microwave Process PO" then
                             OrderType := 'MicrowavePO';
-
-                        Obj_JsonText += '{"Purchase Order No": ' +
-                                        '"' + purchaseHeader."No." + '"' +
-                                        ',' +
-                                        '"Batch Number": ' +
-                                        '"' + purchaseHeader."Batch Number" + '"' +
-                                        ',' +
-                                        '"Type": ' +
-                                        '"' + OrderType + '"' +
-                                        ',' +
-                                        '"Vendor": "' +
-                                        format(purchaseHeader."Buy-from Vendor No.") + '"' +
-                                        ',' +
-                                        '"HarvestDate": ' +
-                                        '"' + format(purchaseHeader."Harvest Date") + '"' +
-                                        ',' +
-                                        '"BinQuantity": ' +
-                                        '"' + format(purchaseHeader."Number Of Raw Material Bins") + '"' +
-                                        ',' +
-                                        '"SupplierPackingSlip": ' +
-                                        '"' + purchaseHeader."Vendor Shipment No." + '"' +
-                                        ',' +
-                                        '"Location Code": ' +
-                                        '"' + purchaseheader."Location Code" + '"' +
-                                        ',' +
-                                        '"RM Location": ' +
-                                        '"' + purchaseheader."RM Location" + '"' +
-                                        ',' +
-                                        '"RawMaterialItem": ' +
-                                        '"' + purchaseHeader."Raw Material Item" + '"' +
-                                        ',' +
-                                        '"RawMaterialBatch": ' +
-                                        '"' + purchaseHeader."Item LOT Number" + '"' +
-                                        ',' +
-                                        '"RawMaterialQuantity": ' +
-                                        '"' + format(purchaseHeader."RM Qty") + '"' +
-                                        '},';
+                        JsonObj.add('Purchase Order No', purchaseHeader."No.");
+                        JsonObj.add('Batch Number', purchaseHeader."Batch Number");
+                        JsonObj.add('Type', OrderType);
+                        JsonObj.add('Vendor', format(purchaseHeader."Buy-from Vendor No."));
+                        JsonObj.add('HarvestDate', format(purchaseHeader."Harvest Date"));
+                        JsonObj.add('BinQuantity', format(purchaseHeader."Number Of Raw Material Bins"));
+                        JsonObj.add('SupplierPackingSlip', OrderType);
+                        JsonObj.add('Location Code', purchaseHeader."Location Code");
+                        JsonObj.add('RM Location', purchaseHeader."RM Location");
+                        JsonObj.add('RawMaterialItem', purchaseHeader."Raw Material Item");
+                        JsonObj.add('RawMaterialBatch', purchaseHeader."Item LOT Number");
+                        JsonObj.add('RawMaterialQuantity', OrderType);
+                        JsonArr.Add(JsonObj);
+                        clear(JsonObj);
                     end;
                 until purchaseHeader.next = 0;
-
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']';
-                if Obj_JsonText = ']' then
+                if JsonArr.Count = 0 then
                     pContent := 'No Orders found' else
-                    pContent := Obj_JsonText;
+                    JsonArr.WriteTo(pContent);
             end;
 
         end;

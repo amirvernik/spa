@@ -1,6 +1,6 @@
 codeunit 60016 "UI Whse Shipments Functions"
 {
-    //Get List of Sales Order Lines
+    //Get List of Shipment Lines - GetListOfWhseShipmentLines [8797]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfWhseShipmentLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -51,7 +51,7 @@ codeunit 60016 "UI Whse Shipments Functions"
     end;
 
 
-    //Create Warehouse Shipment
+    //Create Warehouse Shipment - CreateWhseShipment [8594]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CreateWhseShipment(VAR pFunction: Text[50]; VAR
                                                                     pContent: Text)
@@ -221,7 +221,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         pContent := '{"ShipmentNo": "' + ShipmentNo + '"}';
     end;
 
-    //Add Pallet to Whse Shipment
+    //Add Pallet to Whse Shipment - AddPalletToWhseShipment [8595]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure AddPalletToWhseShipment(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -331,7 +331,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         pContent := 'Pallets Added';
     end;
 
-    //Get List of Sales Orders
+    //Remove Pallet from Whse Shipment - RemovePalletFromWhseShip [8640]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure RemovePalletFromWhseShip(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -393,7 +393,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         end;
     end;
 
-    //Get List of Pallet in Shipment
+    //Get List of Pallet in Shipment - GetListOfPalletsInShipment [8641]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPalletsInShipment(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -454,7 +454,7 @@ codeunit 60016 "UI Whse Shipments Functions"
             pContent := Obj_JsonText;
     end;
 
-    //Get List of Pallet in Shipment Line
+    //Get List of Pallet in Shipment Line - GetListOfPalletsInShipmentLine [8802]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPalletsInShipmentLine(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -521,7 +521,7 @@ codeunit 60016 "UI Whse Shipments Functions"
             pContent := Obj_JsonText;
     end;
 
-    //Get List of Pallet to select in Shipment
+    //Get List of Pallet to select in Shipment - GetListOfPalletToSelect [8803]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPalletToSelect(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -635,7 +635,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         end;
     end;
 
-    //Remove Warehouse Shipment Line
+    //Remove Warehouse Shipment Line - RemoveWhseShipmentLine [8804]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure RemoveWhseShipmentLine(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
