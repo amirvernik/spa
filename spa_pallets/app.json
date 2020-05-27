@@ -27,13 +27,13 @@
       "id": "a31793cd-8095-4628-8926-ab24dc0c807b",
       "publisher": "Prodware",
       "name": "SPA_UI",
-      "version": "16.0.0.1"
+      "version": "16.0.0.2"
     },   
     {
       "id": "f30b585b-e976-4c84-a87b-c93c6e8b7a4f",
       "publisher": "Prodware",
       "name": "SPA_Purchase",
-      "version": "16.0.0.6"
+      "version": "16.0.0.7"
     }     
   ],
   "screenshots": [],
