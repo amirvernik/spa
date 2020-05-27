@@ -39,9 +39,8 @@ codeunit 60010 "UI Pallet Functions"
                 if PalletLines.FindFirst() then begin
                     if ItemRec.Get(PalletLines."Item No.") then
                         ItemDescription := ItemRec.Description;
-                    ItemVariety.Reset;
-                    ItemVariety.Get(PalletLines."Variant Code", PalletLines."Item No.");
-                    if ItemVariety.FindSet then
+
+                    if ItemVariety.Get(PalletLines."Variant Code", PalletLines."Item No.") then
                         ItemVarietyDescription := ItemVariety.Description;
                     JsonObj.add('Description', ItemDescription + '-' + ItemVarietyDescription);
                 end;
