@@ -8,6 +8,10 @@ codeunit 60010 "UI Pallet Functions"
         PackingMaterials: Record "Packing Material Line";
         PalletHeader: Record "Pallet Header";
         PalletLines: Record "Pallet Line";
+        ItemRec: Record Item;
+        ItemDescription: Text;
+        ItemVariety: Record "Item Variant";
+        ItemVarietyDescription: Text;
         Obj_JsonText: Text;
         JsonObj: JsonObject;
         JsonObjPM: JsonObject;
@@ -24,6 +28,24 @@ codeunit 60010 "UI Pallet Functions"
                 JsonObj.add('Location', PalletHeader."Location Code");
                 JsonObj.add('Status', format(PalletHeader."Pallet Status"));
                 JsonObj.add('Exist in Shipment', PalletHeader."Exist in warehouse shipment");
+                JsonObj.add('PalletType', PalletHeader."Pallet Type");
+                JsonObj.add('TotalQty', PalletHeader."Total Qty");
+                JsonObj.add('RawMaterial', PalletHeader."Raw Material Pallet");
+                JsonObj.add('CreationDate', PalletHeader."Creation Date");
+                JsonObj.add('UserCreated', PalletHeader."User Created");
+                JsonObj.add('ExistInWarehouseShipment', PalletHeader."Exist in warehouse shipment");
+                PalletLines.reset;
+                PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
+                if PalletLines.FindFirst() then begin
+                    if ItemRec.Get(PalletLines."Item No.") then
+                        ItemDescription := ItemRec.Description;
+                    ItemVariety.Reset;
+                    ItemVariety.SetRange(Code, PalletLines."Variant Code");
+                    ItemVariety.SetRange("Item No.", PalletLines."Item No.");
+                    if ItemVariety.FindSet then
+                        ItemVarietyDescription := ItemVariety.Description;
+                    JsonObj.add('Description', ItemDescription + '-' + ItemVarietyDescription);
+                end;
 
                 //Packing Materials
                 PackingMaterials.reset;
