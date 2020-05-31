@@ -3,28 +3,40 @@ codeunit 60023 "Pallet Disposal Management"
 
     procedure DisposePallet(var pPalletHeader: Record "Pallet Header")
     var
-        PalletDisposeError: label 'You cannot dispose the pallet. it is not a closed pallet';
-        PalletDisposeConf: label 'Are you sure you want to dispose the pallet?';
+    begin
+        CheckDisposalSetup(pPalletHeader);
+        ChangeDisposalStatus(pPalletHeader);
+        DisposePackingMaterials(pPalletHeader);
+        DisposePalletItems(pPalletHeader);
+        PostDisposalBatch;
+    end;
+
+    //Check Disposal Setup
+    procedure CheckDisposalSetup(var pPalletHeader: Record "Pallet Header")
+    var
         DisposalBatchError: Label 'Disposal journal batch must be configured, please contact administrator';
     begin
         PalletSetup.get;
         if PalletSetup."Disposal Batch" = '' then
             error(DisposalBatchError);
+    end;
 
-
+    //Change to Status - Disposed
+    procedure ChangeDisposalStatus(var pPalletHeader: Record "Pallet Header")
+    var
+        PalletDisposeError: label 'You cannot dispose the pallet. it is not a closed pallet';
+        PalletDisposeConf: label 'Are you sure you want to dispose the pallet?';
+    begin
         if pPalletHeader."Pallet Status" <> pPalletHeader."Pallet Status"::Closed then
             Error(PalletDisposeError);
         if confirm(PalletDisposeConf) then begin
-
-            //Dispose Packing Materials
-            DisposePackingMaterials(pPalletHeader);
-
-            //Dispose Pallet Items
-            DisposePalletItems(pPalletHeader);
+            pPalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Disposed;
+            pPalletHeader.modify;
         end;
     end;
 
-    local procedure DisposePackingMaterials(var pPalletHeader: Record "Pallet Header")
+    //Dispose Packing Materials
+    procedure DisposePackingMaterials(var pPalletHeader: Record "Pallet Header")
     var
         PackingMaterials: Record "Packing Material Line";
         PMSelect: Record "Packing Materials Select" temporary;
@@ -68,6 +80,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.Description := PMSelect."PM Item Description";
                 RecGItemJournalLine.validate("Item No.", PMSelect."PM Item No.");
+                RecGItemJournalLine.validate("Variant Code", Palletline."Variant Code");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 RecGItemJournalLine.validate(Quantity, PMSelect.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
@@ -76,7 +89,49 @@ codeunit 60023 "Pallet Disposal Management"
             until PMSelect.next = 0;
     end;
 
-    local procedure DisposePalletItems(var pPalletHeader: Record "Pallet Header")
+    //Dispose Packing Materials UI
+    procedure DisposePackingMaterialsUI(var pPalletHeader: Record "Pallet Header"; var pPackingSelect: Record "Packing Materials Select")
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        LineNumber: Integer;
+    begin
+        pPackingSelect.reset;
+        if pPackingSelect.findset then
+            repeat
+                PalletSetup.get();
+                ItemJournalLine.reset;
+                ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+                if ItemJournalLine.FindLast() then
+                    LineNumber := ItemJournalLine."Line No." + 10000
+                else
+                    LineNumber := 10000;
+
+                ItemJournalLine.init;
+                ItemJournalLine."Journal Template Name" := 'ITEM';
+                ItemJournalLine."Journal Batch Name" := PalletSetup."Disposal Batch";
+                ItemJournalLine."Line No." := LineNumber;
+                ItemJournalLine.insert;
+                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
+                ItemJournalLine."External Document No." := pPalletHeader."Pallet ID";
+                ItemJournalLine."Posting Date" := Today;
+                ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
+                ItemJournalLine.Description := pPackingSelect."PM Item Description";
+                ItemJournalLine.validate("Item No.", pPackingSelect."PM Item No.");
+                ItemJournalLine.validate("Variant Code", Palletline."Variant Code");
+                ItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
+                ItemJournalLine.validate(Quantity, pPackingSelect.Quantity);
+                ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine.modify;
+                lineNumber += 10000;
+            until pPackingSelect.next = 0;
+    end;
+
+
+
+
+    //Dispose Pallet Items
+    procedure DisposePalletItems(var pPalletHeader: Record "Pallet Header")
     var
         PalletLine: Record "Pallet Line";
         RecGItemJournalLine: Record "Item Journal Line";
@@ -106,12 +161,26 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.Description := PalletLine.Description;
                 RecGItemJournalLine.validate("Item No.", PalletLine."Item No.");
+                RecGItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
                 RecGItemJournalLine.validate("Location Code", PalletLine."Location Code");
                 RecGItemJournalLine.validate(Quantity, PalletLine.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.modify;
                 lineNumber += 10000;
             until PalletLine.next = 0;
+    end;
+
+    //Post Disposal Batch
+    procedure PostDisposalBatch()
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        PalletSetup.get;
+        ItemJournalLine.reset;
+        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+        if ItemJournalLine.findset then
+            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
     end;
 
     var
