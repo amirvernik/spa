@@ -40,7 +40,7 @@ codeunit 60010 "UI Pallet Functions"
                     if ItemRec.Get(PalletLines."Item No.") then
                         ItemDescription := ItemRec.Description;
 
-                    if ItemVariety.Get(PalletLines."Variant Code", PalletLines."Item No.") then
+                    if ItemVariety.Get(PalletLines."Item No.", copystr(PalletLines."Variant Code", 1, 10)) then
                         ItemVarietyDescription := ItemVariety.Description;
                     JsonObj.add('Description', ItemDescription + '-' + ItemVarietyDescription);
                 end;
