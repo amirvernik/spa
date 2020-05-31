@@ -550,6 +550,7 @@ codeunit 60010 "UI Pallet Functions"
         LOTNO: code[20];
         PalletLineCheck: Record "Pallet Line";
         PalletLineNumber: Integer;
+        VariantCode:code[20];
 
     begin
         IF pFunction <> 'AddItemToPallet' THEN
@@ -601,6 +602,9 @@ codeunit 60010 "UI Pallet Functions"
                             IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].LOTNo' THEN
                                 LOTNO := JSONBuffer.Value;
 
+                            IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].VarietyCode' THEN
+                                VariantCode := JSONBuffer.Value;
+
                         UNTIL JSONBuffer.NEXT = 0;
 
                     iCount += 1;
@@ -618,6 +622,7 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine."Pallet ID" := PalletID;
                         PalletLine."Line No." := PalletLineNumber;
                         PalletLine.validate("Item No.", ItemNo);
+                        PalletLine.validate("Variant Code",VariantCode);
                         if ItemRec.get(ItemNo) then begin
                             if format(ItemRec."Expiration Calculation") = '' then
                                 PalletLine."Expiration Date" := today
@@ -651,6 +656,7 @@ codeunit 60010 "UI Pallet Functions"
                             PurchaseLine.insert;
                             PurchaseLine.type := PurchaseLine.type::Item;
                             purchaseline.validate("No.", PalletLine."Item No.");
+                            PurchaseLine.VALIDATE("Variant Code",PalletLine."Variant Code");
                             purchaseline.validate("Location Code", PalletLine."Location Code");
                             PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                             PurchaseLine.validate("Qty. to Receive", PurchaseLine.Quantity);
@@ -749,6 +755,7 @@ codeunit 60010 "UI Pallet Functions"
         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
         ReserevationEntry: Record "Reservation Entry";
         QtyReserved: Decimal;
+        VariantCode: Code[20];
 
     begin
         IF pFunction <> 'GetLotNumbersByItem' THEN
@@ -762,6 +769,10 @@ codeunit 60010 "UI Pallet Functions"
                 IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
                     IF JSONBuffer.Path = 'itemno' THEN
                         ItemNo := JSONBuffer.Value;
+
+                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
+                    IF JSONBuffer.Path = 'varietycode' THEN
+                        VariantCode := JSONBuffer.Value;
 
                 IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
                     IF JSONBuffer.Path = 'locationcode' THEN
@@ -779,6 +790,8 @@ codeunit 60010 "UI Pallet Functions"
             ItemLedgerEntry.SETCURRENTKEY("Item No.", Open, "Variant Code", "Location Code", "Item Tracking",
               "Lot No.", "Serial No.");
             ItemLedgerEntry.SETRANGE("Item No.", ItemNo);
+            if VariantCode <> '' then
+                ItemLedgerEntry.SETRANGE("Variant Code", VariantCode);
             ItemLedgerEntry.SETRANGE(Open, TRUE);
             ItemLedgerEntry.SETRANGE("Location Code", Locationcode);
             ItemLedgerEntry.SetFilter("Lot No.", '<>%1', '');

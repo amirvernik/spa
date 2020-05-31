@@ -259,8 +259,9 @@ codeunit 60011 "UI Shipments Functions"
                         if salesline.findset then
                             repeat
                                 Clear(JsonObjLines);
-                                JsonObjLines.add('Item No', SalesLine."No.");
                                 JsonObjLines.add('Line No.', format(SalesLine."Line No."));
+                                JsonObjLines.add('Item No', SalesLine."No.");
+                                JsonObjLines.add('Variety', SalesLine."Variant Code");
                                 JsonObjLines.add('Description', salesline.Description);
                                 JsonObjLines.add('Location', salesline."Location Code");
                                 JsonObjLines.add('Quantity', format(salesline.Quantity));
