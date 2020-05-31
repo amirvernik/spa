@@ -102,7 +102,7 @@ table 60003 "Pallet Line"
                 ItemVariant.setrange(code, rec."Variant Code");
                 if ItemVariant.findfirst then begin
                     rec.Description := ItemVariant.Description;
-                    rec.modify;
+                    //rec.modify;
                 end;
             end;
 

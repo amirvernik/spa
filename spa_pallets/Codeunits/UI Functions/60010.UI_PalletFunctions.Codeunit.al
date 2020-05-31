@@ -99,6 +99,7 @@ codeunit 60010 "UI Pallet Functions"
         RM_Pallet: Text;
         RM_Pallet_Boolean: Boolean;
         PalletType: Text;
+        VariantCode: Code[20];
 
     begin
         IF pFunction <> 'CreatePalletFromJson' THEN
@@ -176,17 +177,24 @@ codeunit 60010 "UI Pallet Functions"
 
                     IF JSONBuffer.Path = ('[1][' + FORMAT(iCount) + '].ItemNo') THEN
                         ItemNo := JSONBuffer.Value
-                    ELSE
+                    else
+
                         IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].UnitOfMeasure' THEN
                             UOM := JSONBuffer.Value
-                        ELSE
+                        else
+
                             IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].Quantity' THEN
                                 EVALUATE(Qty, JSONBuffer.Value)
-                            ELSE
+                            else
+
                                 IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].LOTNo' THEN
-                                    LOTNO := JSONBuffer.Value;
+                                    LOTNO := JSONBuffer.Value
+                                else
+                                    IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].VarietyCode' THEN
+                                        VariantCode := JSONBuffer.Value;
 
                 UNTIL JSONBuffer.NEXT = 0;
+
             iCount += 1;
             if PalletHeader.get(PalletID) then begin
                 PalletLineCheck.reset;
@@ -201,6 +209,7 @@ codeunit 60010 "UI Pallet Functions"
                 PalletLine."Pallet ID" := PalletID;
                 PalletLine."Line No." := PalletLineNumber;
                 PalletLine.validate("Item No.", ItemNo);
+                PalletLine.validate("Variant Code", VariantCode);
                 if ItemRec.get(ItemNo) then begin
                     if format(ItemRec."Expiration Calculation") = '' then
                         PalletLine."Expiration Date" := today
@@ -250,6 +259,7 @@ codeunit 60010 "UI Pallet Functions"
                     PurchaseLine.insert;
                     PurchaseLine.type := PurchaseLine.type::Item;
                     purchaseline.validate("No.", PalletLine."Item No.");
+                    PurchaseLine.validate("Variant Code", PalletLine."Variant Code");
                     purchaseline.validate("Location Code", PalletLine."Location Code");
                     PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                     PurchaseLine.validate("Qty. to Receive", 0);
@@ -550,7 +560,7 @@ codeunit 60010 "UI Pallet Functions"
         LOTNO: code[20];
         PalletLineCheck: Record "Pallet Line";
         PalletLineNumber: Integer;
-        VariantCode:code[20];
+        VariantCode: code[20];
 
     begin
         IF pFunction <> 'AddItemToPallet' THEN
@@ -622,7 +632,7 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine."Pallet ID" := PalletID;
                         PalletLine."Line No." := PalletLineNumber;
                         PalletLine.validate("Item No.", ItemNo);
-                        PalletLine.validate("Variant Code",VariantCode);
+                        PalletLine.validate("Variant Code", VariantCode);
                         if ItemRec.get(ItemNo) then begin
                             if format(ItemRec."Expiration Calculation") = '' then
                                 PalletLine."Expiration Date" := today
@@ -656,7 +666,7 @@ codeunit 60010 "UI Pallet Functions"
                             PurchaseLine.insert;
                             PurchaseLine.type := PurchaseLine.type::Item;
                             purchaseline.validate("No.", PalletLine."Item No.");
-                            PurchaseLine.VALIDATE("Variant Code",PalletLine."Variant Code");
+                            PurchaseLine.VALIDATE("Variant Code", PalletLine."Variant Code");
                             purchaseline.validate("Location Code", PalletLine."Location Code");
                             PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                             PurchaseLine.validate("Qty. to Receive", PurchaseLine.Quantity);
