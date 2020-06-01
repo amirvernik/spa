@@ -245,6 +245,7 @@ codeunit 60001 "Pallet Functions"
                     PMSelect."PM Item No." := PackingMaterials."Item No.";
                     PMSelect."Pallet Packing Line No." := PackingMaterials."Line No.";
                     PMSelect."PM Item Description" := PackingMaterials.Description;
+                    PMSelect."Unit of Measure" := PackingMaterials."Unit of Measure Code";
                     PMSelect.Quantity := PackingMaterials.Quantity;
                     pmselect.insert;
                 until PackingMaterials.next = 0;

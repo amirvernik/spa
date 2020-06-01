@@ -255,6 +255,7 @@ page 60003 "Pallet Card"
             ShowClose := false;
             ShowDisposed := true;
         end;
+
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", rec."Pallet ID");
         if PackingMaterials.findfirst then

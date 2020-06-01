@@ -99,8 +99,16 @@ page 60025 "Pallet Change Quality"
                 var
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                 begin
-                    //Negative Change Quality
-                    ChangeQualityMgmt.NegAdjChangeQuality(Rec);
+
+                    //ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality                    
+                    //ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
+                    //ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
+                    //ChangeQualityMgmt.PalletLedgerAdjust(rec); //Adjust Pallet Ledger Entries                    
+                    //ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines
+                    //Post Negative    
+                    //PosAdjNewItems
+                    //ChangeQualityMgmt.PosAdjNewItems(rec)
+                    //Post Positive
                 end;
 
             }

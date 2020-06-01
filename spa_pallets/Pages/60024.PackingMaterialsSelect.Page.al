@@ -28,6 +28,11 @@ page 60024 "Packing Materials Select"
                     ApplicationArea = all;
                     editable = false;
                 }
+                field("Unit of Measure"; "Unit of Measure")
+                {
+                    ApplicationArea = all;
+                    editable = false;
+                }
                 field(Quantity; Quantity)
                 {
                     ApplicationArea = all;
@@ -55,8 +60,10 @@ page 60024 "Packing Materials Select"
                     //PackingTrackingLine.setrange("Line No.", "Pallet Packing Line No.");
                     PackingTrackingLine.setrange("Item No.", "PM Item No.");
                     PackingTrackingLine.setrange("Pallet ID", "Pallet ID");
+                    PackingTrackingLine.setrange("Unit of Measure Code", "Unit of Measure");
                     if PackingTrackingLine.findfirst then begin
                         PackingTrackingLine.Returned := true;
+                        PackingTrackingLine."Qty to Return" := rec.Quantity;
                         PackingTrackingLine.modify;
                     end;
                 until rec.Next = 0;

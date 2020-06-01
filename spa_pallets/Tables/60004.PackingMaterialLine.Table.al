@@ -45,6 +45,11 @@ table 60004 "Packing Material Line"
             Caption = 'Line No.';
             DataClassification = ToBeClassified;
         }
+        field(10;"Qty to Return";Decimal)
+        {
+            Caption = 'Qty to Return';
+            DataClassification = ToBeClassified;
+        }        
         
     }
 

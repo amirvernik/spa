@@ -66,7 +66,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
-                RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;

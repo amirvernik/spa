@@ -46,5 +46,9 @@ enum 60001 "Pallet Ledger Type"
     {
         Caption = 'Consume Raw Materials';
     }
+    value(11; "Quality Change")
+    {
+        Caption = 'Quality Change';
+    }
 
 }
