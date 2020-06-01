@@ -65,7 +65,7 @@ table 60018 "Pallet Line Change Quality"
             Caption = 'Replaced Qty';
             DataClassification = ToBeClassified;
         }
-        field(60020; "Variant Code"; code[20])
+        field(60020; "Variant Code"; code[10])
         {
             caption = 'Variety';
         }

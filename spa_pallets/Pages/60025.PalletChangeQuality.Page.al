@@ -97,7 +97,10 @@ page 60025 "Pallet Change Quality"
                 Image = Change;
                 trigger OnAction()
                 var
+                    ChangeQualityMgmt: Codeunit "Change Quality Management";
                 begin
+                    //Negative Change Quality
+                    ChangeQualityMgmt.NegAdjChangeQuality(Rec);
                 end;
 
             }

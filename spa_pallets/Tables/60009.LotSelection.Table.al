@@ -36,7 +36,7 @@ table 60009 "Lot Selection"
         {
             DataClassification = ToBeClassified;
         }
-        field(9; "Variant code"; Code[20])
+        field(9; "Variant code"; Code[10])
         {
             caption='Variety';
             DataClassification = ToBeClassified;

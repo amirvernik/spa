@@ -88,7 +88,7 @@ table 60003 "Pallet Line"
             DataClassification = ToBeClassified;
 
         }
-        field(60020; "Variant Code"; code[20])
+        field(60020; "Variant Code"; code[10])
         {
             caption = 'Variety';
             DataClassification = ToBeClassified;

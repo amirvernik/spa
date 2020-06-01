@@ -24,7 +24,7 @@ table 60010 "Pallet reservation Entry"
         {
             DataClassification = ToBeClassified;
         }
-        field(6; "Variant Code"; code[20])
+        field(6; "Variant Code"; code[10])
         {
             caption = 'Variety';
             DataClassification = ToBeClassified;
