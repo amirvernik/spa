@@ -98,7 +98,7 @@ codeunit 60001 "Pallet Functions"
     end;
 
     //Adding Packing Materials - Global Function
-    local procedure AddMaterials(var PalletHeader: Record "Pallet Header")
+    procedure AddMaterials(var PalletHeader: Record "Pallet Header")
     begin
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");

@@ -202,8 +202,8 @@ codeunit 60024 "Change Quality Management"
             until pPalletLineChg.next = 0;
     end;
 
-    //Adjust Pallet LedgerEntries
-    procedure PalletLedgerAdjust(var pPalletLineChg: Record "Pallet Line Change Quality")
+    //Adjust Pallet LedgerEntries - Old Items
+    procedure PalletLedgerAdjustOld(var pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         LineNumber: Integer;
@@ -230,7 +230,6 @@ codeunit 60024 "Change Quality Management"
                 PalletLedgerEntry.Insert();
                 LineNumber += 1;
             until pPalletLineChg.next = 0;
-
     end;
 
     //Add The new items to the Pallet
@@ -240,6 +239,7 @@ codeunit 60024 "Change Quality Management"
         PalletItemChgLine: Record "Pallet Change Quality";
         LineNumber: integer;
         ItemRec: Record Item;
+        PalletLedgerEntry: Record "Pallet Ledger Entry";
     begin
         pPalletLineChg.reset;
         if pPalletLineChg.findset then
@@ -275,8 +275,108 @@ codeunit 60024 "Change Quality Management"
                         end;
                         PalletLine."User ID" := UserId;
                         PalletLine.insert;
+
+                        //Add New Items to Pallet Ledger Entry
+                        PalletLedgerEntry.Init();
+                        PalletLedgerEntry."Entry No." := LineNumber;
+                        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
+                        PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
+                        PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
+                        PalletLedgerEntry."Document No." := PalletLine."Pallet ID";
+                        PalletLedgerEntry.validate("Posting Date", Today);
+                        PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");
+                        PalletLedgerEntry."Variant Code" := PalletLine."Variant Code";
+                        PalletLedgerEntry."Item Description" := PalletLine.Description;
+                        PalletLedgerEntry."Lot Number" := PalletLine."Lot Number";
+                        PalletLedgerEntry.validate("Location Code", PalletLine."Location Code");
+                        PalletLedgerEntry.validate("Unit of Measure", PalletLine."Unit of Measure");
+                        PalletLedgerEntry.validate(Quantity, PalletLine.Quantity);
+                        PalletLedgerEntry."User ID" := userid;
+                        PalletLedgerEntry.Insert();
                     until PalletItemChgLine.next = 0;
             until pPalletLineChg.next = 0;
+    end;
+
+    //Post Negative Item Ledger Entry
+    procedure PostItemLedger()
+    var
+        PurchaseProcessSetup: Record "SPA Purchase Process Setup";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        PurchaseProcessSetup.get();
+        ItemJournalLine.reset;
+        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+        if ItemJournalLine.findset then
+            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
+    end;
+
+    //Neg ADjustment to New Packing Materials
+    procedure NegAdjToNewPacking(var pPalletLineChg: Record "Pallet Line Change Quality")
+    var
+        QualityChangeLine: Record "Pallet Change Quality";
+        BomComponent: Record "BOM Component";
+        ItemJournalLine: Record "Item Journal Line";
+        PalletSetup: Record "Pallet Process Setup";
+        PalletHeader: Record "Pallet Header";
+        LineNumber: Integer;
+    begin
+        ItemJournalLine."Journal Template Name" := 'ITEM';
+        ItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+        if ItemJournalLine.findlast then
+            LineNumber := ItemJournalLine."Line No."
+        else
+            LineNumber := 10000;
+
+        QualityChangeLine.reset;
+        QualityChangeLine.setrange("Pallet ID", pPalletLineChg."Pallet ID");
+        if QualityChangeLine.FindSet then
+            repeat
+                PalletHeader.get(pPalletLineChg."Pallet ID");
+                BomComponent.reset;
+                BomComponent.setrange("Parent Item No.", QualityChangeLine."New Item No.");
+                if BomComponent.findset then
+                    repeat
+                        ItemJournalLine.init;
+                        ItemJournalLine."Journal Template Name" := 'ITEM';
+                        ItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+                        ItemJournalLine."Line No." := LineNumber;
+                        ItemJournalLine.insert;
+                        ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
+                        ItemJournalLine."Posting Date" := Today;
+                        ItemJournalLine."Document No." := QualityChangeLine."Pallet ID";
+                        ItemJournalLine.Description := QualityChangeLine.Description;
+                        ItemJournalLine.validate("Item No.", BomComponent."No.");
+                        ItemJournalLine.validate("Variant Code", BomComponent."Variant Code");
+                        ItemJournalLine.validate("Location Code", PalletHeader."Location Code");
+                        ItemJournalLine.validate(Quantity, QualityChangeLine."New Quantity");
+                        ItemJournalLine."Pallet ID" := QualityChangeLine."Pallet ID";
+                        ItemJournalLine.modify;
+                        LineNumber += 10000;
+                    until BomComponent.next = 0;
+            until QualityChangeLine.next = 0;
+    end;
+
+    //Add Packing Materials to Existing Packing Materials
+    procedure AddPackingMaterialsToExisting(var pPalletLineChg: Record "Pallet Line Change Quality")
+    var
+        QualityChangeLine: Record "Pallet Change Quality";
+        PalletHeader: Record "Pallet Header";
+        PackingMaterials: Record "Packing Material Line";
+        PalletFunctions: Codeunit "Pallet Functions";
+    begin
+        pPalletLineChg.reset;
+        if pPalletLineChg.findfirst then begin
+            if PalletHeader.get(pPalletLineChg."Pallet ID") then begin
+                //Delete Existing Packing Materials
+                PackingMaterials.reset;
+                PackingMaterials.setrange("Pallet ID", PalletHeader."Pallet ID");
+                if PackingMaterials.findset then
+                    PackingMaterials.DeleteAll();
+                //Create New Packing Materials 
+                PalletFunctions.AddMaterials(PalletHeader);
+            end;
+        end;
     end;
 
     local procedure GetLastEntry(): Integer

@@ -99,16 +99,17 @@ page 60025 "Pallet Change Quality"
                 var
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                 begin
-
-                    //ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality                    
-                    //ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
-                    //ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
-                    //ChangeQualityMgmt.PalletLedgerAdjust(rec); //Adjust Pallet Ledger Entries                    
-                    //ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines
-                    //Post Negative    
-                    //PosAdjNewItems
-                    //ChangeQualityMgmt.PosAdjNewItems(rec)
-                    //Post Positive
+                    ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
+                    ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+                    ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
+                    ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
+                    ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items                   
+                    ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
+                    ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
+                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
+                    ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
+                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                                        
+                    ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials
                 end;
 
             }
