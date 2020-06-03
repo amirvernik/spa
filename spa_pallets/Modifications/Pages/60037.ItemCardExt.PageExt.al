@@ -4,7 +4,7 @@ pageextension 60037 ItemCardExt extends "Item Card"
     {
         addafter("Over-Receipt Code")
         {
-            field(MaxQtyPerPallet; MaxQtyPerPallet)
+            field("Max Qty Per Pallet"; "Max Qty Per Pallet")
             {
                 ApplicationArea = all;
             }

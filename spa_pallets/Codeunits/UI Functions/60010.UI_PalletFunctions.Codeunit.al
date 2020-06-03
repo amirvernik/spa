@@ -892,30 +892,21 @@ codeunit 60010 "UI Pallet Functions"
     end;
 
 
-    //Get List Of Items by Attributes
+    //Check Pallets Proccess Setup Password
     //Return true if password exist else false
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CheckPalletPass(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        JsonBuffer: Record "JSON Buffer" temporary;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
         Password: text[10];
-        Obj_JsonText: Text;
         PalletProcessSetup: Record "Pallet Process Setup";
     begin
         IF pFunction <> 'CheckPalletPass' THEN
             EXIT;
-
-        JsonBuffer.ReadFromText(pContent);
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        IF JSONBuffer.FINDSET THEN
-            REPEAT
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN begin
-                end;
-
-                IF STRPOS(JSONBuffer.Path, 'pwd') > 0 THEN
-                    Password := JSONBuffer.Value;
-            until JsonBuffer.next = 0;
+        JsonObj.ReadFrom(pContent);
+        JsonObj.SelectToken('pwd', JsonTkn);
+        Password := JsonTkn.AsValue().AsText();
 
         if PalletProcessSetup.get() then begin
 

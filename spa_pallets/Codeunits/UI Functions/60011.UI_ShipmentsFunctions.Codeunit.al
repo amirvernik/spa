@@ -30,7 +30,7 @@ codeunit 60011 "UI Shipments Functions"
                 JsonObj.add('ItemCategory', Item."Item Category Code");
                 JsonObj.add('BaseUnitOfMeasure', Item."Base Unit of Measure");
                 JsonObj.add('QtyPerPallet', format(QtyPerPallet));
-                JsonObj.Add('MaxQtyPerPallet', format(Item.MaxQtyPerPallet));
+                JsonObj.Add('MaxQtyPerPallet', format(Item."Max Qty Per Pallet"));
                 JsonArr.Add(JsonObj);
                 clear(JsonObj);
 
