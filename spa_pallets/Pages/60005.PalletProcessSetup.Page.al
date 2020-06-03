@@ -21,6 +21,10 @@ page 60005 "Pallet Process Setup"
                 {
                     ApplicationArea = All;
                 }
+                field("Password Pallet Management"; "Password Pallet Management")
+                {
+                    ApplicationArea = all;
+                }
 
             }
             group("Item Reclass Journals")
