@@ -48,6 +48,12 @@ table 60002 "Pallet Process Setup"
             DataClassification = ToBeClassified;
 
         }
+        field(9; "Password Pallet Management"; Text[10])
+        {
+            Caption = 'Password Pallet Management';
+            DataClassification = ToBeClassified;
+            ExtendedDatatype = Masked;
+        }
     }
     keys
     {

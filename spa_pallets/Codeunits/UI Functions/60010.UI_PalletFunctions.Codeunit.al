@@ -914,6 +914,33 @@ codeunit 60010 "UI Pallet Functions"
             pContent := 'error, item does not exist'
     end;*/
 
+
+    //Check Pallets Proccess Setup Password
+    //Return true if password exist else false
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure CheckPalletPass(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        Password: text[10];
+        PalletProcessSetup: Record "Pallet Process Setup";
+    begin
+        IF pFunction <> 'CheckPalletPass' THEN
+            EXIT;
+        JsonObj.ReadFrom(pContent);
+        JsonObj.SelectToken('pwd', JsonTkn);
+        Password := JsonTkn.AsValue().AsText();
+
+        if PalletProcessSetup.get() then begin
+
+            if PalletProcessSetup."Password Pallet Management" = Password then begin
+                pContent := 'true';
+                exit;
+            end;
+        end;
+        pContent := 'false';
+    end;
+
     procedure CheckPurchaseLine(var PO_Order: Code[20]; var PO_Line: integer): Boolean
     var
         Purchaseline: Record "Purchase Line";
