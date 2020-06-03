@@ -5,10 +5,10 @@ codeunit 60023 "Pallet Disposal Management"
     var
     begin
         CheckDisposalSetup(pPalletHeader);
-        ChangeDisposalStatus(pPalletHeader);
         DisposePackingMaterials(pPalletHeader);
         DisposePalletItems(pPalletHeader);
         PostDisposalBatch;
+        ChangeDisposalStatus(pPalletHeader);
     end;
 
     //Check Disposal Setup
@@ -52,6 +52,7 @@ codeunit 60023 "Pallet Disposal Management"
                 PMSelect."PM Item No." := PackingMaterials."Item No.";
                 PMSelect."PM Item Description" := PackingMaterials.Description;
                 PMSelect.Quantity := PackingMaterials.Quantity;
+                PMSelect."Unit of Measure" := PackingMaterials."Unit of Measure Code";
                 pmselect.insert;
             until PackingMaterials.next = 0;
         page.runmodal(page::"Packing Materials Select", PMSelect);
@@ -136,6 +137,11 @@ codeunit 60023 "Pallet Disposal Management"
         PalletLine: Record "Pallet Line";
         RecGItemJournalLine: Record "Item Journal Line";
         LineNumber: Integer;
+        ReservationEntry: Record "Reservation Entry";
+        ReservationEntry2: Record "Reservation Entry";
+        ItemRec: Record Item;
+        PalletSetup: Record "Pallet Process Setup";
+        maxEntry: integer;
     begin
         PalletLine.reset;
         PalletLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
@@ -166,7 +172,35 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.validate(Quantity, PalletLine.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.modify;
-                lineNumber += 10000;
+
+                if ItemRec.get(PalletLine."Item No.") then
+                    if Itemrec."Lot Nos." <> '' then begin
+                        ReservationEntry2.reset;
+                        if ReservationEntry2.findlast then
+                            maxEntry := ReservationEntry2."Entry No." + 1;
+
+                        ReservationEntry.init;
+                        ReservationEntry."Entry No." := MaxEntry;
+                        ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
+                        ReservationEntry."Creation Date" := Today;
+                        ReservationEntry."Created By" := UserId;
+                        ReservationEntry."Expected Receipt Date" := Today;
+                        ReservationEntry."Source Type" := 83;
+                        ReservationEntry."Source Subtype" := 3;
+                        ReservationEntry."Source ID" := 'ITEM';
+                        ReservationEntry."Source Ref. No." := LineNumber;
+                        ReservationEntry."Source Batch Name" := PalletSetup."Disposal Batch";
+                        ReservationEntry.validate("Location Code", PalletLine."Location Code");
+                        ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
+                        ReservationEntry."Lot No." := PalletLine."Lot Number";
+                        ReservationEntry.validate("Item No.", PalletLine."Item No.");
+                        ReservationEntry.validate("Variant Code", PalletLine."Variant Code");
+                        ReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
+                        ReservationEntry.validate(Quantity, -1 * PalletLine.Quantity);
+                        ReservationEntry.Positive := false;
+                        ReservationEntry.insert;
+                        lineNumber += 10000;
+                    end;
             until PalletLine.next = 0;
     end;
 

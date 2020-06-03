@@ -108,9 +108,9 @@ page 60004 "Pallet List"
                 trigger OnAction()
                 var
                     packingma: Record "Packing Material Line";
-                begin
+                begin                    
                     PalletFunctions.ChoosePackingMaterials(rec);
-                    //PalletFunctions.ReOpenPallet(rec);
+                    PalletFunctions.ReOpenPallet(rec);
                 end;
             }
             action("Print Pallet")

@@ -130,7 +130,7 @@ page 60003 "Pallet Card"
                 image = NegativeLines;
                 Promoted = true;
                 PromotedCategory = Process;
-                Enabled = ShowDisposed;
+                Enabled = ShowDisposed;                
 
                 trigger OnAction()
                 begin
