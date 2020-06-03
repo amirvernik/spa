@@ -154,7 +154,7 @@ codeunit 60024 "Change Quality Management"
                                 RecGReservationEntry."Created By" := UserId;
                                 RecGReservationEntry."Expected Receipt Date" := Today;
                                 RecGReservationEntry."Source Type" := 83;
-                                RecGReservationEntry."Source Subtype" := 3;
+                                RecGReservationEntry."Source Subtype" := 2;
                                 RecGReservationEntry."Source ID" := 'ITEM';
                                 RecGReservationEntry."Source Ref. No." := LineNumber;
                                 RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
@@ -254,6 +254,7 @@ codeunit 60024 "Change Quality Management"
                 PalletItemChgLine.reset;
                 PalletItemChgLine.setrange("Pallet ID", pPalletLineChg."Pallet ID");
                 PalletItemChgLine.setrange("Pallet Line No.", pPalletLineChg."Line No.");
+                PalletItemChgLine.setrange("User Created", UserId);
                 if PalletItemChgLine.findset then
                     repeat
 
