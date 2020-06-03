@@ -845,7 +845,7 @@ codeunit 60010 "UI Pallet Functions"
     end;
 
     //Get LOT Numbers by Item
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    /*[EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure ChangeItemInPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         JsonBuffer: Record "JSON Buffer" temporary;
@@ -912,7 +912,7 @@ codeunit 60010 "UI Pallet Functions"
         end
         else
             pContent := 'error, item does not exist'
-    end;
+    end;*/
 
     procedure CheckPurchaseLine(var PO_Order: Code[20]; var PO_Line: integer): Boolean
     var

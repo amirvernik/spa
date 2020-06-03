@@ -44,6 +44,7 @@ codeunit 60024 "Change Quality Management"
             LineNumber := 10000;
 
         pPalletLineChg.reset;
+        pPalletLineChg.SetRange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
                 ItemJournalLine.init;
@@ -116,11 +117,13 @@ codeunit 60024 "Change Quality Management"
             LineNumber := 10000;
 
         pPalletLineChg.reset;
+        pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
                 PalletChangeQuality.reset;
                 PalletChangeQuality.SetRange("Pallet ID", pPalletLineChg."Pallet ID");
                 PalletChangeQuality.setrange("Pallet Line No.", pPalletLineChg."Line No.");
+                PalletChangeQuality.setrange("User Created", UserId);
                 if PalletChangeQuality.findset then
                     repeat
                         ItemJournalLine.init;
@@ -176,6 +179,7 @@ codeunit 60024 "Change Quality Management"
         PalletLine: Record "Pallet Line";
     begin
         pPalletLineChg.reset;
+        pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
                 if PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.") then begin
@@ -191,6 +195,7 @@ codeunit 60024 "Change Quality Management"
         PalletReservationEntry: Record "Pallet reservation Entry";
     begin
         pPalletLineChg.reset;
+        pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
                 if PalletReservationEntry.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.",
@@ -210,6 +215,7 @@ codeunit 60024 "Change Quality Management"
     begin
         LineNumber := GetLastEntry();
         pPalletLineChg.reset;
+        pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
                 PalletLedgerEntry.Init();
@@ -242,6 +248,7 @@ codeunit 60024 "Change Quality Management"
         PalletLedgerEntry: Record "Pallet Ledger Entry";
     begin
         pPalletLineChg.reset;
+        pPalletLineChg.setrange("User ID", userid);
         if pPalletLineChg.findset then
             repeat
                 PalletItemChgLine.reset;
@@ -330,6 +337,7 @@ codeunit 60024 "Change Quality Management"
 
         QualityChangeLine.reset;
         QualityChangeLine.setrange("Pallet ID", pPalletLineChg."Pallet ID");
+        QualityChangeLine.SetRange("User Created", UserId);
         if QualityChangeLine.FindSet then
             repeat
                 PalletHeader.get(pPalletLineChg."Pallet ID");
@@ -366,6 +374,7 @@ codeunit 60024 "Change Quality Management"
         PalletFunctions: Codeunit "Pallet Functions";
     begin
         pPalletLineChg.reset;
+        pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findfirst then begin
             if PalletHeader.get(pPalletLineChg."Pallet ID") then begin
                 //Delete Existing Packing Materials
@@ -377,6 +386,36 @@ codeunit 60024 "Change Quality Management"
                 PalletFunctions.AddMaterials(PalletHeader);
             end;
         end;
+    end;
+
+    //Calc Change Quality
+    procedure CalcChangeQuality(var pPalletID: code[20])
+    var
+        PalletLine: Record "Pallet Line";
+        PalletChangeQuality: Record "Pallet Change Quality";
+        PalletLineChangeQuality: Record "Pallet Line Change Quality";
+
+    begin
+        PalletLineChangeQuality.reset;
+        PalletLineChangeQuality.SetRange("User ID", UserId);
+        if PalletLineChangeQuality.findset then
+            PalletLineChangeQuality.DeleteAll();
+
+        PalletChangeQuality.reset;
+        PalletChangeQuality.setrange("User Created", UserId);
+        if PalletChangeQuality.findset then
+            PalletChangeQuality.DeleteAll();
+
+        PalletLine.reset;
+        PalletLine.setrange("Pallet ID", pPalletID);
+        if PalletLine.findset then
+            repeat
+                PalletLineChangeQuality.init;
+                PalletLineChangeQuality.TransferFields(PalletLine);
+                PalletLineChangeQuality."User ID" := UserId;
+                PalletLineChangeQuality."Replaced Qty" := PalletLine.Quantity;
+                PalletLineChangeQuality.insert;
+            until palletline.next = 0;
     end;
 
     local procedure GetLastEntry(): Integer

@@ -145,7 +145,10 @@ page 60025 "Pallet Change Quality"
         PalletID := pPalletID;
     end;
 
+    //Calc Change Quality
     procedure CalcChangeQuality(var pPalletID: code[20])
+    var
+
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
@@ -174,6 +177,7 @@ page 60025 "Pallet Change Quality"
         PalletLine: Record "Pallet Line";
         PalletChangeQuality: Record "Pallet Change Quality";
         PalletLineChangeQuality: Record "Pallet Line Change Quality";
+
         PalletSelect: Boolean;
 
 }
