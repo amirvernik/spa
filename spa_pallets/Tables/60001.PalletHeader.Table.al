@@ -67,6 +67,11 @@ table 60001 "Pallet Header"
             Caption = 'Pallet Type';
             DataClassification = ToBeClassified;
         }
+        field(20;"Disposal Status";Enum "Pallet Disposal approval Status")
+        {
+            Caption = 'Disposal Status';
+            DataClassification = ToBeClassified;            
+        }
     }
 
     keys
