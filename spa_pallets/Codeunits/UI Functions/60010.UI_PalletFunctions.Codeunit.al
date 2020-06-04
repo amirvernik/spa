@@ -416,6 +416,8 @@ codeunit 60010 "UI Pallet Functions"
         Json_Variant: Text;
         JsonArrayAll: JsonArray;
     begin
+        IF pFunction <> 'GetItemAttributeValues' THEN
+            EXIT;
 
         clear(JsonArrayAll);
 
