@@ -396,6 +396,10 @@ codeunit 60010 "UI Pallet Functions"
     var
         ItemAttributeValue: Record "Item Attribute Value";
         ItemVariant: Record "Item Variant";
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        JsonArr: JsonArray;
+
         Attr_OM: label 'OM';
         Attr_Size: label 'Size';
         Attr_PackageType: label 'Primary Packaging Type';
@@ -410,129 +414,146 @@ codeunit 60010 "UI Pallet Functions"
         json_Color: text;
         Json_Text: Text;
         Json_Variant: Text;
-
-
-
+        JsonArrayAll: JsonArray;
     begin
-        IF pFunction <> 'GetItemAttributeValues' THEN
-            EXIT;
-        Json_Text := '{';
 
-        //OM Attribute                        
+        clear(JsonArrayAll);
+
+        //OM Attribute   
+        clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_OM);
-        if ItemAttributeValue.findset then begin
-            Json_OM := '"OM": [';
+        if ItemAttributeValue.findset then
             repeat
-                Json_OM += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
+                Clear(JsonObj);
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemAttributeValue.next = 0;
-            Json_OM := copystr(Json_OM, 1, strlen(Json_OM) - 1);
-            Json_OM += ' ],';
-            Json_Text += Json_OM;
-        end;
 
-        //Size Attribute
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('OM', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Size Attribute                                  
+        clear(jsonarr);
         ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Size);
-        if ItemAttributeValue.findset then begin
-            Json_size := '"Size": [';
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_size);
+        if ItemAttributeValue.findset then
             repeat
-                Json_size += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemAttributeValue.next = 0;
-            Json_size := copystr(Json_size, 1, strlen(Json_size) - 1);
-            Json_size += ' ],';
-            Json_Text += Json_Size;
-        end;
 
-        //Primary Packaging Type Attribute                        
-        ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackageType);
-        if ItemAttributeValue.findset then begin
-            Json_PackageType := '"PrimaryPackagingType": [';
-            repeat
-                Json_PackageType += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
-            until ItemAttributeValue.next = 0;
-            Json_PackageType := copystr(Json_PackageType, 1, strlen(Json_PackageType) - 1);
-            Json_PackageType += ' ],';
-            Json_Text += Json_PackageType;
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Size', JsonArr);
+            clear(JsonArr);
         end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
 
-        //Packaging Description Attribute                        
-        ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackDesc);
-        if ItemAttributeValue.findset then begin
-            Json_PackageDesc := '"PackagingDescription": [';
-            repeat
-                Json_PackageDesc += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
-            until ItemAttributeValue.next = 0;
-            Json_PackageDesc := copystr(Json_PackageDesc, 1, strlen(Json_PackageDesc) - 1);
-            Json_PackageDesc += ' ],';
-            Json_Text += Json_PackageDesc;
-        end;
-
-        //Grade Attribute                        
-        ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Grade);
-        if ItemAttributeValue.findset then begin
-            Json_Grade := '"Grade": [';
-            repeat
-                Json_Grade += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
-            until ItemAttributeValue.next = 0;
-            Json_Grade := copystr(Json_Grade, 1, strlen(Json_Grade) - 1);
-            Json_Grade += ' ],';
-            Json_Text += Json_Grade;
-        end;
-
-        //Color Attribute                        
+        //Color Attribute                                  
+        clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Color);
-        if ItemAttributeValue.findset then begin
-            json_Color := '"Color": [';
+        if ItemAttributeValue.findset then
             repeat
-                json_Color += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemAttributeValue.next = 0;
-            json_Color := copystr(json_Color, 1, strlen(json_Color) - 1);
-            json_Color += ' ],';
-            Json_Text += json_Color;
-        end;
 
-        //Item Variants
-        ItemVariant.reset;
-        if ItemVariant.findset then begin
-            Json_Variant := '"Varieties": [';
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Color', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Grade Attribute                                  
+        clear(jsonarr);
+        ItemAttributeValue.reset;
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Grade);
+        if ItemAttributeValue.findset then
             repeat
-                Json_Variant +=
-                    '{"Item": "'
-                    + format(ItemVariant."Item No.") +
-                    '","Variety": "'
-                    + ItemVariant.Code +
-                    '","Variety Description": "'
-                    + ItemVariant.Description +
-                    '"},';
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
+            until ItemAttributeValue.next = 0;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Grade', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Primary Packaging Type Attribute                                  
+        clear(jsonarr);
+        ItemAttributeValue.reset;
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackageType);
+        if ItemAttributeValue.findset then
+            repeat
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
+            until ItemAttributeValue.next = 0;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('PrimaryPackagingType', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Packaging Description                                 
+        clear(jsonarr);
+        ItemAttributeValue.reset;
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackDesc);
+        if ItemAttributeValue.findset then
+            repeat
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
+            until ItemAttributeValue.next = 0;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('PackagingDescription', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Item Variants                                
+        clear(jsonarr);
+        ItemVariant.reset;
+        if ItemVariant.findset then
+            repeat
+                JsonObj.add('Item', ItemVariant."Item No.");
+                JsonObj.add('Variety code', ItemVariant.Code);
+                JsonObj.add('Description', ItemVariant.Description);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemVariant.next = 0;
 
-            Json_Variant := copystr(Json_Variant, 1, strlen(Json_Variant) - 1);
-            Json_Variant += ' ],';
-            Json_Text += Json_Variant;
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Variaties', JsonArr);
+            clear(JsonArr);
         end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
 
-        Json_Text := copystr(Json_Text, 1, strlen(Json_Text) - 1);
-        if Json_Text <> '' then
-            pContent := Json_Text + '}'
-        else
-            pContent := 'No Data';
+        JsonArrayAll.WriteTo(pContent);
     end;
 
     //Add Item to Pallet - AddItemToPallet [8616]
