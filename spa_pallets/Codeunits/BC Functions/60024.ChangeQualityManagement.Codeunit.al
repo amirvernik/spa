@@ -47,51 +47,55 @@ codeunit 60024 "Change Quality Management"
         pPalletLineChg.SetRange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
-                ItemJournalLine.init;
-                ItemJournalLine."Journal Template Name" := 'ITEM';
-                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                ItemJournalLine."Line No." := LineNumber;
-                ItemJournalLine.insert;
-                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
-                ItemJournalLine."Posting Date" := Today;
-                ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
-                ItemJournalLine."Document Date" := today;
-                ItemJournalLine.validate("Item No.", pPalletLineChg."Item No.");
-                ItemJournalLine.validate("Variant Code", pPalletLineChg."Variant Code");
-                ItemJournalLine.validate("Location Code", pPalletLineChg."Location Code");
-                ItemJournalLine.validate(Quantity, (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
-                ItemJournalLine.modify;
-                //Create Reservation Entry
-                if ItemRec.get(pPalletLineChg."Item No.") then
-                    if Itemrec."Lot Nos." <> '' then begin
-                        RecGReservationEntry2.reset;
-                        if RecGReservationEntry2.findlast then
-                            maxEntry := RecGReservationEntry2."Entry No." + 1;
+                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
 
-                        RecGReservationEntry.init;
-                        RecGReservationEntry."Entry No." := MaxEntry;
-                        RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
-                        RecGReservationEntry."Creation Date" := Today;
-                        RecGReservationEntry."Created By" := UserId;
-                        RecGReservationEntry."Expected Receipt Date" := Today;
-                        RecGReservationEntry."Source Type" := 83;
-                        RecGReservationEntry."Source Subtype" := 3;
-                        RecGReservationEntry."Source ID" := 'ITEM';
-                        RecGReservationEntry."Source Ref. No." := LineNumber;
-                        RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                        RecGReservationEntry.validate("Location Code", pPalletLineChg."Location Code");
-                        RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
-                        RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
-                        RecGReservationEntry.validate("Item No.", pPalletLineChg."Item No.");
-                        RecGReservationEntry.validate("Variant Code", pPalletLineChg."Variant Code");
-                        RecGReservationEntry.validate("Quantity (Base)", -1 *
-                        (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
-                        RecGReservationEntry.validate(Quantity, -1 *
-                        (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
-                        RecGReservationEntry.Positive := false;
-                        RecGReservationEntry.insert;
-                    end;
-                LineNumber += 10000;
+
+                    ItemJournalLine.init;
+                    ItemJournalLine."Journal Template Name" := 'ITEM';
+                    ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                    ItemJournalLine."Line No." := LineNumber;
+                    ItemJournalLine.insert;
+                    ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
+                    ItemJournalLine."Posting Date" := Today;
+                    ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
+                    ItemJournalLine."Document Date" := today;
+                    ItemJournalLine.validate("Item No.", pPalletLineChg."Item No.");
+                    ItemJournalLine.validate("Variant Code", pPalletLineChg."Variant Code");
+                    ItemJournalLine.validate("Location Code", pPalletLineChg."Location Code");
+                    ItemJournalLine.validate(Quantity, (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                    ItemJournalLine.modify;
+                    //Create Reservation Entry
+                    if ItemRec.get(pPalletLineChg."Item No.") then
+                        if Itemrec."Lot Nos." <> '' then begin
+                            RecGReservationEntry2.reset;
+                            if RecGReservationEntry2.findlast then
+                                maxEntry := RecGReservationEntry2."Entry No." + 1;
+
+                            RecGReservationEntry.init;
+                            RecGReservationEntry."Entry No." := MaxEntry;
+                            RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
+                            RecGReservationEntry."Creation Date" := Today;
+                            RecGReservationEntry."Created By" := UserId;
+                            RecGReservationEntry."Expected Receipt Date" := Today;
+                            RecGReservationEntry."Source Type" := 83;
+                            RecGReservationEntry."Source Subtype" := 3;
+                            RecGReservationEntry."Source ID" := 'ITEM';
+                            RecGReservationEntry."Source Ref. No." := LineNumber;
+                            RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                            RecGReservationEntry.validate("Location Code", pPalletLineChg."Location Code");
+                            RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                            RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
+                            RecGReservationEntry.validate("Item No.", pPalletLineChg."Item No.");
+                            RecGReservationEntry.validate("Variant Code", pPalletLineChg."Variant Code");
+                            RecGReservationEntry.validate("Quantity (Base)", -1 *
+                            (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                            RecGReservationEntry.validate(Quantity, -1 *
+                            (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                            RecGReservationEntry.Positive := false;
+                            RecGReservationEntry.insert;
+                        end;
+                    LineNumber += 10000;
+                end;
             until pPalletLineChg.next = 0;
     end;
 
@@ -182,10 +186,11 @@ codeunit 60024 "Change Quality Management"
         pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
-                if PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.") then begin
-                    PalletLine.Quantity := pPalletLineChg."Replaced Qty";
-                    PalletLine.modify;
-                end;
+                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
+                    if PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.") then begin
+                        PalletLine.Quantity := pPalletLineChg."Replaced Qty";
+                        PalletLine.modify;
+                    end;
             until pPalletLineChg.next = 0;
     end;
 
@@ -198,12 +203,13 @@ codeunit 60024 "Change Quality Management"
         pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
-                if PalletReservationEntry.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.",
-                    pPalletLineChg."Lot Number") then begin
+                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
+                    if PalletReservationEntry.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.",
+                        pPalletLineChg."Lot Number") then begin
 
-                    PalletReservationEntry.Quantity := pPalletLineChg."Replaced Qty";
-                    PalletReservationEntry.modify;
-                end;
+                        PalletReservationEntry.Quantity := pPalletLineChg."Replaced Qty";
+                        PalletReservationEntry.modify;
+                    end;
             until pPalletLineChg.next = 0;
     end;
 
@@ -218,23 +224,25 @@ codeunit 60024 "Change Quality Management"
         pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
-                PalletLedgerEntry.Init();
-                PalletLedgerEntry."Entry No." := LineNumber;
-                PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
-                PalletLedgerEntry."Pallet ID" := pPalletLineChg."Pallet ID";
-                PalletLedgerEntry."Pallet Line No." := pPalletLineChg."Line No.";
-                PalletLedgerEntry."Document No." := pPalletLineChg."Pallet ID";
-                PalletLedgerEntry.validate("Posting Date", Today);
-                PalletLedgerEntry.validate("Item No.", pPalletLineChg."Item No.");
-                PalletLedgerEntry."Variant Code" := pPalletLineChg."Variant Code";
-                PalletLedgerEntry."Item Description" := pPalletLineChg.Description;
-                PalletLedgerEntry."Lot Number" := pPalletLineChg."Lot Number";
-                PalletLedgerEntry.validate("Location Code", pPalletLineChg."Location Code");
-                PalletLedgerEntry.validate("Unit of Measure", pPalletLineChg."Unit of Measure");
-                PalletLedgerEntry.validate(Quantity, -1 * (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
-                PalletLedgerEntry."User ID" := userid;
-                PalletLedgerEntry.Insert();
-                LineNumber += 1;
+                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
+                    PalletLedgerEntry.Init();
+                    PalletLedgerEntry."Entry No." := LineNumber;
+                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
+                    PalletLedgerEntry."Pallet ID" := pPalletLineChg."Pallet ID";
+                    PalletLedgerEntry."Pallet Line No." := pPalletLineChg."Line No.";
+                    PalletLedgerEntry."Document No." := pPalletLineChg."Pallet ID";
+                    PalletLedgerEntry.validate("Posting Date", Today);
+                    PalletLedgerEntry.validate("Item No.", pPalletLineChg."Item No.");
+                    PalletLedgerEntry."Variant Code" := pPalletLineChg."Variant Code";
+                    PalletLedgerEntry."Item Description" := pPalletLineChg.Description;
+                    PalletLedgerEntry."Lot Number" := pPalletLineChg."Lot Number";
+                    PalletLedgerEntry.validate("Location Code", pPalletLineChg."Location Code");
+                    PalletLedgerEntry.validate("Unit of Measure", pPalletLineChg."Unit of Measure");
+                    PalletLedgerEntry.validate(Quantity, -1 * (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                    PalletLedgerEntry."User ID" := userid;
+                    PalletLedgerEntry.Insert();
+                    LineNumber += 1;
+                end;
             until pPalletLineChg.next = 0;
     end;
 
