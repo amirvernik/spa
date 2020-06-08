@@ -80,7 +80,10 @@ codeunit 60022 "Sales Orders Management"
         LocationTemp: Record Location temporary;
     begin
         //Change Req. Delivery Date
-        salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), Today);
+        if format(salesHeader."Shipping Time") <> '' then
+            salesheader."Dispatch Date" := calcdate(format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
+        else
+            SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
         //SalesHeader.modify;
 
         SalesLine.reset;

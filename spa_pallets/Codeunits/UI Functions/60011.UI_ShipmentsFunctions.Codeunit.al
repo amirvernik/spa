@@ -372,9 +372,11 @@ codeunit 60011 "UI Shipments Functions"
             if purchaseHeader.findset then begin
                 repeat
                     purchaseHeader.CalcFields("Completely Received");
-                    if (purchaseHeader."Completely Received")
-                        and (purchaseHeader."Grading Result PO" or purchaseHeader."Microwave Process PO")
-                        and (GetQtyInvoiced(purchaseHeader) = 0) then begin
+                    if (NOT purchaseHeader."Completely Received") and
+                        ((purchaseHeader.Status = purchaseHeader.status::Open) or 
+                        (purchaseHeader.Status = purchaseHeader.status::released)) and 
+                        (purchaseHeader."Grading Result PO" or purchaseHeader."Microwave Process PO") then begin
+                        //and (GetQtyInvoiced(purchaseHeader) = 0) then begin
 
                         if purchaseHeader."Grading Result PO" then
                             OrderType := 'GradingPO';
