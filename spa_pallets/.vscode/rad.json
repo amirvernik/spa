@@ -1,1 +1,1 @@
-﻿{"Added":[],"Modified":[],"Removed":[]}
+﻿{"Added":[],"Modified":[{"Id":60026,"Kind":11,"Name":"UI Pallet Dispose Functions","PackagePath":"/src/Codeunits/UI%20Functions/60026.UI_DisposeFunctions.Codeunit.al"},{"Id":60023,"Kind":11,"Name":"Pallet Disposal Management","PackagePath":"/src/Codeunits/BC%20Functions/60023.PalletDisposalManagement.al"}],"Removed":[]}

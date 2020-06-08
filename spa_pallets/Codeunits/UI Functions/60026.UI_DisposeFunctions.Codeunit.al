@@ -62,7 +62,7 @@ codeunit 60026 "UI Pallet Dispose Functions"
             PalletDisposalFunctions.DisposePackingMaterialsUI(PalletHeader, TempPackingMaterialsSelect);
             PalletDisposalFunctions.DisposePalletItems(PalletHeader);
             PalletDisposalFunctions.PostDisposalBatch;
-            PalletDisposalFunctions.ChangeDisposalStatus(PalletHeader);
+            PalletDisposalFunctions.ChangeDisposalStatus(PalletHeader, 'WEBUI');
             pContent := 'Success';
         end
         else

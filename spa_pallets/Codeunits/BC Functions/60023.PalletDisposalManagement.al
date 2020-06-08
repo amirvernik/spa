@@ -8,7 +8,7 @@ codeunit 60023 "Pallet Disposal Management"
         DisposePackingMaterials(pPalletHeader);
         DisposePalletItems(pPalletHeader);
         PostDisposalBatch;
-        ChangeDisposalStatus(pPalletHeader);
+        ChangeDisposalStatus(pPalletHeader, 'BC');
     end;
 
     //Check Disposal Setup
@@ -22,14 +22,20 @@ codeunit 60023 "Pallet Disposal Management"
     end;
 
     //Change to Status - Disposed
-    procedure ChangeDisposalStatus(var pPalletHeader: Record "Pallet Header")
+    procedure ChangeDisposalStatus(var pPalletHeader: Record "Pallet Header"; pType: Text)
     var
         PalletDisposeError: label 'You cannot dispose the pallet. it is not a closed pallet';
         PalletDisposeConf: label 'Are you sure you want to dispose the pallet?';
     begin
-        if pPalletHeader."Pallet Status" <> pPalletHeader."Pallet Status"::Closed then
-            Error(PalletDisposeError);
-        if confirm(PalletDisposeConf) then begin
+        if ptype = 'BC' then begin
+            if pPalletHeader."Pallet Status" <> pPalletHeader."Pallet Status"::Closed then
+                Error(PalletDisposeError);
+            if confirm(PalletDisposeConf) then begin
+                pPalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Disposed;
+                pPalletHeader.modify;
+            end;
+        end;
+        if pType = 'WEBUI' then begin
             pPalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Disposed;
             pPalletHeader.modify;
         end;
