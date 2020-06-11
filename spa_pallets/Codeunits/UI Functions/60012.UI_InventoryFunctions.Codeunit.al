@@ -124,6 +124,7 @@ codeunit 60012 "UI Inventory Functions"
         IF pFunction <> 'GetAllLocations' THEN
             EXIT;
         LocationRec.reset;
+        LocationRec.SetRange("Use As In-Transit", false);
         if LocationRec.findset then
             repeat
                 /*Obj_JsonText += '{' +
