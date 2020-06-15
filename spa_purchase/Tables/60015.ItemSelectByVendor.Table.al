@@ -26,7 +26,7 @@ table 60015 "Item Select By Vendor"
 
     keys
     {
-        key(PK; "Item No.", "Unit of Measure")
+        key(PK; "Item No.","Unit of Measure")
         {
             Clustered = true;
         }
