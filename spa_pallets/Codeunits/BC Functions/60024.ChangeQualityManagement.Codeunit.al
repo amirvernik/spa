@@ -85,7 +85,7 @@ codeunit 60024 "Change Quality Management"
                             RecGReservationEntry.validate("Location Code", pPalletLineChg."Location Code");
                             RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
                             RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
-                            RecGReservationEntry.validate("Item No.", pPalletLineChg."Item No.");
+                            RecGReservationEntry.validate("Item No.", pPalletLineChg."Item No.");                            
                             RecGReservationEntry.validate("Variant Code", pPalletLineChg."Variant Code");
                             RecGReservationEntry.validate("Quantity (Base)", -1 *
                             (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));

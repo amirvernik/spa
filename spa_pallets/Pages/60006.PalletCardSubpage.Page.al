@@ -90,7 +90,11 @@ page 60006 "Pallet Card Subpage"
                     ApplicationArea = all;
                     editable = false;
                 }
-
+                field("Reusable item"; "Reusable item")
+                {
+                    Editable = false;
+                    ApplicationArea = all;
+                }
 
             }
         }

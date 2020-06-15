@@ -7,6 +7,11 @@ tableextension 60018 ItemExt extends Item
             Caption = 'Max Qty Per Pallet';
             DataClassification = ToBeClassified;
         }
+        field(60019; "Reusable item"; Boolean)
+        {
+            Caption = 'Reusable item';
+            DataClassification = ToBeClassified;
+        }
     }
 
     var

@@ -1,15 +1,12 @@
-pageextension 60037 ItemCardExt extends "Item Card"
+pageextension 60038 AssemblyBOMExt extends "Assembly BOM"
 {
     layout
     {
-        addafter("Over-Receipt Code")
+        addafter("Description")
         {
-            field("Max Qty Per Pallet"; "Max Qty Per Pallet")
-            {
-                ApplicationArea = all;
-            }
             field("Reusable item"; "Reusable item")
             {
+                Editable = false;
                 ApplicationArea = all;
             }
         }

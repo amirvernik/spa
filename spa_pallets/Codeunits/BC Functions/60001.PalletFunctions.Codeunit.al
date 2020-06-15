@@ -15,7 +15,7 @@ codeunit 60001 "Pallet Functions"
         if not PalletLines.findfirst then
             error(Err04);
 
-        //No Quantities - Dont close    
+        //No Quantities - Dont close
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
         PalletLines.setrange(Quantity, 0);
@@ -26,9 +26,9 @@ codeunit 60001 "Pallet Functions"
         pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Closed;
         pPalletHeader.modify;
 
-        AddMaterials(pPalletHeader); //Add Materials         
+        AddMaterials(pPalletHeader); //Add Materials
         PalletLedgerFunctions.PosPalletLedger(pPalletHeader); //Positive on Pallet Ledger
-        ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal                              
+        ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
         ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
         //AddPoLines(pPalletHeader); //Add PO Lines
         TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO
@@ -62,8 +62,8 @@ codeunit 60001 "Pallet Functions"
             TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
             ItemLedgerFunctions.PosItemLedgerEntry(pPalletHeader); //Positive on Item Journal Packing Material
             PalletLedgerFunctions.NegPalletLedger(pPalletHeader); //Negative on Pallet Ledger
-            DeleteMaterials(pPalletHeader); //Delete Materials                                  
-            ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal - If Exist            
+            DeleteMaterials(pPalletHeader); //Delete Materials
+            ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal - If Exist
         end
         else
             Error(Err01, 'ReOpen Pallet');

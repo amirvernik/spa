@@ -95,6 +95,8 @@ page 60009 "Pallet List Select Transfer"
                         //V16.0 - Changed From [1] to "Lot No." on Enum
                         RecGReservationEntry."Lot No." := PalletLine."Lot Number";
                         RecGReservationEntry.validate("Item No.", TransferLine."Item No.");
+                        if TransferLine."Variant Code" <> '' then
+                            RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
                         RecGReservationEntry.validate("Quantity (Base)", -1 * TransferLine.Quantity);
                         RecGReservationEntry.validate(Quantity, -1 * TransferLine.Quantity);
                         RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
@@ -126,6 +128,8 @@ page 60009 "Pallet List Select Transfer"
                         //V16.0 - Changed From [1] to "Lot No." on Enum
                         RecGReservationEntry."Lot No." := PalletLine."Lot Number";
                         RecGReservationEntry.validate("Item No.", TransferLine."Item No.");
+                        if TransferLine."Variant Code" <> '' then
+                            RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
                         RecGReservationEntry.validate("Quantity (Base)", TransferLine.Quantity);
                         RecGReservationEntry.validate(Quantity, TransferLine.Quantity);
                         RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";

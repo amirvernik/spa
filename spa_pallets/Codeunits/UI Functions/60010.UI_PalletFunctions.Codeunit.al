@@ -421,7 +421,7 @@ codeunit 60010 "UI Pallet Functions"
 
         clear(JsonArrayAll);
 
-        //OM Attribute   
+        //OM Attribute
         clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_OM);
@@ -441,7 +441,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArrayAll.Add(JsonObj);
         clear(JsonObj);
 
-        //Size Attribute                                  
+        //Size Attribute
         clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_size);
@@ -460,7 +460,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArrayAll.Add(JsonObj);
         clear(JsonObj);
 
-        //Color Attribute                                  
+        //Color Attribute
         clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Color);
@@ -479,7 +479,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArrayAll.Add(JsonObj);
         clear(JsonObj);
 
-        //Grade Attribute                                  
+        //Grade Attribute
         clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Grade);
@@ -498,7 +498,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArrayAll.Add(JsonObj);
         clear(JsonObj);
 
-        //Primary Packaging Type Attribute                                  
+        //Primary Packaging Type Attribute
         clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackageType);
@@ -517,7 +517,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArrayAll.Add(JsonObj);
         clear(JsonObj);
 
-        //Packaging Description                                 
+        //Packaging Description
         clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackDesc);
@@ -536,7 +536,7 @@ codeunit 60010 "UI Pallet Functions"
         JsonArrayAll.Add(JsonObj);
         clear(JsonObj);
 
-        //Item Variants                                
+        //Item Variants
         clear(jsonarr);
         ItemVariant.reset;
         if ItemVariant.findset then

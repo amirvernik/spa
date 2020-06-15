@@ -31,6 +31,7 @@ table 60003 "Pallet Line"
                     Description := item.Description;
                     "Unit of Measure" := item."Base Unit of Measure";
                     "User ID" := userid;
+                    "Reusable item" := Item."Reusable item";
                 end;
             end;
         }
@@ -106,6 +107,11 @@ table 60003 "Pallet Line"
                 end;
             end;
 
+        }
+        field(60019; "Reusable item"; Boolean)
+        {
+            Caption = 'Reusable item';
+            DataClassification = ToBeClassified;
         }
     }
 

@@ -194,6 +194,7 @@ codeunit 60011 "UI Shipments Functions"
     local procedure GetListOfSalesOrderLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         ItemRec: Record Item;
+        VariantRec: Record "Item Variant";
         JsonBuffer: Record "JSON Buffer" temporary;
         CustomerNo: code[20];
         LocationCode: code[20];
@@ -206,6 +207,7 @@ codeunit 60011 "UI Shipments Functions"
         JsonObjLines: JsonObject;
         JsonArr: JsonArray;
         JsonArrLines: JsonArray;
+
 
     begin
         IF pFunction <> 'GetListOfSalesOrderLines' THEN
@@ -252,7 +254,7 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Customer', SalesHeader."Sell-to Customer No.");
                         JsonObj.add('Customer Name', SalesHeader."Sell-to Customer name");
                         JsonObj.add('Ship-to Address', SalesHeader."Ship-to Address");
-                        JsonObj.add('Order Date', format(salesheader."Order Date"));
+                        JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
                         SalesLine.reset;
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");
@@ -262,7 +264,10 @@ codeunit 60011 "UI Shipments Functions"
                                 Clear(JsonObjLines);
                                 JsonObjLines.add('Line No.', format(SalesLine."Line No."));
                                 JsonObjLines.add('Item No', SalesLine."No.");
-                                JsonObjLines.add('Variety', SalesLine."Variant Code");
+                                if VariantRec.get(SalesLine."No.", SalesLine."Variant Code") then
+                                    JsonObjLines.add('Variety', VariantRec.Description)
+                                else
+                                    JsonObjLines.add('Variety', '');
                                 JsonObjLines.add('Description', salesline.Description);
                                 JsonObjLines.add('Location', salesline."Location Code");
                                 JsonObjLines.add('Quantity', format(salesline.Quantity));
@@ -373,8 +378,8 @@ codeunit 60011 "UI Shipments Functions"
                 repeat
                     purchaseHeader.CalcFields("Completely Received");
                     if (NOT purchaseHeader."Completely Received") and
-                        ((purchaseHeader.Status = purchaseHeader.status::Open) or 
-                        (purchaseHeader.Status = purchaseHeader.status::released)) and 
+                        ((purchaseHeader.Status = purchaseHeader.status::Open) or
+                        (purchaseHeader.Status = purchaseHeader.status::released)) and
                         (purchaseHeader."Grading Result PO" or purchaseHeader."Microwave Process PO") then begin
                         //and (GetQtyInvoiced(purchaseHeader) = 0) then begin
 

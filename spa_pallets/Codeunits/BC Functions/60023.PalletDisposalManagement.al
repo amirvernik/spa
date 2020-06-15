@@ -200,7 +200,8 @@ codeunit 60023 "Pallet Disposal Management"
                         ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
                         ReservationEntry."Lot No." := PalletLine."Lot Number";
                         ReservationEntry.validate("Item No.", PalletLine."Item No.");
-                        ReservationEntry.validate("Variant Code", PalletLine."Variant Code");
+                        if PalletLine."Variant Code" <> '' then
+                            ReservationEntry.validate("Variant Code", PalletLine."Variant Code");
                         ReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
                         ReservationEntry.validate(Quantity, -1 * PalletLine.Quantity);
                         ReservationEntry.Positive := false;
