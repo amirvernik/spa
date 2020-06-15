@@ -24,6 +24,10 @@ page 60023 "Item Select By Vendor"
                 {
                     ApplicationArea = all;
                 }
+                field("Unit of Measure"; "Unit of Measure")
+                {
+                    ApplicationArea = all;
+                }
                 field("Direct Unit Cost"; "Direct Unit Cost")
                 {
                     ApplicationArea = All;

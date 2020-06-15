@@ -91,7 +91,7 @@ codeunit 60000 "SPA Purchase Functions"
                                 //V16.0 - Changed From [1] to "Lot No." on Enum
                                 RecGReservationEntry."Lot No." := pPurchaseHeader."Batch Number";
                                 RecGReservationEntry.validate("Item No.", PurchaseLine."No.");
-                                RecGReservationEntry.validate("Variant Code",PurchaseLine."Variant Code");
+                                RecGReservationEntry.validate("Variant Code", PurchaseLine."Variant Code");
                                 RecGReservationEntry."Variant Code" := PurchaseLine."Variant Code";
                                 RecGReservationEntry.Description := PurchaseLine.Description;
                                 RecGReservationEntry.validate("Quantity (Base)", purchaseline."Qty. (Base) SPA");
@@ -189,7 +189,7 @@ codeunit 60000 "SPA Purchase Functions"
             end;
     end;
 
-    procedure LookupItemsForVendors(var pVendor: code[20]; var pDate: date): code[20]
+    procedure LookupItemsForVendors(var pVendor: code[20]; var pDate: date; var RetPurchasePrice: Record "Purchase Price")
     var
         ItemList: Page "Item List";
         ItemRec: Record Item;
@@ -204,9 +204,10 @@ codeunit 60000 "SPA Purchase Functions"
         PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
         if PurchasePrice.findset then
             repeat
-                if not ItemSelectByVendor.get(PurchasePrice."Item No.") then begin
+                if not ItemSelectByVendor.get(PurchasePrice."Item No.", PurchasePrice."Unit of Measure Code") then begin
                     ItemSelectByVendor.init;
                     ItemSelectByVendor."Item No." := PurchasePrice."Item No.";
+                    ItemSelectByVendor."Unit of Measure" := PurchasePrice."Unit of Measure Code";
                     ItemSelectByVendor."Direct Unit Cost" := PurchasePrice."Direct Unit Cost";
                     if ItemRec.get(PurchasePrice."Item No.") then
                         ItemSelectByVendor."Item Description" := ItemRec.Description;
@@ -214,23 +215,98 @@ codeunit 60000 "SPA Purchase Functions"
                 end;
             until PurchasePrice.next = 0;
 
-        IF PAGE.RUNMODAL(0, ItemSelectByVendor) = ACTION::LookupOK THEN
-            exit(ItemSelectByVendor."Item No.");
+        IF PAGE.RUNMODAL(0, ItemSelectByVendor) = ACTION::LookupOK THEN begin
+            RetPurchasePrice.reset;
+            RetPurchasePrice.setrange("Vendor No.", pVendor);
+            RetPurchasePrice.setrange("Ending Date", 0D);
+            RetPurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+            RetPurchasePrice.setfilter("Item No.", ItemSelectByVendor."Item No.");
+            RetPurchasePrice.SetFilter("Unit of Measure Code", ItemSelectByVendor."Unit of Measure");
+            if RetPurchasePrice.findfirst then;
+        end;
     end;
 
-    procedure ValidateItemsForVendors(var pVendor: code[20]; var pDate: date; var pItem: code[20]): code[20]
+    procedure LookupNotItems(pType: Text): code[20]
+    var
+        GlAccount: Record "G/L Account";
+        ResourceRec: Record Resource;
+        FixedAsset: Record "Fixed Asset";
+        ItemCharges: Record "Item Charge";
+        ItemRec: Record Item;
+    begin
+        if pType = 'ITM' then begin
+            ItemRec.reset;
+            if ItemRec.FindSet then begin
+                IF PAGE.RUNMODAL(0, ItemRec) = ACTION::LookupOK THEN
+                    exit(ItemRec."No.");
+            end;
+        end;
+
+        if pType = 'GL' then begin
+            GlAccount.reset;
+            if GlAccount.FindSet then begin
+                IF PAGE.RUNMODAL(0, GlAccount) = ACTION::LookupOK THEN
+                    exit(GlAccount."No.");
+            end;
+        end;
+        if pType = 'FA' then begin
+            FixedAsset.reset;
+            if FixedAsset.FindSet then begin
+                IF PAGE.RUNMODAL(0, FixedAsset) = ACTION::LookupOK THEN
+                    exit(FixedAsset."No.");
+            end;
+        end;
+        if pType = 'RES' then begin
+            ResourceRec.reset;
+            if ResourceRec.FindSet then begin
+                IF PAGE.RUNMODAL(0, ResourceRec) = ACTION::LookupOK THEN
+                    exit(ResourceRec."No.");
+            end;
+        end;
+        if pType = 'CHRG' then begin
+            ItemCharges.reset;
+            if ItemCharges.FindSet then begin
+                IF PAGE.RUNMODAL(0, ItemCharges) = ACTION::LookupOK THEN
+                    exit(ItemCharges."No.");
+            end;
+        end;
+
+    end;
+
+    procedure ValidateItemsForVendors(var pVendor: code[20]; var pDate: date; var pItem: code[20]; var RetPurchasePrice: Record "Purchase Price");
     var
         ErrVendorItem: Label 'Item does not Exist on Vendor Price List';
+        ItemRec: Record item;
+        PurchasePrice: Record "Purchase Price";
+        BoolResult: Boolean;
     begin
-        PurchasePrice.reset;
-        PurchasePrice.setrange("Vendor No.", pVendor);
-        PurchasePrice.setrange("Ending Date", 0D);
-        PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
-        PurchasePrice.setrange("Item No.", pItem);
-        if not PurchasePrice.findfirst then
-            error(ErrVendorItem)
-        else
-            exit(PurchasePrice."Item No.");
+        BoolResult := false;
+        if ItemRec.get(pItem) then begin
+            PurchasePrice.reset;
+            PurchasePrice.setrange("Vendor No.", pVendor);
+            PurchasePrice.setrange("Ending Date", 0D);
+            PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+            PurchasePrice.setrange("Item No.", pItem);
+            PurchasePrice.setfilter("Unit of Measure Code", itemrec."Base Unit of Measure");
+            if PurchasePrice.findfirst then begin
+                RetPurchasePrice.Copy(PurchasePrice);
+                BoolResult := true;
+            end
+            else begin
+                PurchasePrice.reset;
+                PurchasePrice.setrange("Vendor No.", pVendor);
+                PurchasePrice.setrange("Ending Date", 0D);
+                PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+                PurchasePrice.setrange("Item No.", pItem);
+                PurchasePrice.setfilter("Unit of Measure Code", '<>%1', itemrec."Base Unit of Measure");
+                if PurchasePrice.findfirst then begin
+                    RetPurchasePrice.copy(PurchasePrice);
+                    BoolResult := true;
+                end;
+            end;
+        end;
+        if not BoolResult then
+            error(ErrVendorItem);
     end;
 
     //Get SPecial Price

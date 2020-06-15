@@ -40,7 +40,6 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
             begin
                 if RecGItem.Get(rec."No.") then begin
                     rec."UOM (Base)" := recgitem."Base Unit of Measure";
-                    //rec.modify;
                 end;
             end;
         }
