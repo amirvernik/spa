@@ -91,6 +91,7 @@ codeunit 60000 "SPA Purchase Functions"
                                 //V16.0 - Changed From [1] to "Lot No." on Enum
                                 RecGReservationEntry."Lot No." := pPurchaseHeader."Batch Number";
                                 RecGReservationEntry.validate("Item No.", PurchaseLine."No.");
+                                RecGReservationEntry.validate("Variant Code",PurchaseLine."Variant Code");
                                 RecGReservationEntry."Variant Code" := PurchaseLine."Variant Code";
                                 RecGReservationEntry.Description := PurchaseLine.Description;
                                 RecGReservationEntry.validate("Quantity (Base)", purchaseline."Qty. (Base) SPA");
