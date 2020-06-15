@@ -11,6 +11,13 @@ page 60024 "Packing Materials Select"
     {
         area(content)
         {
+            label(LblMessage)
+
+            {
+                Style = Strong;
+                Caption = 'Are there any packing material you would like to return to stock? If so, please choose them and choose Quantities';
+
+            }
             repeater(General)
             {
                 field(Select; Select)
