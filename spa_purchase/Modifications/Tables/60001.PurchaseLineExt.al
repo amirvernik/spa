@@ -49,10 +49,10 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
                 PurchaseHeader: Record "Purchase Header";
                 VariantError: Label 'You cannot change the variant code on a Value Add/Grading PO, you need to use lookup';
             begin
-                if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
+                /*if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
                     if ((PurchaseHeader."Microwave Process PO" = true) or
                     (PurchaseHeader."Grading Result PO" = true)) then
-                        error(VariantError);
+                        error(VariantError);*/
             end;
         }
     }
