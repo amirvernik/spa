@@ -81,7 +81,7 @@ codeunit 60022 "Sales Orders Management"
     begin
         //Change Req. Delivery Date
         if format(salesHeader."Shipping Time") <> '' then
-            salesheader."Dispatch Date" := calcdate(format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
+            salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
         else
             SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
         //SalesHeader.modify;

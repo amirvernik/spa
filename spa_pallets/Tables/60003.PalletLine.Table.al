@@ -57,7 +57,7 @@ table 60003 "Pallet Line"
             Caption = 'UOM';
             DataClassification = ToBeClassified;
         }
-        field(8; Quantity; Integer)
+        field(8; Quantity; Decimal)
         {
             Caption = 'Quantity';
             DataClassification = ToBeClassified;

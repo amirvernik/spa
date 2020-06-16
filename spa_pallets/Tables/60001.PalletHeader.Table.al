@@ -51,7 +51,7 @@ table 60001 "Pallet Header"
             DataClassification = ToBeClassified;
         }
 
-        field(8; "Total Qty"; Integer)
+        field(8; "Total Qty"; Decimal)
         {
             Caption = 'Total Quantity';
             FieldClass = FlowField;
@@ -67,10 +67,10 @@ table 60001 "Pallet Header"
             Caption = 'Pallet Type';
             DataClassification = ToBeClassified;
         }
-        field(20;"Disposal Status";Enum "Pallet Disposal approval Status")
+        field(20; "Disposal Status"; Enum "Pallet Disposal approval Status")
         {
             Caption = 'Disposal Status';
-            DataClassification = ToBeClassified;            
+            DataClassification = ToBeClassified;
         }
     }
 
