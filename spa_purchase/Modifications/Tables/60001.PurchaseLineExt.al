@@ -35,7 +35,6 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
         }
         modify("No.")
         {
-
             trigger OnAfterValidate()
             begin
                 if RecGItem.Get(rec."No.") then begin
@@ -43,7 +42,19 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
                 end;
             end;
         }
-
+        modify("Variant Code")
+        {
+            trigger OnAfterValidate()
+            var
+                PurchaseHeader: Record "Purchase Header";
+                VariantError: Label 'You cannot change the variant code on a Value Add/Grading PO, you need to use lookup';
+            begin
+                if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
+                    if ((PurchaseHeader."Microwave Process PO" = true) or
+                    (PurchaseHeader."Grading Result PO" = true)) then
+                        error(VariantError);
+            end;
+        }
     }
     var
         RecGItem: Record Item;

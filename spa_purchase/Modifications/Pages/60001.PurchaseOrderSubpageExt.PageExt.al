@@ -13,6 +13,7 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 ItemGot: code[20];
                 DirectCostGot: Decimal;
                 UOMGot: code[20];
+                VariantGot: code[10];
             begin
                 //Normal PO
                 if rec.Type = rec.type::item then
@@ -34,8 +35,10 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                             ItemGot := PurchasePrice."Item No.";
                             DirectCostGot := PurchasePrice."Direct Unit Cost";
                             UOMGot := PurchasePrice."Unit of Measure Code";
+                            VariantGot := PurchasePrice."Variant Code";
 
                             rec.validate("No.", ItemGot);
+                            rec.validate("Variant Code", VariantGot);
                             rec.Validate("Unit of Measure Code", UOMGot);
                             rec.validate("Direct Unit Cost", DirectCostGot);
                             CurrPage.update();
@@ -78,6 +81,7 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 DirectCostGot: Decimal;
                 UOMGot: code[20];
                 PurchasePrice: Record "Purchase Price";
+                VariantGot: code[10];
             begin
                 if rec.Type = rec.type::Item then
                     if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
@@ -90,8 +94,10 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                             ItemGot := PurchasePrice."Item No.";
                             DirectCostGot := PurchasePrice."Direct Unit Cost";
                             UOMGot := PurchasePrice."Unit of Measure Code";
+                            VariantGot := PurchasePrice."Variant Code";
 
                             rec.validate("No.", ItemGot);
+                            rec.Validate("Variant Code", VariantGot);
                             rec.validate("Unit of Measure Code", uomgot);
                             rec.validate("Direct Unit Cost", DirectCostGot);
                             CurrPage.update();

@@ -9,6 +9,10 @@ table 60015 "Item Select By Vendor"
         {
             DataClassification = ToBeClassified;
         }
+        field(13; "Variant Code"; code[10])
+        {
+            DataClassification = ToBeClassified;
+        }
         field(15; "Unit of Measure"; code[20])
         {
             DataClassification = ToBeClassified;
@@ -26,7 +30,7 @@ table 60015 "Item Select By Vendor"
 
     keys
     {
-        key(PK; "Item No.","Unit of Measure")
+        key(PK; "Item No.", "Variant Code", "Unit of Measure")
         {
             Clustered = true;
         }

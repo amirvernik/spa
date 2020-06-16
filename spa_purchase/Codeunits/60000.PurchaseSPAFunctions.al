@@ -204,9 +204,11 @@ codeunit 60000 "SPA Purchase Functions"
         PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
         if PurchasePrice.findset then
             repeat
-                if not ItemSelectByVendor.get(PurchasePrice."Item No.", PurchasePrice."Unit of Measure Code") then begin
+                if not ItemSelectByVendor.get(PurchasePrice."Item No.",
+                    PurchasePrice."Variant Code", PurchasePrice."Unit of Measure Code") then begin
                     ItemSelectByVendor.init;
                     ItemSelectByVendor."Item No." := PurchasePrice."Item No.";
+                    ItemSelectByVendor."Variant Code" := PurchasePrice."Variant Code";
                     ItemSelectByVendor."Unit of Measure" := PurchasePrice."Unit of Measure Code";
                     ItemSelectByVendor."Direct Unit Cost" := PurchasePrice."Direct Unit Cost";
                     if ItemRec.get(PurchasePrice."Item No.") then
@@ -221,6 +223,7 @@ codeunit 60000 "SPA Purchase Functions"
             RetPurchasePrice.setrange("Ending Date", 0D);
             RetPurchasePrice.setfilter("Starting Date", '<=%1', pdate);
             RetPurchasePrice.setfilter("Item No.", ItemSelectByVendor."Item No.");
+            RetPurchasePrice.setfilter("Variant Code", ItemSelectByVendor."Variant Code");
             RetPurchasePrice.SetFilter("Unit of Measure Code", ItemSelectByVendor."Unit of Measure");
             if RetPurchasePrice.findfirst then;
         end;
