@@ -108,7 +108,7 @@ page 60004 "Pallet List"
                 trigger OnAction()
                 var
                     packingma: Record "Packing Material Line";
-                begin                    
+                begin
                     PalletFunctions.ChoosePackingMaterials(rec);
                     PalletFunctions.ReOpenPallet(rec);
                 end;
@@ -179,9 +179,12 @@ page 60004 "Pallet List"
             ShowDisposed := false;
         end;
         if "Pallet Type" = 'mw' then
-            PalletTypeText := 'Microwave';
-        if "Pallet Type" = 'grade' then
-            PalletTypeText := 'Grading';
+            PalletTypeText := 'Microwave'
+        else
+            if "Pallet Type" = 'grade' then
+                PalletTypeText := 'Grading'
+            else
+                PalletTypeText := '';
 
     end;
 
