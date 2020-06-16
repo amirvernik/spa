@@ -130,7 +130,7 @@ page 60003 "Pallet Card"
                 image = NegativeLines;
                 Promoted = true;
                 PromotedCategory = Process;
-                Enabled = ShowDisposed;                
+                Enabled = ShowDisposed;
 
                 trigger OnAction()
                 begin
@@ -194,6 +194,22 @@ page 60003 "Pallet Card"
                 end;
 
             }
+            action("Ledger Entries")
+            {
+                ApplicationArea = All;
+                image = LedgerEntries;
+                Promoted = true;
+                PromotedCategory = Process;
+                trigger OnAction()
+                var
+                    PalletLedgerEntry: Record "Pallet Ledger Entry";
+                begin
+                    PalletLedgerEntry.reset;
+                    PalletLedgerEntry.setrange("Pallet ID", rec."Pallet ID");
+                    if PalletLedgerEntry.findset then
+                        page.run(page::"Pallet Ledger Entries", PalletLedgerEntry);
+                end;
+            }
             action("Attachments")
             {
                 ApplicationArea = All;
@@ -216,9 +232,9 @@ page 60003 "Pallet Card"
                 end;
 
             }
-            group("Microwave")
+            group("Value Add")
             {
-                action("Microwave Pallet")
+                action("Value Add Pallet")
                 {
                     ApplicationArea = All;
                     image = Category;
@@ -228,14 +244,14 @@ page 60003 "Pallet Card"
                         rec.modify;
                     end;
                 }
-                action("Unmark Microwave Pallet")
+                action("Unmark Value Add Pallet")
                 {
                     ApplicationArea = All;
                     image = UndoCategory;
 
                     trigger OnAction()
                     begin
-                        rec."Pallet Status" := rec."Pallet Status"::Open;
+                        rec."Pallet Status" := rec."Pallet Status"::Closed;
                         rec.modify;
                     end;
                 }

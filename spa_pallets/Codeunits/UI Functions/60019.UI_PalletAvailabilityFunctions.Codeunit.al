@@ -160,6 +160,7 @@ codeunit 60019 "UI Pallet Availability"
                         end;
             until PalletLine.next = 0;
         end;
+        //JsonArr.WriteTo(pContent);
         if JsonArr.Count > 0 then
             JsonArr.WriteTo(pContent)
         else
