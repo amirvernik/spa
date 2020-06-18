@@ -6,7 +6,7 @@ pageextension 60038 AssemblyBOMExt extends "Assembly BOM"
         {
             field("Reusable item"; "Reusable item")
             {
-                Editable = false;
+                Editable = true;
                 ApplicationArea = all;
             }
         }

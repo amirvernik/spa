@@ -23,7 +23,10 @@ page 60025 "Pallet Change Quality"
                     TableRelation = "Pallet Header" where("Pallet Status" = filter(Closed));
                     trigger OnValidate()
                     begin
-                        CalcChangeQuality(PalletID)
+                        CalcChangeQuality(PalletID);
+                        rec.setfilter("Pallet ID", PalletID);
+                        rec.setfilter("User ID", UserId);
+                        CurrPage.update;
                     end;
                 }
 
@@ -124,8 +127,10 @@ page 60025 "Pallet Change Quality"
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
+        PalletLineChangeQuality.setrange("Pallet ID", PalletID);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
+
         if PalletID = '' then
             PalletSelect := true
         else
@@ -133,11 +138,20 @@ page 60025 "Pallet Change Quality"
 
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("User Created", UserId);
+        PalletChangeQuality.setrange("Pallet ID", PalletID);
         if PalletChangeQuality.findset then
             PalletChangeQuality.DeleteAll();
 
-        if PalletID <> '' then
+        if PalletID <> '' then begin
             CalcChangeQuality(PalletID);
+            rec.setfilter("Pallet ID", PalletID);
+            rec.setfilter("User ID", UserId);
+        end
+        else begin
+            rec.setfilter("Pallet ID", 'X');
+            //rec.setfilter("User ID", UserId);
+        end;
+
         CurrPage.update;
     end;
 
