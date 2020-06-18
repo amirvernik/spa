@@ -19,7 +19,7 @@ table 60001 "Pallet Header"
         {
             Caption = 'Location Code';
             DataClassification = ToBeClassified;
-            TableRelation = Location;
+            TableRelation = Location.Code WHERE("Use As In-Transit" = CONST(false));
             trigger onvalidate()
             begin
                 if ((Rec."Location Code" <> xrec."Location Code") and (xrec."Location Code" <> '')) then begin
