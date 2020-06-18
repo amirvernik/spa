@@ -15,23 +15,11 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 UOMGot: code[20];
                 VariantGot: code[10];
             begin
-                //Normal PO
+                //Purchase Order - check Pricelist
                 if rec.Type = rec.type::item then
-                    if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
-                        if ((not PurchaseHeader."Microwave Process PO") and (not PurchaseHeader."Grading Result PO")) then begin
-                            ItemGot := SPAFunctions.LookupNotItems('ITM');
-                            rec.validate("No.", ItemGot);
-                            CurrPage.update();
-                        end;
-
-                //Grading or Value Add (Microwave)
-                if rec.Type = rec.type::item then
-                    if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
-                        if ((PurchaseHeader."Microwave Process PO") or (PurchaseHeader."Grading Result PO")) then begin
+                    if PurchaseHeader.get(rec."Document Type", rec."Document No.") then begin
                             SPAFunctions.LookupItemsForVendors(PurchaseHeader."Buy-from Vendor No.",
                                                                 PurchaseHeader."Document Date", PurchasePrice);
-                            //DirectCostGot := SPAFunctions.GetSpecialPrice(PurchaseHeader."Buy-from Vendor No.",
-                            //                                    PurchaseHeader."Document Date", ItemGot);
                             ItemGot := PurchasePrice."Item No.";
                             DirectCostGot := PurchasePrice."Direct Unit Cost";
                             UOMGot := PurchasePrice."Unit of Measure Code";
@@ -84,13 +72,10 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 VariantGot: code[10];
             begin
                 if rec.Type = rec.type::Item then
-                    if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
-                        if ((PurchaseHeader."Microwave Process PO") or (PurchaseHeader."Grading Result PO")) then begin
+                    if PurchaseHeader.get(rec."Document Type", rec."Document No.") then begin
                             SPAFunctions.ValidateItemsForVendors(PurchaseHeader."Buy-from Vendor No.",
                                                                 PurchaseHeader."Document Date",
                                                                 rec."No.", PurchasePrice);
-                            //DirectCostGot := SPAFunctions.GetSpecialPrice(PurchaseHeader."Buy-from Vendor No.",
-                            //                                    PurchaseHeader."Document Date", ItemGot);
                             ItemGot := PurchasePrice."Item No.";
                             DirectCostGot := PurchasePrice."Direct Unit Cost";
                             UOMGot := PurchasePrice."Unit of Measure Code";
