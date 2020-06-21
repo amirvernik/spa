@@ -32,6 +32,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet Type":=pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
             until PackingMaterials.next = 0;
@@ -68,6 +69,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet Type":=pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
             //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line",RecGItemJournalLine);
@@ -91,6 +93,8 @@ codeunit 60002 "Item Ledger Functions"
     local procedure OnAfterPostItemJnlLine(ItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Document No.";
+        ItemLedgerEntry."Pallet Type":=ItemJournalLine."Pallet Type";
+        ItemLedgerEntry.Disposal:=ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
         if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
             if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin

@@ -91,6 +91,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 RecGItemJournalLine.validate(Quantity, PMSelect.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet Type":=pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 lineNumber += 10000;
             until PMSelect.next = 0;
@@ -129,6 +130,7 @@ codeunit 60023 "Pallet Disposal Management"
                 ItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 ItemJournalLine.validate(Quantity, pPackingSelect.Quantity);
                 ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine."Pallet Type":=pPalletHeader."Pallet Type";
                 ItemJournalLine.modify;
                 lineNumber += 10000;
             until pPackingSelect.next = 0;
@@ -177,6 +179,8 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.validate("Location Code", PalletLine."Location Code");
                 RecGItemJournalLine.validate(Quantity, PalletLine.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet Type":=pPalletHeader."Pallet Type";
+                RecGItemJournalLine.Disposal:=true;
                 RecGItemJournalLine.modify;
 
                 if ItemRec.get(PalletLine."Item No.") then

@@ -64,6 +64,8 @@ codeunit 60028 "ReusableItemManagement"
                     RecGItemJournalLine.validate("Location Code", PurchRcpLine."Location Code");
                     RecGItemJournalLine.validate(Quantity, PurchRcpLine."Quantity");
                     RecGItemJournalLine."Pallet ID" := ItemLedgerEntry."Pallet ID";
+                    RecGItemJournalLine."Pallet Type":=ItemLedgerEntry."Pallet Type";
+                    RecGItemJournalLine.Disposal:=ItemLedgerEntry.disposal;
                     RecGItemJournalLine.modify;
                     LineNumber += 10000;
                     BoolToPost := true;

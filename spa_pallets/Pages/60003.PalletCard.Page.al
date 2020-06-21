@@ -97,90 +97,138 @@ page 60003 "Pallet Card"
     {
         area(Processing)
         {
-            action("Close Pallet")
+            group(Functions)
             {
-                ApplicationArea = All;
-                image = ReleaseDoc;
-                Promoted = true;
-                PromotedCategory = Process;
-                Enabled = ShowClose;
+                Image = Action;
+                action("Close Pallet")
+                {
+                    ApplicationArea = All;
+                    image = ReleaseDoc;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    Enabled = ShowClose;
 
-                trigger OnAction()
-                begin
-                    PalletFunctions.ClosePallet(rec);
-                end;
+                    trigger OnAction()
+                    begin
+                        PalletFunctions.ClosePallet(rec);
+                    end;
+                }
+                action("ReOpen Pallet")
+                {
+                    ApplicationArea = All;
+                    image = ReOpen;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    Enabled = ShowReopen;
+
+                    trigger OnAction()
+                    begin
+                        PalletFunctions.ChoosePackingMaterials(rec);
+                        PalletFunctions.ReOpenPallet(rec);
+                    end;
+                }
+                action("Dispose Pallet")
+                {
+                    ApplicationArea = All;
+                    image = NegativeLines;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    Enabled = ShowDisposed;
+                    trigger OnAction()
+                    begin
+                        PalletDisposalMgmt.DisposePallet(rec);
+                    end;
+                }
+
+                action("Change Item Quality")
+                {
+                    ApplicationArea = All;
+                    image = TaskQualityMeasure;
+                    //Promoted = true;
+                    //PromotedCategory = Process;
+
+                    trigger OnAction()
+                    var
+                        ChangeQualityPage: page "Pallet Change Quality";
+                        MsgCannotChange: Label 'Change item quality in the pallet is available only for closed status pallets';
+                    begin
+                        if "Pallet Status" = "Pallet Status"::Closed then begin
+                            ChangeQualityPage.SetPalletID(rec."Pallet ID");
+                            ChangeQualityPage.CalcChangeQuality(rec."Pallet ID");
+                            ChangeQualityPage.run;
+                        end
+                        else
+                            message(MsgCannotChange);
+                    end;
+                }
+                action("Pallet Reservations")
+                {
+                    ApplicationArea = All;
+                    image = ItemReservation;
+                    //Promoted = true;
+                    //PromotedCategory = Process;
+
+                    trigger OnAction()
+                    var
+                        PalletReservation: Record "Pallet reservation Entry";
+                    begin
+                        PalletReservation.reset;
+                        PalletReservation.setrange("Pallet ID", rec."Pallet ID");
+                        if PalletReservation.FindSet then
+                            page.run(page::"Pallet Reservation Entries", PalletReservation);
+                    end;
+                }
+                action("Ledger Entries")
+                {
+                    ApplicationArea = All;
+                    image = LedgerEntries;
+                    //Promoted = true;
+                    //PromotedCategory = Process;
+                    trigger OnAction()
+                    var
+                        PalletLedgerEntry: Record "Pallet Ledger Entry";
+                    begin
+                        PalletLedgerEntry.reset;
+                        PalletLedgerEntry.setrange("Pallet ID", rec."Pallet ID");
+                        if PalletLedgerEntry.findset then
+                            page.run(page::"Pallet Ledger Entries", PalletLedgerEntry);
+                    end;
+                }
             }
-            action("ReOpen Pallet")
+            group("Value Add")
             {
-                ApplicationArea = All;
-                image = ReOpen;
-                Promoted = true;
-                PromotedCategory = Process;
-                Enabled = ShowReopen;
+                image = ServiceItemGroup;
+                action("Value Add Pallet")
+                {
+                    ApplicationArea = All;
+                    image = Category;
+                    trigger OnAction()
+                    begin
+                        rec."Pallet Status" := rec."Pallet Status"::Consumed;
+                        rec.modify;
+                        PalletLedgerFunctions.ValueAddConsume(rec, 1);
+                    end;
+                }
+                action("Unmark Value Add Pallet")
+                {
+                    ApplicationArea = All;
+                    image = UndoCategory;
 
-                trigger OnAction()
-                begin
-                    PalletFunctions.ChoosePackingMaterials(rec);
-                    PalletFunctions.ReOpenPallet(rec);
-                end;
-            }
-            action("Dispose Pallet")
-            {
-                ApplicationArea = All;
-                image = NegativeLines;
-                Promoted = true;
-                PromotedCategory = Process;
-                Enabled = ShowDisposed;
+                    trigger OnAction()
+                    begin
+                        rec."Pallet Status" := rec."Pallet Status"::Closed;
+                        rec.modify;
+                        PalletLedgerFunctions.ValueAddConsume(rec, -1);
+                    end;
+                }
 
-                trigger OnAction()
-                begin
-                    PalletDisposalMgmt.DisposePallet(rec);
-                end;
-            }
-            action("Change Item Quality")
-            {
-                ApplicationArea = All;
-                image = TaskQualityMeasure;
-                Promoted = true;
-                PromotedCategory = Process;
-
-                trigger OnAction()
-                var
-                    ChangeQualityPage: page "Pallet Change Quality";
-                    MsgCannotChange: Label 'Change item quality in the pallet is available only for closed status pallets';
-                begin
-                    if "Pallet Status" = "Pallet Status"::Closed then begin
-                        ChangeQualityPage.SetPalletID(rec."Pallet ID");
-                        ChangeQualityPage.CalcChangeQuality(rec."Pallet ID");
-                        ChangeQualityPage.run;
-                    end
-                    else
-                        message(MsgCannotChange);
-                end;
-            }
-            action("Pallet Reservations")
-            {
-                ApplicationArea = All;
-                image = ItemReservation;
-                Promoted = true;
-                PromotedCategory = Process;
-
-                trigger OnAction()
-                var
-                    PalletReservation: Record "Pallet reservation Entry";
-                begin
-                    PalletReservation.reset;
-                    PalletReservation.setrange("Pallet ID", rec."Pallet ID");
-                    if PalletReservation.FindSet then
-                        page.run(page::"Pallet Reservation Entries", PalletReservation);
-                end;
             }
             action("Print Pallet")
             {
                 ApplicationArea = All;
                 image = Print;
                 Promoted = true;
-                PromotedCategory = Process;
+                PromotedCategory = Report;
                 trigger OnAction()
                 var
 
@@ -194,28 +242,12 @@ page 60003 "Pallet Card"
                 end;
 
             }
-            action("Ledger Entries")
-            {
-                ApplicationArea = All;
-                image = LedgerEntries;
-                Promoted = true;
-                PromotedCategory = Process;
-                trigger OnAction()
-                var
-                    PalletLedgerEntry: Record "Pallet Ledger Entry";
-                begin
-                    PalletLedgerEntry.reset;
-                    PalletLedgerEntry.setrange("Pallet ID", rec."Pallet ID");
-                    if PalletLedgerEntry.findset then
-                        page.run(page::"Pallet Ledger Entries", PalletLedgerEntry);
-                end;
-            }
             action("Attachments")
             {
                 ApplicationArea = All;
                 image = Attachments;
-                Promoted = true;
-                PromotedCategory = Process;
+                //Promoted = true;
+                //PromotedCategory = Process;
 
                 trigger OnAction()
                 var
@@ -230,31 +262,6 @@ page 60003 "Pallet Card"
                     DocumentAttachmentDetails.OpenForRecRef(RecRef);
                     DocumentAttachmentDetails.RUNMODAL;
                 end;
-
-            }
-            group("Value Add")
-            {
-                action("Value Add Pallet")
-                {
-                    ApplicationArea = All;
-                    image = Category;
-                    trigger OnAction()
-                    begin
-                        rec."Pallet Status" := rec."Pallet Status"::Consumed;
-                        rec.modify;
-                    end;
-                }
-                action("Unmark Value Add Pallet")
-                {
-                    ApplicationArea = All;
-                    image = UndoCategory;
-
-                    trigger OnAction()
-                    begin
-                        rec."Pallet Status" := rec."Pallet Status"::Closed;
-                        rec.modify;
-                    end;
-                }
 
             }
         }
@@ -303,6 +310,7 @@ page 60003 "Pallet Card"
 
     var
         PalletFunctions: Codeunit "Pallet Functions";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         PalletDisposalMgmt: Codeunit "Pallet Disposal Management";
         ShowClose: Boolean;
         ShowReopen: Boolean;

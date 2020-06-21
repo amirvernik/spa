@@ -159,7 +159,10 @@ codeunit 60003 "Pallet Ledger Functions"
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
-        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
+        if ItemLedgerEntry.Disposal then
+            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Dispose Raw Materials"
+        else
+            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
         PalletLedgerEntry."Pallet ID" := ItemLedgerEntry."Pallet ID";
         PalletLedgerEntry."Document No." := ItemLedgerEntry."Pallet ID";
         PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
@@ -323,6 +326,38 @@ codeunit 60003 "Pallet Ledger Functions"
                 LineNumber += 1;
             until palletlines.next = 0;
     end;
+
+    //Consume Raw Materials for MW
+    procedure ValueAddConsume(var PalletHeader: Record "Pallet Header"; pType: Integer)
+    begin
+        PalletLedgerEntry.LockTable();
+        LineNumber := GetLastEntry();
+        PalletLines.reset;
+        PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
+        if palletlines.FindSet() then
+            repeat
+                PalletLedgerEntry.Init();
+                PalletLedgerEntry."Entry No." := LineNumber;
+                if pType = 1 then
+                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Value Add"
+                else
+                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"UnConsume Value Add";
+                PalletLedgerEntry."Pallet ID" := PalletHeader."Pallet ID";
+                PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                PalletLedgerEntry.validate("Posting Date", Today);
+                PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
+                PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
+                PalletLedgerEntry."Item Description" := PalletLines.Description;
+                PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
+                PalletLedgerEntry.validate(Quantity, palletlines.Quantity * pType);
+                PalletLedgerEntry."User ID" := userid;
+                PalletLedgerEntry.Insert();
+                LineNumber += 1;
+            until palletlines.next = 0;
+    end;
+
     //Get Last Number of Pallet Ledger Entry
     local procedure GetLastEntry(): Integer
     begin

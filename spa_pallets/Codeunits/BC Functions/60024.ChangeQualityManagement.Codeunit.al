@@ -58,6 +58,7 @@ codeunit 60024 "Change Quality Management"
                     ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
                     ItemJournalLine."Posting Date" := Today;
                     ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
+                    ItemJournalLine."Pallet ID":=pPalletLineChg."Pallet ID";
                     ItemJournalLine."Document Date" := today;
                     ItemJournalLine.validate("Item No.", pPalletLineChg."Item No.");
                     ItemJournalLine.validate("Variant Code", pPalletLineChg."Variant Code");

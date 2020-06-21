@@ -92,6 +92,8 @@ codeunit 60001 "Pallet Functions"
     local procedure OnAfterInsertItemLedgerEntry(ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry")
     begin
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
+        ItemLedgerEntry."Pallet Type":=ItemJournalLine."Pallet Type";
+        ItemLedgerEntry.Disposal:=ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
         if ItemJournalLine."Journal Template Name" = 'RECLASS' then
             PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
