@@ -1,5 +1,13 @@
 codeunit 60003 "Pallet Ledger Functions"
 {
+    //Put Time Stamp on Pallet Ledger Entry
+    [EventSubscriber(ObjectType::table, database::"Pallet Ledger Entry", 'OnAfterInsertEvent', '', true, true)]
+    local procedure OnAfterInsertPalletLedgerEntry(var Rec: Record "Pallet Ledger Entry")
+    begin
+        rec."Date Time Created" := CurrentDateTime;
+        rec.modify;
+    end;
+
     //Negative Pallet Ledger Entry from a Pallet - Reopen Pallet
     procedure NegPalletLedger(var PalletHeader: Record "Pallet Header")
     begin
@@ -13,6 +21,7 @@ codeunit 60003 "Pallet Ledger Functions"
                 PalletLedgerEntry."Entry No." := LineNumber;
                 PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Remove from a pallet";
                 PalletLedgerEntry."Pallet ID" := PalletHeader."Pallet ID";
+                PalletLedgerEntry."Document No." := PalletHeader."Pallet ID";
                 PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
                 PalletLedgerEntry.validate("Posting Date", Today);
                 PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
@@ -336,6 +345,7 @@ codeunit 60003 "Pallet Ledger Functions"
         PalletLedgerEntry."Entry No." := LineNumber;
         PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Value Add";
         PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
+        PalletLedgerEntry."Document No." := PalletLine."Pallet ID";
         PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
         PalletLedgerEntry.validate("Posting Date", Today);
         PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");
@@ -365,6 +375,7 @@ codeunit 60003 "Pallet Ledger Functions"
                 PalletLedgerEntry."Entry No." := LineNumber;
                 PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"UnConsume Value Add";
                 PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
+                PalletLedgerEntry."Document No." := PalletLine."Pallet ID";
                 PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
                 PalletLedgerEntry.validate("Posting Date", Today);
                 PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");

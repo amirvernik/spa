@@ -26,30 +26,6 @@ codeunit 60029 "Consumables Management"
                 ConsumLineSelect.insert;
             until PalletLine.next = 0;
         page.runmodal(page::"Pallet Consume Select", ConsumLineSelect);
-
-        ConsumLineSelect.reset;
-        ConsumLineSelect.setrange("Pallet ID", pPalletHeader."Pallet ID");
-        if ConsumLineSelect.findset then
-            repeat
-                if PalletLine.get(ConsumLineSelect."Pallet ID", ConsumLineSelect."Pallet Line") then begin
-                    PalletLine."QTY Consumed" += ConsumLineSelect."Consumed Qty";
-                    PalletLine."Remaining Qty" := PalletLine.Quantity - PalletLine."QTY Consumed";
-                    PalletLine.modify;
-                    PalletLedgerFunctions.ValueAddConsume(PalletLine, ConsumLineSelect."Consumed Qty");
-                end;
-            until ConsumLineSelect.next = 0;
-
-        PalletLine.reset;
-        PalletLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
-        PalletLine.setfilter("Remaining Qty", '<>%1', 0);
-        if PalletLine.FindFirst() then begin
-            pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::"Partially consumed";
-            pPalletHeader.modify;
-        end
-        else begin
-            pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Consumed;
-            pPalletHeader.modify;
-        end;
     end;
 
     procedure UnConsumeItems(var pPalletHeader: Record "Pallet Header")
