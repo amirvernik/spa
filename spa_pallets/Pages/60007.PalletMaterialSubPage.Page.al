@@ -43,6 +43,10 @@ page 60007 "Pallet Materials SubPage"
                 {
                     ApplicationArea = all;
                 }
+                field("Reusable Item";"Reusable Item")
+                {
+                    ApplicationArea=all;
+                }
             }
 
         }

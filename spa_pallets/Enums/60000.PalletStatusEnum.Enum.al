@@ -18,8 +18,12 @@ enum 60000 "Pallet Status"
     {
         Caption = 'Consumed';
     }
-    value(4;Disposed)
+    value(4; Disposed)
     {
-        caption='Disposed';
+        caption = 'Disposed';
+    }
+    value(5; "Partially consumed")
+    {
+        caption = 'Partially consumed';
     }
 }

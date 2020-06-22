@@ -40,17 +40,21 @@ table 60004 "Packing Material Line"
             Caption = 'Returned';
             DataClassification = ToBeClassified;
         }
-        field(9;"Line No.";integer)
+        field(9; "Line No."; integer)
         {
             Caption = 'Line No.';
             DataClassification = ToBeClassified;
         }
-        field(10;"Qty to Return";Decimal)
+        field(10; "Qty to Return"; Decimal)
         {
             Caption = 'Qty to Return';
             DataClassification = ToBeClassified;
-        }        
-        
+        }
+        field(20; "Reusable Item"; Boolean)
+        {
+            Caption = 'Reusable Item';
+            DataClassification = ToBeClassified;
+        }
     }
 
     keys

@@ -66,9 +66,8 @@ page 60003 "Pallet Card"
                 SubPageLink = "Pallet ID" = FIELD("Pallet ID");
                 UpdatePropagation = Both;
                 caption = 'Lines';
-
-
             }
+
             part(PackingMaterials; "Pallet Materials SubPage")
             {
                 ApplicationArea = Basic, Suite;
@@ -144,8 +143,6 @@ page 60003 "Pallet Card"
                 {
                     ApplicationArea = All;
                     image = TaskQualityMeasure;
-                    //Promoted = true;
-                    //PromotedCategory = Process;
 
                     trigger OnAction()
                     var
@@ -165,8 +162,6 @@ page 60003 "Pallet Card"
                 {
                     ApplicationArea = All;
                     image = ItemReservation;
-                    //Promoted = true;
-                    //PromotedCategory = Process;
 
                     trigger OnAction()
                     var
@@ -182,8 +177,7 @@ page 60003 "Pallet Card"
                 {
                     ApplicationArea = All;
                     image = LedgerEntries;
-                    //Promoted = true;
-                    //PromotedCategory = Process;
+
                     trigger OnAction()
                     var
                         PalletLedgerEntry: Record "Pallet Ledger Entry";
@@ -204,9 +198,7 @@ page 60003 "Pallet Card"
                     image = Category;
                     trigger OnAction()
                     begin
-                        rec."Pallet Status" := rec."Pallet Status"::Consumed;
-                        rec.modify;
-                        PalletLedgerFunctions.ValueAddConsume(rec, 1);
+                        ConsumeablesMgmt.ConsumeItems(rec);
                     end;
                 }
                 action("Unmark Value Add Pallet")
@@ -216,9 +208,7 @@ page 60003 "Pallet Card"
 
                     trigger OnAction()
                     begin
-                        rec."Pallet Status" := rec."Pallet Status"::Closed;
-                        rec.modify;
-                        PalletLedgerFunctions.ValueAddConsume(rec, -1);
+                        ConsumeablesMgmt.UnConsumeItems(rec);
                     end;
                 }
 
@@ -279,6 +269,18 @@ page 60003 "Pallet Card"
             ShowDisposed := true;
         end;
 
+        if rec."Pallet Status" = rec."Pallet Status"::"Partially consumed" then begin
+            ShowReopen := false;
+            ShowClose := false;
+            ShowDisposed := false;
+        end;
+
+        if rec."Pallet Status" = rec."Pallet Status"::Consumed then begin
+            ShowReopen := false;
+            ShowClose := false;
+            ShowDisposed := false;
+        end;
+
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", rec."Pallet ID");
         if PackingMaterials.findfirst then
@@ -300,6 +302,18 @@ page 60003 "Pallet Card"
             ShowClose := false;
             ShowDisposed := true;
         end;
+
+        if rec."Pallet Status" = rec."Pallet Status"::"Partially consumed" then begin
+            ShowReopen := false;
+            ShowClose := false;
+            ShowDisposed := false;
+        end;
+        if rec."Pallet Status" = rec."Pallet Status"::Consumed then begin
+            ShowReopen := false;
+            ShowClose := false;
+            ShowDisposed := false;
+        end;
+
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", rec."Pallet ID");
         if PackingMaterials.findfirst then
@@ -309,6 +323,7 @@ page 60003 "Pallet Card"
     end;
 
     var
+        ConsumeablesMgmt: Codeunit "Consumables Management";
         PalletFunctions: Codeunit "Pallet Functions";
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         PalletDisposalMgmt: Codeunit "Pallet Disposal Management";

@@ -89,6 +89,12 @@ table 60003 "Pallet Line"
             DataClassification = ToBeClassified;
 
         }
+        field(60019; "Reusable item"; Boolean)
+        {
+            Caption = 'Reusable item';
+            DataClassification = ToBeClassified;
+        }
+
         field(60020; "Variant Code"; code[10])
         {
             caption = 'Variety';
@@ -106,13 +112,17 @@ table 60003 "Pallet Line"
                     //rec.modify;
                 end;
             end;
-
         }
-        field(60019; "Reusable item"; Boolean)
+        field(60021; "QTY Consumed"; Decimal)
         {
-            Caption = 'Reusable item';
+            caption = 'QTY Consumed';
             DataClassification = ToBeClassified;
         }
+        field(60022; "Remaining Qty"; Decimal)
+        {
+            caption = 'Remaining Qty';
+            DataClassification = ToBeClassified;
+        }        
     }
 
     keys

@@ -8,9 +8,8 @@ codeunit 60028 "ReusableItemManagement"
         CASE Rec.Type OF
             Rec.Type::Item:
                 BEGIN
-
-                    Item.GET(Rec."No.");
-                    rec."Reusable item" := Item."Reusable item";
+                    if Item.GET(Rec."No.") then
+                        rec."Reusable item" := Item."Reusable item";
                 end;
         end;
     end;
@@ -64,13 +63,14 @@ codeunit 60028 "ReusableItemManagement"
                     RecGItemJournalLine.validate("Location Code", PurchRcpLine."Location Code");
                     RecGItemJournalLine.validate(Quantity, PurchRcpLine."Quantity");
                     RecGItemJournalLine."Pallet ID" := ItemLedgerEntry."Pallet ID";
-                    RecGItemJournalLine."Pallet Type":=ItemLedgerEntry."Pallet Type";
-                    RecGItemJournalLine.Disposal:=ItemLedgerEntry.disposal;
+                    RecGItemJournalLine."Pallet Type" := ItemLedgerEntry."Pallet Type";
+                    RecGItemJournalLine.Disposal := ItemLedgerEntry.disposal;
                     RecGItemJournalLine.modify;
                     LineNumber += 10000;
                     BoolToPost := true;
                 end;
             until PurchRcpLine.next = 0;
+            
             if BoolToPost then begin
                 RecGItemJournalLine.setrange("Line No.", FirstLine, LineNumber);
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
