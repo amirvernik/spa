@@ -68,7 +68,8 @@ codeunit 60022 "Sales Orders Management"
         ErrorReqDelDate: Label 'Req. Delivery Date is mandatory';
     begin
         if SalesHeader."Requested Delivery Date" = 0D then
-            Error(ErrorReqDelDate);
+            if SalesHeader."Document Type" = salesheader."Document Type"::Order then
+                Error(ErrorReqDelDate);
     end;
 
     //On After Release Sales Order

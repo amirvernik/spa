@@ -1,11 +1,11 @@
 page 60018 "Pallet Ledger Entry Factbox"
 {
     PageType = ListPart;
-    ApplicationArea = All;
+    //ApplicationArea = All;
     Editable = false;
-    UsageCategory = Administration;
+    //UsageCategory = Administration;
     SourceTable = "Pallet Ledger Entry";
-    caption = 'Pallets';
+    //caption = 'Pallets';
 
     layout
     {
