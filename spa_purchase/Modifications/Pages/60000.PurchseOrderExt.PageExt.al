@@ -47,7 +47,9 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             group("Raw Material")
 
             {
-                Visible = po_microwave_process;
+                //Removed By Oren Ask - TFS98096 - Visible false
+                //Visible = po_microwave_process;
+                Visible = false;
                 field("Raw Material Item"; "Raw Material Item")
                 {
                     ApplicationArea = all;
@@ -77,7 +79,9 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             {
                 ApplicationArea = All;
                 Image = ItemTracing;
-                Visible = po_microwave_process;
+                //Removed By Oren Ask - TFS98096 - Visible false
+                //Visible = po_microwave_process;
+                Visible = false;
 
                 trigger OnAction()
                 begin

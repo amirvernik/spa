@@ -45,12 +45,15 @@ codeunit 60000 "SPA Purchase Functions"
             if ((pPurchaseHeader."Number Of Raw Material Bins" = 0) or (pPurchaseHeader."Harvest Date" = 0D))
                 then
                 error(err001);
-        if pPurchaseHeader."Microwave Process PO" then begin
+
+        //Removed By Oren Ask - TFS98096
+        /*if pPurchaseHeader."Microwave Process PO" then begin
             if ((pPurchaseHeader."Raw Material Item" = '') or (pPurchaseHeader."RM Location" = '')
                 or (pPurchaseHeader."RM Qty" = 0) or (pPurchaseHeader."Item LOT Number" = ''))
                     then
                 error(err003);
-        end;
+        end;*/
+        
         if ((pPurchaseHeader."Vendor Shipment No." = '') and (pPurchaseHeader."Grading Result PO" = true)) then
             error(Err004);
 

@@ -18,19 +18,19 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 //Purchase Order - check Pricelist
                 if rec.Type = rec.type::item then
                     if PurchaseHeader.get(rec."Document Type", rec."Document No.") then begin
-                            SPAFunctions.LookupItemsForVendors(PurchaseHeader."Buy-from Vendor No.",
-                                                                PurchaseHeader."Document Date", PurchasePrice);
-                            ItemGot := PurchasePrice."Item No.";
-                            DirectCostGot := PurchasePrice."Direct Unit Cost";
-                            UOMGot := PurchasePrice."Unit of Measure Code";
-                            VariantGot := PurchasePrice."Variant Code";
+                        SPAFunctions.LookupItemsForVendors(PurchaseHeader."Buy-from Vendor No.",
+                                                            PurchaseHeader."Document Date", PurchasePrice);
+                        ItemGot := PurchasePrice."Item No.";
+                        DirectCostGot := PurchasePrice."Direct Unit Cost";
+                        UOMGot := PurchasePrice."Unit of Measure Code";
+                        VariantGot := PurchasePrice."Variant Code";
 
-                            rec.validate("No.", ItemGot);
-                            rec.validate("Variant Code", VariantGot);
-                            rec.Validate("Unit of Measure Code", UOMGot);
-                            rec.validate("Direct Unit Cost", DirectCostGot);
-                            CurrPage.update();
-                        end;
+                        rec.validate("No.", ItemGot);
+                        rec.validate("Variant Code", VariantGot);
+                        rec.Validate("Unit of Measure Code", UOMGot);
+                        rec.validate("Direct Unit Cost", DirectCostGot);
+                        CurrPage.update();
+                    end;
 
                 //GL Account
                 if rec.Type = rec.type::"G/L Account" then begin
@@ -73,20 +73,20 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
             begin
                 if rec.Type = rec.type::Item then
                     if PurchaseHeader.get(rec."Document Type", rec."Document No.") then begin
-                            SPAFunctions.ValidateItemsForVendors(PurchaseHeader."Buy-from Vendor No.",
-                                                                PurchaseHeader."Document Date",
-                                                                rec."No.", PurchasePrice);
-                            ItemGot := PurchasePrice."Item No.";
-                            DirectCostGot := PurchasePrice."Direct Unit Cost";
-                            UOMGot := PurchasePrice."Unit of Measure Code";
-                            VariantGot := PurchasePrice."Variant Code";
+                        SPAFunctions.ValidateItemsForVendors(PurchaseHeader."Buy-from Vendor No.",
+                                                            PurchaseHeader."Document Date",
+                                                            rec."No.", PurchasePrice);
+                        ItemGot := PurchasePrice."Item No.";
+                        DirectCostGot := PurchasePrice."Direct Unit Cost";
+                        UOMGot := PurchasePrice."Unit of Measure Code";
+                        VariantGot := PurchasePrice."Variant Code";
 
-                            rec.validate("No.", ItemGot);
-                            rec.Validate("Variant Code", VariantGot);
-                            rec.validate("Unit of Measure Code", uomgot);
-                            rec.validate("Direct Unit Cost", DirectCostGot);
-                            CurrPage.update();
-                        end;
+                        rec.validate("No.", ItemGot);
+                        rec.Validate("Variant Code", VariantGot);
+                        rec.validate("Unit of Measure Code", uomgot);
+                        rec.validate("Direct Unit Cost", DirectCostGot);
+                        CurrPage.update();
+                    end;
             end;
         }
         modify("Variant Code")
@@ -108,13 +108,13 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
             {
                 ApplicationArea = all;
             }
-
+        }
+        addafter(Quantity)
+        {
+            field("Quantity (SPA)"; "Quantity (SPA)")
+            {
+                ApplicationArea = all;
+            }
         }
     }
-
-    actions
-    {
-
-    }
-
 }
