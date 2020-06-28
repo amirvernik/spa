@@ -116,12 +116,15 @@ codeunit 60001 "Pallet Functions"
     //On After Post Item Reclass Journal
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInsertItemLedgEntry', '', true, true)]
     local procedure OnAfterInsertItemLedgerEntry(ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        PalletSetup:Record "Pallet Process Setup";
     begin
+        PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
         ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
         ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
-        if ItemJournalLine."Journal Template Name" = 'RECLASS' then
+        if ItemJournalLine."Journal Template Name" =  PalletSetup."Item Reclass Template" then
             PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
     end;
 

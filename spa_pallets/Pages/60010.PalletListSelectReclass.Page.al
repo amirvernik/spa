@@ -37,7 +37,7 @@ page 60010 "Pallet List Select Reclass"
     begin
         PalletSetup.get;
         ItemJournalLine.reset;
-        ItemJournalLine.setrange("Journal Template Name", 'RECLASS');
+        ItemJournalLine.setrange("Journal Template Name", PalletSetup."Item Reclass Template");
         ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Reclass Batch");
         if ItemJournalLine.findlast then
             LineNumber := ItemJournalLine."Line No." + 10000
