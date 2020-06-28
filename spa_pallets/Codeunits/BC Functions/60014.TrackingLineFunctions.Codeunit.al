@@ -48,8 +48,11 @@ codeunit 60014 "Tracking Line Functions"
                             RecGReservationEntry."Packing Date" := pPalletHeader."Creation Date";
                             RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                             RecGReservationEntry.validate("Item No.", PurchaseLine."No.");
+                            if purchaseline."Variant code" <> '' then
+                                RecGReservationEntry.Validate("Variant code", purchaseline."Variant code");
                             RecGReservationEntry.validate("Quantity (Base)", PurchaseLine."Quantity (Base)");
                             RecGReservationEntry.validate(Quantity, PurchaseLine.Quantity);
+
                             RecGReservationEntry.insert;
                         end;
                 end;

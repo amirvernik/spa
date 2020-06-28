@@ -28,8 +28,10 @@ table 60017 "Pallet Change Quality"
             var
                 Item: Record Item;
             begin
-                if Item.get("New Item No.") then
+                if Item.get("New Item No.") then begin
                     Description := item.Description;
+                    "Unit of Measure" := item."Base Unit of Measure";
+                end;
             end;
         }
         field(50; "New Quantity"; Decimal)
@@ -40,11 +42,19 @@ table 60017 "Pallet Change Quality"
         {
             DataClassification = ToBeClassified;
         }
-        field(70; "New Variant Code"; code[20])
+        field(70; "New Variant Code"; code[10])
         {
+            caption = 'New Variety Code';
             TableRelation = "Item Variant".Code where("Item No." = field("New Item No."));
             DataClassification = ToBeClassified;
         }
+        field(80; "Unit of Measure"; code[20])
+        {
+
+            TableRelation = "Item Unit of Measure".Code where("Item No." = field("New Item No."));
+            DataClassification = ToBeClassified;
+        }
+
     }
 
     keys
@@ -65,6 +75,7 @@ table 60017 "Pallet Change Quality"
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("Pallet ID", Rec."Pallet ID");
         PalletChangeQuality.setrange("Pallet Line No.", rec."Pallet Line No.");
+        PalletChangeQuality.setrange("User Created",UserId);
         if PalletChangeQuality.findlast then
             LineNumber := PalletChangeQuality."Line No." + 10000
         else

@@ -32,6 +32,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
             until PackingMaterials.next = 0;
@@ -66,8 +67,9 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
-                RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
             //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line",RecGItemJournalLine);
@@ -89,8 +91,13 @@ codeunit 60002 "Item Ledger Functions"
     //On AFter Post Item Journal Line
     [EventSubscriber(ObjectType::Codeunit, codeunit::"Item Jnl.-Post Line", 'OnAfterPostItemJnlLine', '', true, true)]
     local procedure OnAfterPostItemJnlLine(ItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
+    var
+        PalletSetup: Record "Pallet Process Setup";
     begin
+        PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Document No.";
+        ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
+        ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
         if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
             if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
@@ -106,7 +113,7 @@ codeunit 60002 "Item Ledger Functions"
                 ItemLedgerEntry.Modify();
             end;
         end;
-        if ItemJournalLine."Journal Template Name" = 'RECLASS' then begin
+        if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then begin
             PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
             ItemLedgerEntry.Description := ItemJournalLine.Description;
             ItemLedgerEntry.Modify();

@@ -113,7 +113,7 @@ codeunit 60012 "UI Inventory Functions"
             pContent := 'Error';
     end;
 
-    //Get All Locations - GetAllLocations [8502] 
+    //Get All Locations - GetAllLocations [8502]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetAllLocations(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
@@ -124,7 +124,7 @@ codeunit 60012 "UI Inventory Functions"
         IF pFunction <> 'GetAllLocations' THEN
             EXIT;
         LocationRec.reset;
-        LocationRec.SetRange("Use As In-Transit", false);
+        LocationRec.setrange("Use As In-Transit", false);
         if LocationRec.findset then
             repeat
                 /*Obj_JsonText += '{' +
@@ -273,6 +273,8 @@ codeunit 60012 "UI Inventory Functions"
                             //V16.0 - Changed From [1] to "Lot No." on Enum
                             RecGReservationEntry."Lot No." := PurchaseHeader."Batch Number";
                             RecGReservationEntry.validate("Item No.", PurchaseLine."No.");
+                            if PurchaseLine."Variant Code" <> '' then
+                                RecGReservationEntry.Validate("Variant Code", PurchaseLine."Variant Code");
                             RecGReservationEntry.Description := PurchaseLine.Description;
                             RecGReservationEntry.validate("Quantity (Base)", purchaseline."Qty. (Base) SPA");
                             RecGReservationEntry.validate(Quantity, purchaseline.Quantity);

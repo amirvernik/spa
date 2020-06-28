@@ -6,48 +6,55 @@ codeunit 60016 "UI Whse Shipments Functions"
     VAR
         WarehouseShipmentHeader: Record "Warehouse Shipment Header";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
-        Obj_JsonText: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        JsonObjLines: JsonObject;
+        JsonArrLines: JsonArray;
 
     begin
         IF pFunction <> 'GetListOfWhseShipmentLines' THEN
             EXIT;
-        Obj_JsonText := '[';
+
         WarehouseShipmentHeader.reset;
         if WarehouseShipmentHeader.findset then begin
             repeat
                 WarehouseShipmentLine.reset;
                 WarehouseShipmentLine.setrange(WarehouseShipmentLine."No.", WarehouseShipmentHeader."No.");
                 if WarehouseShipmentline.findset then begin
-                    Obj_JsonText += '{"Shipment No.": ' +
-                                    '"' + WarehouseShipmentHeader."No." + '"' +
-                                    ',' +
-                                    '"Shipment Date": ' +
-                                    '"' + format(WarehouseShipmentHeader."Shipment Date") + '"' +
-                                    ',' +
-                                    '"Location Code": "' +
-                                    format(WarehouseShipmentHeader."Location Code") +
-                                    '","Item List":[';
+                    JsonObj.add('Shipment No.', WarehouseShipmentHeader."No.");
+                    JsonObj.add('Shipment Date', format(WarehouseShipmentHeader."Shipment Date"));
+                    JsonObj.add('Location Code', WarehouseShipmentHeader."Location Code");
                     repeat
-                        Obj_JsonText += '{"Item No" :"' + WarehouseShipmentLine."Item No." + '",' +
-                                        '"Line Number" :"' + format(WarehouseShipmentLine."Line No.") + '",' +
-                                        '"Description" :"' + WarehouseShipmentLine.Description + '",' +
-                                        '"Quantity" :"' + format(WarehouseShipmentLine.Quantity) + '",' +
-                                        '"Qty. to Ship" :"' + format(WarehouseShipmentLine."Qty. to Ship") + '",' +
-                                        '"Remaining Qty" :"' + format(WarehouseShipmentLine."Remaining Quantity") + '",' +
-                                      '"Qty. Shipped" :"' + format(WarehouseShipmentLine."Qty. Shipped") + '"},';
-
+                        Clear(JsonObjLines);
+                        JsonObjLines.add('Item No', WarehouseShipmentLine."Item No.");
+                        JsonObjLines.add('Variety Code', WarehouseShipmentLine."Variant Code");
+                        JsonObjLines.add('Line Number', format(WarehouseShipmentLine."Line No."));
+                        JsonObjLines.add('Description', WarehouseShipmentLine.Description);
+                        JsonObjLines.add('Quantity', format(WarehouseShipmentLine.Quantity));
+                        JsonObjLines.add('Qty. to Ship', format(WarehouseShipmentLine."Qty. to Ship"));
+                        JsonObjLines.add('Remaining Qty', format(WarehouseShipmentLine."Remaining Quantity"));
+                        JsonObjLines.add('Qty. Shipped', format(WarehouseShipmentLine."Qty. Shipped"));
+                        JsonArrLines.Add(JsonObjLines);
                     until WarehouseShipmentLine.next = 0;
 
-                end;
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']},';
+                    if JsonArrLines.Count > 0 then
+                        JsonObj.add('Item List', JsonArrLines);
+                    clear(JsonArrLines);
+                    JsonArr.Add(JsonObj);
+                    clear(JsonObj);
 
+                end;
             until WarehouseShipmentHeader.next = 0;
         end;
 
-        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 2);
+        if JsonArr.count > 0 then
+            JsonArr.WriteTo(pContent)
+        else
+            pcontent := 'No Lines found!';
+
+        /*Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 2);
         Obj_JsonText += '}]';
-        pContent := Obj_JsonText;
+        pContent := Obj_JsonText;*/
     end;
 
 

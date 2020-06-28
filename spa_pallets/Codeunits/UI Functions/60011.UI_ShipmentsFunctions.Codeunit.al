@@ -194,6 +194,7 @@ codeunit 60011 "UI Shipments Functions"
     local procedure GetListOfSalesOrderLines(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         ItemRec: Record Item;
+        VariantRec: Record "Item Variant";
         JsonBuffer: Record "JSON Buffer" temporary;
         CustomerNo: code[20];
         LocationCode: code[20];
@@ -201,7 +202,12 @@ codeunit 60011 "UI Shipments Functions"
         toDate: date;
         Salesheader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        Obj_JsonText: Text;
+
+        JsonObj: JsonObject;
+        JsonObjLines: JsonObject;
+        JsonArr: JsonArray;
+        JsonArrLines: JsonArray;
+
 
     begin
         IF pFunction <> 'GetListOfSalesOrderLines' THEN
@@ -230,16 +236,11 @@ codeunit 60011 "UI Shipments Functions"
                         evaluate(ToDate, JSONBuffer.Value)
             UNTIL JSONBuffer.NEXT = 0;
 
-            Obj_JsonText := '[';
             Salesheader.reset;
             salesheader.SetRange(Salesheader."Document Type", Salesheader."Document Type"::order);
-            //salesheader.setrange(Salesheader."Sell-to Customer No.", CustomerNo);
             Salesheader.setfilter("SPA Location", '%1|%2', 'MIX', LocationCode);
             Salesheader.setrange(Salesheader."Order Date", FromDate, ToDate);
             Salesheader.SetRange(Salesheader.Status, Salesheader.Status::Released);
-
-            //if ShipToCode <> '' then
-            //    Salesheader.SetRange(Salesheader."Ship-to Code", ShipToCode);
 
             if Salesheader.findset then begin
                 repeat
@@ -248,47 +249,43 @@ codeunit 60011 "UI Shipments Functions"
                     SalesLine.setrange("Document No.", Salesheader."No.");
                     SalesLine.setrange("Location Code", LocationCode);
                     if SalesLine.findset then begin
-                        Obj_JsonText += '{"Sales Order No": ' +
-                                        '"' + Salesheader."No." + '"' +
-                                        ',' +
-                                        '"Locaion Code": ' +
-                                        '"' + SalesHeader."SPA Location" + '"' +
-                                        ',' +
-                                        '"Customer": ' +
-                                        '"' + SalesHeader."Sell-to Customer No." + '"' +
-                                        ',' +
-                                        '"Customer Name": ' +
-                                        '"' + SalesHeader."Sell-to Customer name" + '"' +
-                                        ',' +
-                                        '"Ship-to Address": ' +
-                                        '"' + SalesHeader."Ship-to Address" + '"' +
-                                        ',' +
-                                        '"Order Date": "' +
-                                        format(salesheader."Order Date") +
-                                        '","Item List":[';
+                        JsonObj.add('Sales Order No', Salesheader."No.");
+                        JsonObj.add('Locaion Code', SalesHeader."SPA Location");
+                        JsonObj.add('Customer', SalesHeader."Sell-to Customer No.");
+                        JsonObj.add('Customer Name', SalesHeader."Sell-to Customer name");
+                        JsonObj.add('Ship-to Address', SalesHeader."Ship-to Address");
+                        JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
                         SalesLine.reset;
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");
                         SalesLine.setrange("Location Code", LocationCode);
                         if salesline.findset then
                             repeat
-                                Obj_JsonText += '{"Item No" :"' + SalesLine."No." + '",' +
-                                                '"Line No." :"' + format(SalesLine."Line No.") + '",' +
-                                                '"Description" :"' + format(SalesLine.Description) + '",' +
-                                                '"Location" :"' + format(SalesLine."Location Code") + '",' +
-                                                '"Quantity" :"' + format(SalesLine.Quantity) + '",' +
-                                                '"Qty. to Ship" :"' + format(SalesLine."Qty. to Ship") + '",' +
-                                              '"Qty. to Ship (Base)" :"' + format(SalesLine."Qty. to Ship (Base)") + '"},';
-                            until salesline.Next = 0;
-                        Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                        Obj_JsonText += ']},';
+                                Clear(JsonObjLines);
+                                JsonObjLines.add('Line No.', format(SalesLine."Line No."));
+                                JsonObjLines.add('Item No', SalesLine."No.");
+                                if VariantRec.get(SalesLine."No.", SalesLine."Variant Code") then
+                                    JsonObjLines.add('Variety', VariantRec.Description)
+                                else
+                                    JsonObjLines.add('Variety', '');
+                                JsonObjLines.add('Description', salesline.Description);
+                                JsonObjLines.add('Location', salesline."Location Code");
+                                JsonObjLines.add('Quantity', format(salesline.Quantity));
+                                JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
+                                JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
+                                JsonArrLines.Add(JsonObjLines);
+                            until SalesLine.next = 0;
+                        if JsonArrLines.Count > 0 then
+                            JsonObj.add('Item List', JsonArrLines);
+                        clear(JsonArrLines);
+                        JsonArr.Add(JsonObj);
+                        clear(JsonObj);
                     end;
                 until Salesheader.next = 0;
 
-                Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-                Obj_JsonText += ']';
-                pContent := Obj_JsonText;
-                if pContent = ']' then
+                if JsonArr.Count > 0 then
+                    JsonArr.WriteTo(pContent)
+                else
                     pContent := 'No Lines found';
             end;
 
@@ -380,9 +377,11 @@ codeunit 60011 "UI Shipments Functions"
             if purchaseHeader.findset then begin
                 repeat
                     purchaseHeader.CalcFields("Completely Received");
-                    if (purchaseHeader."Completely Received")
-                        and (purchaseHeader."Grading Result PO" or purchaseHeader."Microwave Process PO")
-                        and (GetQtyInvoiced(purchaseHeader) = 0) then begin
+                    if (NOT purchaseHeader."Completely Received") and
+                        ((purchaseHeader.Status = purchaseHeader.status::Open) or
+                        (purchaseHeader.Status = purchaseHeader.status::released)) and
+                        (purchaseHeader."Grading Result PO" or purchaseHeader."Microwave Process PO") then begin
+                        //and (GetQtyInvoiced(purchaseHeader) = 0) then begin
 
                         if purchaseHeader."Grading Result PO" then
                             OrderType := 'GradingPO';

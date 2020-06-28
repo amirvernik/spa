@@ -182,6 +182,7 @@ codeunit 60020 "UI Sales Return Orders"
                     Json_Text += '{"SalesOrderNo":"' + SalesLine."SPA Order No." + '",' +
                                 '"SalesOrderLineNo":"' + format(SalesLine."SPA Order Line No.") + '",' +
                                 '"ItemNo":"' + SalesLine."No." + '",' +
+                                '"Variety":"' + SalesLine."Variant Code" + '",' +
                                 '"ItemName":"' + SalesLine.Description + '",';
 
                     PalletLedgerEntry.reset;

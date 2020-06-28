@@ -29,6 +29,10 @@ table 60016 "Packing Materials Select"
         {
             DataClassification = ToBeClassified;
         }
+        field(110; "Unit of Measure"; code[20])
+        {
+            DataClassification = ToBeClassified;
+        }
     }
 
     keys

@@ -8,6 +8,10 @@ pageextension 60037 ItemCardExt extends "Item Card"
             {
                 ApplicationArea = all;
             }
+            field("Reusable item"; "Reusable item")
+            {
+                ApplicationArea = all;
+            }
         }
     }
 

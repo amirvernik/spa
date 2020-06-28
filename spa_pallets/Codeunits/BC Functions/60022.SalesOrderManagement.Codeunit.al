@@ -68,7 +68,8 @@ codeunit 60022 "Sales Orders Management"
         ErrorReqDelDate: Label 'Req. Delivery Date is mandatory';
     begin
         if SalesHeader."Requested Delivery Date" = 0D then
-            Error(ErrorReqDelDate);
+            if SalesHeader."Document Type" = salesheader."Document Type"::Order then
+                Error(ErrorReqDelDate);
     end;
 
     //On After Release Sales Order
@@ -80,7 +81,10 @@ codeunit 60022 "Sales Orders Management"
         LocationTemp: Record Location temporary;
     begin
         //Change Req. Delivery Date
-        salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), Today);
+        if format(salesHeader."Shipping Time") <> '' then
+            salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
+        else
+            SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
         //SalesHeader.modify;
 
         SalesLine.reset;

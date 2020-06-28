@@ -1,6 +1,6 @@
 codeunit 60006 "Warehouse Shipment Management"
 {
-    
+
     //Remove All Pallets - Global function
     procedure RemoveAllPallets(var WarehouseShipment: Record "Warehouse Shipment Header")
     var
@@ -169,6 +169,8 @@ codeunit 60006 "Warehouse Shipment Management"
                     RecGReservationEntry."Source Ref. No." := WarehouseShipmentLine."Source Line No.";
                     RecGReservationEntry."Shipment Date" := today;
                     RecGReservationEntry."Item No." := WarehouseShipmentLine."Item No.";
+                    if PalletLine."Variant Code" <> '' then
+                        RecGReservationEntry."Variant Code" := PalletLine."Variant Code";
                     //V16.0 - Changed From [1] to "Lot No." on Enum
                     RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
                     //V16.0 - Changed From [1] to "Lot No." on Enum

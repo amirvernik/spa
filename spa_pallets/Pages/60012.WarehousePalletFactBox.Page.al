@@ -1,11 +1,8 @@
 page 60012 "Warehouse Pallet FactBox"
 {
     PageType = ListPart;
-    ApplicationArea = All;
     Editable = false;
-    UsageCategory = Administration;
     SourceTable = "Warehouse Pallet";
-    caption = 'Pallets';
 
     layout
     {

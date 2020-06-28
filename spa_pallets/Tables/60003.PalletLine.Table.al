@@ -31,6 +31,7 @@ table 60003 "Pallet Line"
                     Description := item.Description;
                     "Unit of Measure" := item."Base Unit of Measure";
                     "User ID" := userid;
+                    "Reusable item" := Item."Reusable item";
                 end;
             end;
         }
@@ -56,7 +57,7 @@ table 60003 "Pallet Line"
             Caption = 'UOM';
             DataClassification = ToBeClassified;
         }
-        field(8; Quantity; Integer)
+        field(8; Quantity; Decimal)
         {
             Caption = 'Quantity';
             DataClassification = ToBeClassified;
@@ -88,7 +89,13 @@ table 60003 "Pallet Line"
             DataClassification = ToBeClassified;
 
         }
-        field(60020; "Variant Code"; code[20])
+        field(60019; "Reusable item"; Boolean)
+        {
+            Caption = 'Reusable item';
+            DataClassification = ToBeClassified;
+        }
+
+        field(60020; "Variant Code"; code[10])
         {
             caption = 'Variety';
             DataClassification = ToBeClassified;
@@ -102,11 +109,20 @@ table 60003 "Pallet Line"
                 ItemVariant.setrange(code, rec."Variant Code");
                 if ItemVariant.findfirst then begin
                     rec.Description := ItemVariant.Description;
-                    rec.modify;
+                    //rec.modify;
                 end;
             end;
-
         }
+        field(60021; "QTY Consumed"; Decimal)
+        {
+            caption = 'QTY Consumed';
+            DataClassification = ToBeClassified;
+        }
+        field(60022; "Remaining Qty"; Decimal)
+        {
+            caption = 'Remaining Qty';
+            DataClassification = ToBeClassified;
+        }        
     }
 
     keys

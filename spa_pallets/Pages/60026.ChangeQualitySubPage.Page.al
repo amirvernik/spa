@@ -34,6 +34,10 @@ page 60026 "Change Quality SubPage"
                 {
                     ApplicationArea = all;
                 }
+                field("Unit of Measure"; "Unit of Measure")
+                {
+                    ApplicationArea = all;
+                }
                 field("New Quantity"; "New Quantity")
                 {
                     ApplicationArea = all;

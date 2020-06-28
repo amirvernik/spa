@@ -38,7 +38,6 @@ page 60006 "Pallet Card Subpage"
                 {
                     ApplicationArea = all;
                     Editable = false;
-
                 }
                 field("Unit of Measure"; "Unit of Measure")
                 {
@@ -50,6 +49,16 @@ page 60006 "Pallet Card Subpage"
                     ApplicationArea = all;
                     editable = false;
                     BlankZero = true;
+                }
+                field("QTY Consumed"; "QTY Consumed")
+                {
+                    ApplicationArea = all;
+                    editable = false;
+                }
+                field("Remaining Qty"; "Remaining Qty")
+                {
+                    ApplicationArea = all;
+                    editable = false;
                 }
                 field("Expiration Date"; "Expiration Date")
                 {
@@ -90,7 +99,11 @@ page 60006 "Pallet Card Subpage"
                     ApplicationArea = all;
                     editable = false;
                 }
-
+                field("Reusable item"; "Reusable item")
+                {
+                    Editable = false;
+                    ApplicationArea = all;
+                }
 
             }
         }

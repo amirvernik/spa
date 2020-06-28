@@ -4,7 +4,7 @@ pageextension 60035 UserCardExt extends "User Card"
     {
         addfirst(processing)
         {
-            action("Show Users Ui Passord")
+            action("Show Users UI Password")
             {
                 Image = ImportCodes;
                 Promoted = true;

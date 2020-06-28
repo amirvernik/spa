@@ -35,7 +35,7 @@ table 60018 "Pallet Line Change Quality"
         {
             DataClassification = ToBeClassified;
         }
-        field(8; Quantity; Integer)
+        field(8; Quantity; Decimal)
         {
             DataClassification = ToBeClassified;
         }
@@ -60,12 +60,12 @@ table 60018 "Pallet Line Change Quality"
         {
             DataClassification = ToBeClassified;
         }
-        field(20; "Replaced Qty"; Integer)
+        field(20; "Replaced Qty"; Decimal)
         {
             Caption = 'Replaced Qty';
             DataClassification = ToBeClassified;
         }
-        field(60020; "Variant Code"; code[20])
+        field(60020; "Variant Code"; code[10])
         {
             caption = 'Variety';
         }

@@ -2,6 +2,10 @@ pageextension 60028 SalesOrderExt extends "Sales Order"
 {
     layout
     {
+        modify("No.")
+        {
+            Visible = true;
+        }
         addafter(Status)
         {
             field("User Created"; "User Created")
@@ -26,6 +30,7 @@ pageextension 60028 SalesOrderExt extends "Sales Order"
     {
         // Add changes to page actions here
     }
+
 
     var
         myInt: Integer;

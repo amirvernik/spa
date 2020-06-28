@@ -84,7 +84,7 @@ table 60005 "Pallet Ledger Entry"
         {
             DataClassification = ToBeClassified;
         }
-        field(60020;"Variant Code";code[20])
+        field(60020;"Variant Code";code[10])
         {
             caption='Variety';
             DataClassification=ToBeClassified;

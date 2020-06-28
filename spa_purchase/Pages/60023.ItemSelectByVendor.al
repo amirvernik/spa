@@ -20,7 +20,16 @@ page 60023 "Item Select By Vendor"
                 {
                     ApplicationArea = All;
                 }
+                field("Variant Code"; "Variant Code")
+                {
+                    ApplicationArea = all;
+                    Caption = 'Variety';
+                }
                 field("Item Description"; "Item Description")
+                {
+                    ApplicationArea = all;
+                }
+                field("Unit of Measure"; "Unit of Measure")
                 {
                     ApplicationArea = all;
                 }

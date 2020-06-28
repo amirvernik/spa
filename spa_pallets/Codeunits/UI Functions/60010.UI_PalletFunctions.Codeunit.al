@@ -40,7 +40,7 @@ codeunit 60010 "UI Pallet Functions"
                     if ItemRec.Get(PalletLines."Item No.") then
                         ItemDescription := ItemRec.Description;
 
-                    if ItemVariety.Get(PalletLines."Variant Code", PalletLines."Item No.") then
+                    if ItemVariety.Get(PalletLines."Item No.", copystr(PalletLines."Variant Code", 1, 10)) then
                         ItemVarietyDescription := ItemVariety.Description;
                     JsonObj.add('Description', ItemDescription + '-' + ItemVarietyDescription);
                 end;
@@ -99,6 +99,7 @@ codeunit 60010 "UI Pallet Functions"
         RM_Pallet: Text;
         RM_Pallet_Boolean: Boolean;
         PalletType: Text;
+        VariantCode: Code[20];
 
     begin
         IF pFunction <> 'CreatePalletFromJson' THEN
@@ -176,17 +177,24 @@ codeunit 60010 "UI Pallet Functions"
 
                     IF JSONBuffer.Path = ('[1][' + FORMAT(iCount) + '].ItemNo') THEN
                         ItemNo := JSONBuffer.Value
-                    ELSE
+                    else
+
                         IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].UnitOfMeasure' THEN
                             UOM := JSONBuffer.Value
-                        ELSE
+                        else
+
                             IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].Quantity' THEN
                                 EVALUATE(Qty, JSONBuffer.Value)
-                            ELSE
+                            else
+
                                 IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].LOTNo' THEN
-                                    LOTNO := JSONBuffer.Value;
+                                    LOTNO := JSONBuffer.Value
+                                else
+                                    IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].VarietyCode' THEN
+                                        VariantCode := JSONBuffer.Value;
 
                 UNTIL JSONBuffer.NEXT = 0;
+
             iCount += 1;
             if PalletHeader.get(PalletID) then begin
                 PalletLineCheck.reset;
@@ -201,6 +209,7 @@ codeunit 60010 "UI Pallet Functions"
                 PalletLine."Pallet ID" := PalletID;
                 PalletLine."Line No." := PalletLineNumber;
                 PalletLine.validate("Item No.", ItemNo);
+                PalletLine.validate("Variant Code", VariantCode);
                 if ItemRec.get(ItemNo) then begin
                     if format(ItemRec."Expiration Calculation") = '' then
                         PalletLine."Expiration Date" := today
@@ -250,6 +259,7 @@ codeunit 60010 "UI Pallet Functions"
                     PurchaseLine.insert;
                     PurchaseLine.type := PurchaseLine.type::Item;
                     purchaseline.validate("No.", PalletLine."Item No.");
+                    PurchaseLine.validate("Variant Code", PalletLine."Variant Code");
                     purchaseline.validate("Location Code", PalletLine."Location Code");
                     PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                     PurchaseLine.validate("Qty. to Receive", 0);
@@ -386,6 +396,10 @@ codeunit 60010 "UI Pallet Functions"
     var
         ItemAttributeValue: Record "Item Attribute Value";
         ItemVariant: Record "Item Variant";
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        JsonArr: JsonArray;
+
         Attr_OM: label 'OM';
         Attr_Size: label 'Size';
         Attr_PackageType: label 'Primary Packaging Type';
@@ -400,129 +414,148 @@ codeunit 60010 "UI Pallet Functions"
         json_Color: text;
         Json_Text: Text;
         Json_Variant: Text;
-
-
-
+        JsonArrayAll: JsonArray;
     begin
         IF pFunction <> 'GetItemAttributeValues' THEN
             EXIT;
-        Json_Text := '{';
 
-        //OM Attribute                        
+        clear(JsonArrayAll);
+
+        //OM Attribute
+        clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_OM);
-        if ItemAttributeValue.findset then begin
-            Json_OM := '"OM": [';
+        if ItemAttributeValue.findset then
             repeat
-                Json_OM += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
+                Clear(JsonObj);
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemAttributeValue.next = 0;
-            Json_OM := copystr(Json_OM, 1, strlen(Json_OM) - 1);
-            Json_OM += ' ],';
-            Json_Text += Json_OM;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('OM', JsonArr);
+            clear(JsonArr);
         end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
 
         //Size Attribute
+        clear(jsonarr);
         ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Size);
-        if ItemAttributeValue.findset then begin
-            Json_size := '"Size": [';
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_size);
+        if ItemAttributeValue.findset then
             repeat
-                Json_size += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemAttributeValue.next = 0;
-            Json_size := copystr(Json_size, 1, strlen(Json_size) - 1);
-            Json_size += ' ],';
-            Json_Text += Json_Size;
-        end;
 
-        //Primary Packaging Type Attribute                        
-        ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackageType);
-        if ItemAttributeValue.findset then begin
-            Json_PackageType := '"PrimaryPackagingType": [';
-            repeat
-                Json_PackageType += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
-            until ItemAttributeValue.next = 0;
-            Json_PackageType := copystr(Json_PackageType, 1, strlen(Json_PackageType) - 1);
-            Json_PackageType += ' ],';
-            Json_Text += Json_PackageType;
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Size', JsonArr);
+            clear(JsonArr);
         end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
 
-        //Packaging Description Attribute                        
-        ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackDesc);
-        if ItemAttributeValue.findset then begin
-            Json_PackageDesc := '"PackagingDescription": [';
-            repeat
-                Json_PackageDesc += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
-            until ItemAttributeValue.next = 0;
-            Json_PackageDesc := copystr(Json_PackageDesc, 1, strlen(Json_PackageDesc) - 1);
-            Json_PackageDesc += ' ],';
-            Json_Text += Json_PackageDesc;
-        end;
-
-        //Grade Attribute                        
-        ItemAttributeValue.reset;
-        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Grade);
-        if ItemAttributeValue.findset then begin
-            Json_Grade := '"Grade": [';
-            repeat
-                Json_Grade += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
-            until ItemAttributeValue.next = 0;
-            Json_Grade := copystr(Json_Grade, 1, strlen(Json_Grade) - 1);
-            Json_Grade += ' ],';
-            Json_Text += Json_Grade;
-        end;
-
-        //Color Attribute                        
+        //Color Attribute
+        clear(jsonarr);
         ItemAttributeValue.reset;
         ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Color);
-        if ItemAttributeValue.findset then begin
-            json_Color := '"Color": [';
+        if ItemAttributeValue.findset then
             repeat
-                json_Color += '{"Code": "'
-                    + format(ItemAttributeValue.ID) +
-                    '","Description": "' + ItemAttributeValue.Value + '"},';
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemAttributeValue.next = 0;
-            json_Color := copystr(json_Color, 1, strlen(json_Color) - 1);
-            json_Color += ' ],';
-            Json_Text += json_Color;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Color', JsonArr);
+            clear(JsonArr);
         end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Grade Attribute
+        clear(jsonarr);
+        ItemAttributeValue.reset;
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_Grade);
+        if ItemAttributeValue.findset then
+            repeat
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
+            until ItemAttributeValue.next = 0;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Grade', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Primary Packaging Type Attribute
+        clear(jsonarr);
+        ItemAttributeValue.reset;
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackageType);
+        if ItemAttributeValue.findset then
+            repeat
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
+            until ItemAttributeValue.next = 0;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('PrimaryPackagingType', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
+
+        //Packaging Description
+        clear(jsonarr);
+        ItemAttributeValue.reset;
+        ItemAttributeValue.setrange(ItemAttributeValue."Attribute Name", Attr_PackDesc);
+        if ItemAttributeValue.findset then
+            repeat
+                JsonObj.add('Code', ItemAttributeValue.ID);
+                JsonObj.add('Description', ItemAttributeValue.Value);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
+            until ItemAttributeValue.next = 0;
+
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('PackagingDescription', JsonArr);
+            clear(JsonArr);
+        end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
 
         //Item Variants
+        clear(jsonarr);
         ItemVariant.reset;
-        if ItemVariant.findset then begin
-            Json_Variant := '"Varieties": [';
+        if ItemVariant.findset then
             repeat
-                Json_Variant +=
-                    '{"Item": "'
-                    + format(ItemVariant."Item No.") +
-                    '","Variety": "'
-                    + ItemVariant.Code +
-                    '","Variety Description": "'
-                    + ItemVariant.Description +
-                    '"},';
+                JsonObj.add('Item', ItemVariant."Item No.");
+                JsonObj.add('Variety code', ItemVariant.Code);
+                JsonObj.add('Description', ItemVariant.Description);
+                JsonArr.Add(JsonObj);
+                Clear(JsonObj);
             until ItemVariant.next = 0;
 
-            Json_Variant := copystr(Json_Variant, 1, strlen(Json_Variant) - 1);
-            Json_Variant += ' ],';
-            Json_Text += Json_Variant;
+        if JsonArr.Count > 0 then begin
+            JsonObj.add('Variaties', JsonArr);
+            clear(JsonArr);
         end;
+        JsonArrayAll.Add(JsonObj);
+        clear(JsonObj);
 
-        Json_Text := copystr(Json_Text, 1, strlen(Json_Text) - 1);
-        if Json_Text <> '' then
-            pContent := Json_Text + '}'
-        else
-            pContent := 'No Data';
+        JsonArrayAll.WriteTo(pContent);
     end;
 
     //Add Item to Pallet - AddItemToPallet [8616]
@@ -550,6 +583,7 @@ codeunit 60010 "UI Pallet Functions"
         LOTNO: code[20];
         PalletLineCheck: Record "Pallet Line";
         PalletLineNumber: Integer;
+        VariantCode: code[20];
 
     begin
         IF pFunction <> 'AddItemToPallet' THEN
@@ -601,6 +635,9 @@ codeunit 60010 "UI Pallet Functions"
                             IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].LOTNo' THEN
                                 LOTNO := JSONBuffer.Value;
 
+                            IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].VarietyCode' THEN
+                                VariantCode := JSONBuffer.Value;
+
                         UNTIL JSONBuffer.NEXT = 0;
 
                     iCount += 1;
@@ -618,6 +655,7 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine."Pallet ID" := PalletID;
                         PalletLine."Line No." := PalletLineNumber;
                         PalletLine.validate("Item No.", ItemNo);
+                        PalletLine.validate("Variant Code", VariantCode);
                         if ItemRec.get(ItemNo) then begin
                             if format(ItemRec."Expiration Calculation") = '' then
                                 PalletLine."Expiration Date" := today
@@ -651,6 +689,7 @@ codeunit 60010 "UI Pallet Functions"
                             PurchaseLine.insert;
                             PurchaseLine.type := PurchaseLine.type::Item;
                             purchaseline.validate("No.", PalletLine."Item No.");
+                            PurchaseLine.VALIDATE("Variant Code", PalletLine."Variant Code");
                             purchaseline.validate("Location Code", PalletLine."Location Code");
                             PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                             PurchaseLine.validate("Qty. to Receive", PurchaseLine.Quantity);
@@ -749,6 +788,7 @@ codeunit 60010 "UI Pallet Functions"
         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
         ReserevationEntry: Record "Reservation Entry";
         QtyReserved: Decimal;
+        VariantCode: Code[20];
 
     begin
         IF pFunction <> 'GetLotNumbersByItem' THEN
@@ -762,6 +802,10 @@ codeunit 60010 "UI Pallet Functions"
                 IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
                     IF JSONBuffer.Path = 'itemno' THEN
                         ItemNo := JSONBuffer.Value;
+
+                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
+                    IF JSONBuffer.Path = 'varietycode' THEN
+                        VariantCode := JSONBuffer.Value;
 
                 IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
                     IF JSONBuffer.Path = 'locationcode' THEN
@@ -779,6 +823,8 @@ codeunit 60010 "UI Pallet Functions"
             ItemLedgerEntry.SETCURRENTKEY("Item No.", Open, "Variant Code", "Location Code", "Item Tracking",
               "Lot No.", "Serial No.");
             ItemLedgerEntry.SETRANGE("Item No.", ItemNo);
+            if VariantCode <> '' then
+                ItemLedgerEntry.SETRANGE("Variant Code", VariantCode);
             ItemLedgerEntry.SETRANGE(Open, TRUE);
             ItemLedgerEntry.SETRANGE("Location Code", Locationcode);
             ItemLedgerEntry.SetFilter("Lot No.", '<>%1', '');
@@ -822,7 +868,7 @@ codeunit 60010 "UI Pallet Functions"
     end;
 
     //Get LOT Numbers by Item
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    /*[EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure ChangeItemInPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         JsonBuffer: Record "JSON Buffer" temporary;
@@ -889,7 +935,7 @@ codeunit 60010 "UI Pallet Functions"
         end
         else
             pContent := 'error, item does not exist'
-    end;
+    end;*/
 
 
     //Check Pallets Proccess Setup Password

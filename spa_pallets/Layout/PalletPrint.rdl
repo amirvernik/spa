@@ -1193,6 +1193,9 @@ End Function
         <Field Name="Quantity">
           <DataField>Quantity</DataField>
         </Field>
+        <Field Name="QuantityFormat">
+          <DataField>QuantityFormat</DataField>
+        </Field>
         <Field Name="Description">
           <DataField>Description</DataField>
         </Field>

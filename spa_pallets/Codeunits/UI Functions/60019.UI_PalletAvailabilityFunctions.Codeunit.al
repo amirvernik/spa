@@ -108,10 +108,12 @@ codeunit 60019 "UI Pallet Availability"
         PalletHeaderTemp: Record "Pallet Header" temporary;
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
-        Json_Text: Text;
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
         JsonBuffer: Record "JSON Buffer" temporary;
         ItemNumber: code[20];
         BatchNumber: code[20];
+        VariantCode: code[20];
     begin
         IF pFunction <> 'GetListForMWPallets' THEN
             EXIT;
@@ -131,30 +133,38 @@ codeunit 60019 "UI Pallet Availability"
         JSONBuffer.RESET;
         JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
         JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
+        JsonBuffer.setrange(JsonBuffer.path, 'varietycode');
+        if JsonBuffer.findfirst then
+            VariantCode := JsonBuffer.value;
+
+        JSONBuffer.RESET;
+        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
+        JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
         JsonBuffer.setrange(JsonBuffer.path, 'batch');
         if JsonBuffer.findfirst then
             BatchNumber := JsonBuffer.value;
 
         PalletLine.reset;
         PalletLine.setrange("Item No.", ItemNumber);
+        PalletLine.SetRange("Variant Code", VariantCode);
         PalletLine.setrange("Lot Number", BatchNumber);
         if PalletLine.findset then begin
-            Json_Text := '[';
             repeat
                 if PalletHeader.get(PalletLine."Pallet ID") then
                     if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::closed then
-                        Json_Text += '{"palletId":"' + PalletLine."Pallet ID" + '","qty":"' +
-                            format(PalletLine.Quantity) + '"},';
+                        if PalletHeader."Raw Material Pallet" = true then begin
+                            JsonObj.add('palletId', PalletLine."Pallet ID");
+                            JsonObj.add('qty', format(PalletLine.Quantity));
+                            JsonArr.Add(JsonObj);
+                            clear(JsonObj);
+                        end;
             until PalletLine.next = 0;
         end;
-        if Json_Text <> '[' then begin
-            Json_Text := copystr(Json_Text, 1, strlen(Json_Text) - 1);
-            Json_Text += ']';
-            pContent := Json_Text;
-        end
+        //JsonArr.WriteTo(pContent);
+        if JsonArr.Count > 0 then
+            JsonArr.WriteTo(pContent)
         else
             pContent := 'error,could not find pallets';
-
     end;
 }
 

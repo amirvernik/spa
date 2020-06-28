@@ -448,6 +448,7 @@ codeunit 60021 "Purch. UI Functions"
         ItemJournalLine."Document No." := PurchaseOrderNo;
         ItemJournalLine."Document Date" := today;
         ItemJournalLine.validate("Item No.", PalletLedgEntry."Item No.");
+        ItemJournalLine.validate("Variant Code", PalletLedgEntry."Variant Code");
         ItemJournalLine.validate("Location Code", PalletLedgEntry."Location Code");
         ItemJournalLine.validate(Quantity, PalletLedgEntry.Quantity);
         ItemJournalLine.modify;
@@ -478,6 +479,8 @@ codeunit 60021 "Purch. UI Functions"
                 //V16.0 - Changed From [1] to "Lot No." on Enum
                 RecGReservationEntry."Lot No." := PalletLedgEntry."Lot Number";
                 RecGReservationEntry.validate("Item No.", PalletLedgEntry."Item No.");
+                if PalletLedgEntry."Variant Code" <> '' then
+                    RecGReservationEntry.validate("Variant Code", PalletLedgEntry."Variant Code");
                 RecGReservationEntry.validate("Quantity (Base)", -1 * PalletLedgEntry.Quantity);
                 RecGReservationEntry.validate(Quantity, -1 * PalletLedgEntry.Quantity);
                 RecGReservationEntry.Positive := false;

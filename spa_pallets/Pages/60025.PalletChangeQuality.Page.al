@@ -23,7 +23,10 @@ page 60025 "Pallet Change Quality"
                     TableRelation = "Pallet Header" where("Pallet Status" = filter(Closed));
                     trigger OnValidate()
                     begin
-                        CalcChangeQuality(PalletID)
+                        CalcChangeQuality(PalletID);
+                        rec.setfilter("Pallet ID", PalletID);
+                        rec.setfilter("User ID", UserId);
+                        CurrPage.update;
                     end;
                 }
 
@@ -97,9 +100,22 @@ page 60025 "Pallet Change Quality"
                 Image = Change;
                 trigger OnAction()
                 var
+                    ChangeQualityMgmt: Codeunit "Change Quality Management";
                 begin
+                    //Pallet Line Change Quantities
+                    ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
+                    ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+                    ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
+                    ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
+                    ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
+                    //Pallet Line Additions                 
+                    ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
+                    ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
+                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
+                    ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
+                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                                        
+                    ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials
                 end;
-
             }
         }
     }
@@ -111,8 +127,10 @@ page 60025 "Pallet Change Quality"
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
+        PalletLineChangeQuality.setrange("Pallet ID", PalletID);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
+
         if PalletID = '' then
             PalletSelect := true
         else
@@ -120,11 +138,20 @@ page 60025 "Pallet Change Quality"
 
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("User Created", UserId);
+        PalletChangeQuality.setrange("Pallet ID", PalletID);
         if PalletChangeQuality.findset then
             PalletChangeQuality.DeleteAll();
 
-        if PalletID <> '' then
+        if PalletID <> '' then begin
             CalcChangeQuality(PalletID);
+            rec.setfilter("Pallet ID", PalletID);
+            rec.setfilter("User ID", UserId);
+        end
+        else begin
+            rec.setfilter("Pallet ID", 'X');
+            //rec.setfilter("User ID", UserId);
+        end;
+
         CurrPage.update;
     end;
 
@@ -133,7 +160,10 @@ page 60025 "Pallet Change Quality"
         PalletID := pPalletID;
     end;
 
+    //Calc Change Quality
     procedure CalcChangeQuality(var pPalletID: code[20])
+    var
+
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
@@ -162,6 +192,7 @@ page 60025 "Pallet Change Quality"
         PalletLine: Record "Pallet Line";
         PalletChangeQuality: Record "Pallet Change Quality";
         PalletLineChangeQuality: Record "Pallet Line Change Quality";
+
         PalletSelect: Boolean;
 
 }

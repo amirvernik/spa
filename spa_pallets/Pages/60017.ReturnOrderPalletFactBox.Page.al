@@ -1,11 +1,8 @@
 page 60017 "Return Order Pallets FactBox"
 {
     PageType = ListPart;
-    ApplicationArea = All;
     Editable = false;
-    UsageCategory = Administration;
     SourceTable = "Pallet Ledger Entry";
-    caption = 'Pallets';
 
     layout
     {

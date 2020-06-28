@@ -18,7 +18,10 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
                     QtyBefore := rec."Qty. (Base) SPA" / RecGItemUnitOfMeasure."Qty. per Unit of Measure";
                     QtyAfter := round(QtyBefore, 0.1, '>');
                     //rec.validate(Quantity, rec."Qty. (Base) SPA" / RecGItemUnitOfMeasure."Qty. per Unit of Measure");
-                    rec.validate(Quantity, QtyAfter);
+                    //rec.validate(Quantity, QtyAfter);
+                    //rec.Validate("Quantity (Base)", QtyAfter);
+                    rec.validate(Quantity, QtyBefore);
+                    rec."Quantity (SPA)" := QtyAfter;
                     PurchaseHeader.get(rec."Document Type", rec."Document No.");
                     DirectCostGot := SPApurchaseFunctions.GetSpecialPrice(PurchaseHeader."Buy-from Vendor No.",
                                                     PurchaseHeader."Document Date", rec."No.");
@@ -33,18 +36,32 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
         {
 
         }
-        modify("No.")
+        field(60002; "Quantity (SPA)"; Decimal)
         {
 
+        }
+        modify("No.")
+        {
             trigger OnAfterValidate()
             begin
                 if RecGItem.Get(rec."No.") then begin
                     rec."UOM (Base)" := recgitem."Base Unit of Measure";
-                    //rec.modify;
                 end;
             end;
         }
-
+        modify("Variant Code")
+        {
+            trigger OnAfterValidate()
+            var
+                PurchaseHeader: Record "Purchase Header";
+                VariantError: Label 'You cannot change the variant code on a Value Add/Grading PO, you need to use lookup';
+            begin
+                /*if PurchaseHeader.get(rec."Document Type", rec."Document No.") then
+                    if ((PurchaseHeader."Microwave Process PO" = true) or
+                    (PurchaseHeader."Grading Result PO" = true)) then
+                        error(VariantError);*/
+            end;
+        }
     }
     var
         RecGItem: Record Item;

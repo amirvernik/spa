@@ -37,7 +37,7 @@ page 60010 "Pallet List Select Reclass"
     begin
         PalletSetup.get;
         ItemJournalLine.reset;
-        ItemJournalLine.setrange("Journal Template Name", 'RECLASS');
+        ItemJournalLine.setrange("Journal Template Name", PalletSetup."Item Reclass Template");
         ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Reclass Batch");
         if ItemJournalLine.findlast then
             LineNumber := ItemJournalLine."Line No." + 10000
@@ -100,7 +100,8 @@ page 60010 "Pallet List Select Reclass"
                                 RecGReservationEntry."Lot No." := PalletLine."Lot Number";
                                 RecGReservationEntry."New Lot No." := PalletLine."Lot Number";
                                 RecGReservationEntry.validate("Item No.", PalletLine."Item No.");
-                                RecGReservationEntry."Variant Code" := PalletLine."Variant Code";
+                                if PalletLine."Variant Code" <> '' then
+                                    RecGReservationEntry.validate("Variant Code", PalletLine."Variant Code");
                                 RecGReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
                                 RecGReservationEntry.validate(Quantity, -1 * palletline.Quantity);
                                 RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";

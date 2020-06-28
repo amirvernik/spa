@@ -9,13 +9,14 @@ codeunit 60001 "Pallet Functions"
     //Close Pallet - Global Function
     procedure ClosePallet(var pPalletHeader: Record "Pallet Header")
     begin
+
         //No Lines - Dont close
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if not PalletLines.findfirst then
             error(Err04);
 
-        //No Quantities - Dont close    
+        //No Quantities - Dont close
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
         PalletLines.setrange(Quantity, 0);
@@ -26,9 +27,19 @@ codeunit 60001 "Pallet Functions"
         pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Closed;
         pPalletHeader.modify;
 
-        AddMaterials(pPalletHeader); //Add Materials         
+        //Update Remaining Quantity
+        PalletLines.reset;
+        PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
+        if PalletLines.findset then
+            repeat
+                PalletLines."Remaining Qty" := PalletLines.Quantity;
+                PalletLines."QTY Consumed" := 0;
+                PalletLines.modify;
+            until PalletLines.next = 0;
+
+        AddMaterials(pPalletHeader); //Add Materials
         PalletLedgerFunctions.PosPalletLedger(pPalletHeader); //Positive on Pallet Ledger
-        ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal                              
+        ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
         ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
         //AddPoLines(pPalletHeader); //Add PO Lines
         TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO
@@ -45,9 +56,14 @@ codeunit 60001 "Pallet Functions"
             if (not UserSetup."Can ReOpen Pallet") then
                 Error(Err01, 'ReOpen Pallet');
 
-            //Not Chipped Check
+            //Not Shipped Check
             if pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::Shipped then
                 Error(Err02);
+
+            //Consume Error
+            //if ((pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::"Partially consumed")
+            //or (pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::Consumed)) then
+            //    error(err09);
 
             //Exists in Warehouse Shipment Check
             PalletLines.reset;
@@ -59,11 +75,21 @@ codeunit 60001 "Pallet Functions"
             pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Open;
             pPalletHeader.modify;
 
+            //Update Remaining Quantity
+            PalletLines.reset;
+            PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
+            if PalletLines.findset then
+                repeat
+                    PalletLines."Remaining Qty" := 0;
+                    palletlines."QTY Consumed" := 0;
+                    PalletLines.modify;
+                until PalletLines.next = 0;
+
             TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
             ItemLedgerFunctions.PosItemLedgerEntry(pPalletHeader); //Positive on Item Journal Packing Material
             PalletLedgerFunctions.NegPalletLedger(pPalletHeader); //Negative on Pallet Ledger
-            DeleteMaterials(pPalletHeader); //Delete Materials                                  
-            ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal - If Exist            
+            DeleteMaterials(pPalletHeader); //Delete Materials
+            ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal - If Exist
         end
         else
             Error(Err01, 'ReOpen Pallet');
@@ -90,15 +116,20 @@ codeunit 60001 "Pallet Functions"
     //On After Post Item Reclass Journal
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInsertItemLedgEntry', '', true, true)]
     local procedure OnAfterInsertItemLedgerEntry(ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        PalletSetup:Record "Pallet Process Setup";
     begin
+        PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
+        ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
+        ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
-        if ItemJournalLine."Journal Template Name" = 'RECLASS' then
+        if ItemJournalLine."Journal Template Name" =  PalletSetup."Item Reclass Template" then
             PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
     end;
 
     //Adding Packing Materials - Global Function
-    local procedure AddMaterials(var PalletHeader: Record "Pallet Header")
+    procedure AddMaterials(var PalletHeader: Record "Pallet Header")
     begin
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
@@ -113,8 +144,9 @@ codeunit 60001 "Pallet Functions"
                             PackingMaterials.init;
                             PackingMaterials."Pallet ID" := PalletLines."Pallet ID";
                             PackingMaterials."Item No." := BomComponent."No.";
-                            packingmaterials."Line No." := GetLastEntryPacking();
+                            packingmaterials."Line No." := GetLastEntryPacking(PalletHeader);
                             PackingMaterials.Description := BomComponent.Description;
+                            PackingMaterials."Reusable Item" := BomComponent."Reusable item";
                             PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
                             PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
                             PackingMaterials."Location Code" := PalletHeader."Location Code";
@@ -245,6 +277,7 @@ codeunit 60001 "Pallet Functions"
                     PMSelect."PM Item No." := PackingMaterials."Item No.";
                     PMSelect."Pallet Packing Line No." := PackingMaterials."Line No.";
                     PMSelect."PM Item Description" := PackingMaterials.Description;
+                    PMSelect."Unit of Measure" := PackingMaterials."Unit of Measure Code";
                     PMSelect.Quantity := PackingMaterials.Quantity;
                     pmselect.insert;
                 until PackingMaterials.next = 0;
@@ -263,11 +296,12 @@ codeunit 60001 "Pallet Functions"
             exit(1);
     end;
 
-    local procedure GetLastEntryPacking(): Integer
+    local procedure GetLastEntryPacking(var pPalletHeader: Record "Pallet Header"): Integer
     var
         PackingMaterialLine: Record "Packing Material Line";
     begin
         PackingMaterialLine.reset;
+        PackingMaterialLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if PackingMaterialLine.findlast then
             exit(PackingMaterialLine."Line No." + 1)
         else
@@ -290,4 +324,5 @@ codeunit 60001 "Pallet Functions"
         Err06: label 'Lot No. exists in Pallet No. %1, Please remove Lot from the Pallet and Select Again';
         Err07: label 'You cannot enter Pallet ID Manualy';
         Err08: label 'not All lines have lot Numbers, Please enter Tracking line';
+        Err09: Label 'Cant reopen - Pallet is in status Consumed/Partially consumed';
 }

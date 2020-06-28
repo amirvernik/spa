@@ -62,6 +62,7 @@ codeunit 60015 "UI Transfer Functions"
                     ItemJournalLine."Posting Date" := today;
                     ItemJournalLine."Document Date" := today;
                     ItemJournalLine.validate("Item No.", PalletLine."Item No.");
+                    ItemJournalLine.Validate("Variant Code", PalletLine."Variant Code");
                     ItemJournalLine.validate(Quantity, PalletLine.Quantity);
                     ItemJournalLine."Pallet ID" := PalletID;
                     ItemJournalLine.validate("Location Code", PalletLine."Location Code");
@@ -99,6 +100,8 @@ codeunit 60015 "UI Transfer Functions"
                             RecGReservationEntry."Lot No." := PalletLine."Lot Number";
                             RecGReservationEntry."New Lot No." := PalletLine."Lot Number";
                             RecGReservationEntry.validate("Item No.", PalletLine."Item No.");
+                            if PalletLine."Variant Code" <> '' then
+                                RecGReservationEntry.validate("Variant Code", PalletLine."Variant Code");
                             RecGReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
                             RecGReservationEntry.validate(Quantity, -1 * palletline.Quantity);
                             RecGReservationEntry."Packing Date" := Today;
