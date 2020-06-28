@@ -2,6 +2,10 @@ pageextension 60028 SalesOrderExt extends "Sales Order"
 {
     layout
     {
+        modify("No.")
+        {
+            Visible = true;
+        }
         addafter(Status)
         {
             field("User Created"; "User Created")
