@@ -1,6 +1,15 @@
 codeunit 60000 "SPA Purchase Functions"
 {
 
+    //OnBeforePost - Purchase Document (Order) - Only on Grading Result PO
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostPurchaseDoc', '', true, true)]
+    local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header")
+    begin
+        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
+            if PurchaseHeader."Grading Result PO" then
+                FctCheckReleasePO(PurchaseHeader);
+    end;
+
     //OnBefore New PO - Select Template
     [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnNewRecordEvent', '', true, true)]
     procedure FctOnNewPO(var Rec: Record "Purchase Header")
@@ -53,7 +62,7 @@ codeunit 60000 "SPA Purchase Functions"
                     then
                 error(err003);
         end;*/
-        
+
         if ((pPurchaseHeader."Vendor Shipment No." = '') and (pPurchaseHeader."Grading Result PO" = true)) then
             error(Err004);
 
