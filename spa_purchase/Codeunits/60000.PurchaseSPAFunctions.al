@@ -5,6 +5,7 @@ codeunit 60000 "SPA Purchase Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostPurchaseDoc', '', true, true)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header")
     begin
+        error('12345');
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
             if PurchaseHeader."Grading Result PO" then
                 FctCheckReleasePO(PurchaseHeader);

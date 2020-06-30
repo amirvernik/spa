@@ -80,64 +80,69 @@ codeunit 60022 "Sales Orders Management"
         SalesLineWOLocation: Label 'Not all lines have locations, please update lines';
         LocationTemp: Record Location temporary;
     begin
-        //Change Req. Delivery Date
-        if format(salesHeader."Shipping Time") <> '' then
-            salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
-        else
-            SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
-        //SalesHeader.modify;
-
-        SalesLine.reset;
-        SalesLine.setrange("Document Type", SalesHeader."Document Type");
-        SalesLine.Setrange("Document No.", SalesHeader."No.");
-        if SalesLine.findset then
-            repeat
-                SalesLine."Dispatch Date" := SalesHeader."Dispatch Date";
-                SalesLine.modify;
-            until SalesLine.next = 0;
-
-        //Calculate SPA location New field
-        LocationTemp.reset;
-        if LocationTemp.findset then
-            LocationTemp.deleteall;
-
-        //Check if there are lines without locations
-        SalesLine.reset;
-        SalesLine.setrange("Document Type", SalesHeader."Document Type");
-        SalesLine.Setrange("Document No.", SalesHeader."No.");
-        SalesLine.setrange("Location Code", '');
-        if SalesLine.findfirst then
-            error(SalesLineWOLocation);
-
-        SalesLine.reset;
-        SalesLine.setrange("Document Type", SalesHeader."Document Type");
-        SalesLine.Setrange("Document No.", SalesHeader."No.");
-        if SalesLine.findset then
-            repeat
-                if not LocationTemp.get(SalesLine."Location Code") then begin
-                    LocationTemp.init;
-                    LocationTemp.Code := SalesLine."Location Code";
-                    LocationTemp.insert;
-                end;
-            until SalesLine.next = 0;
-
-        LocationTemp.reset;
-        if LocationTemp.findset then begin
-            if LocationTemp.Count = 1 then
-                SalesHeader."SPA Location" := LocationTemp.Code
+        if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
+            //Change Req. Delivery Date
+            if format(salesHeader."Shipping Time") <> '' then
+                salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
             else
-                SalesHeader."SPA Location" := 'MIX';
+                SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
+            //SalesHeader.modify;
+
+            SalesLine.reset;
+            SalesLine.setrange("Document Type", SalesHeader."Document Type");
+            SalesLine.Setrange("Document No.", SalesHeader."No.");
+            if SalesLine.findset then
+                repeat
+                    SalesLine."Dispatch Date" := SalesHeader."Dispatch Date";
+                    SalesLine.modify;
+                until SalesLine.next = 0;
+
+
+            //Calculate SPA location New field
+            LocationTemp.reset;
+            if LocationTemp.findset then
+                LocationTemp.deleteall;
+
+            //Check if there are lines without locations
+            SalesLine.reset;
+            SalesLine.setrange("Document Type", SalesHeader."Document Type");
+            SalesLine.Setrange("Document No.", SalesHeader."No.");
+            SalesLine.setrange("Location Code", '');
+            if SalesLine.findfirst then
+                error(SalesLineWOLocation);
+
+            SalesLine.reset;
+            SalesLine.setrange("Document Type", SalesHeader."Document Type");
+            SalesLine.Setrange("Document No.", SalesHeader."No.");
+            if SalesLine.findset then
+                repeat
+                    if not LocationTemp.get(SalesLine."Location Code") then begin
+                        LocationTemp.init;
+                        LocationTemp.Code := SalesLine."Location Code";
+                        LocationTemp.insert;
+                    end;
+                until SalesLine.next = 0;
+
+            LocationTemp.reset;
+            if LocationTemp.findset then begin
+                if LocationTemp.Count = 1 then
+                    SalesHeader."SPA Location" := LocationTemp.Code
+                else
+                    SalesHeader."SPA Location" := 'MIX';
+            end;
+            SalesHeader.modify;
         end;
-        SalesHeader.modify;
     end;
 
     //On After Reopen Sales Order
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", 'OnAfterReopenSalesDoc', '', true, true)]
     local procedure MyProcOnAfterReopenSalesDocumentedure(var SalesHeader: Record "Sales Header")
     begin
-        SalesHeader."SPA Location" := '';
-        SalesHeader."Dispatch Date" := 0D;
-        SalesHeader.modify;
+        if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
+            SalesHeader."SPA Location" := '';
+            SalesHeader."Dispatch Date" := 0D;
+            SalesHeader.modify;
+        end;
     end;
 
 
