@@ -1018,6 +1018,45 @@ codeunit 60010 "UI Pallet Functions"
             PurchaseLine.modify;
         end;
     end;
+
+    //Get List Of Variants - GetAllVariants [TFS9107]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure GetAllVariants(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        ItemTemp: Record Item temporary;
+        ItemVariant: Record "Item Variant";
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+
+    begin
+        IF pFunction <> 'GetAllVariants' THEN
+            EXIT;
+
+        if ItemTemp.findset then
+            itemtemp.deleteall;
+
+        ItemVariant.reset;
+        if ItemVariant.findset then
+            repeat
+                if not ItemTemp.get(ItemVariant.Code) then begin
+                    itemtemp.init;
+                    ItemTemp."No." := ItemVariant.code;
+                    ItemTemp.Description := ItemVariant.Description;
+                    ItemTemp.insert;
+                end;
+            until ItemVariant.next = 0;
+
+        ItemTemp.reset;
+        if ItemTemp.findset then
+            repeat
+                JsonObj.add('Variety', ItemTemp."No.");
+                JsonObj.add('Description', itemtemp.Description);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
+            until ItemTemp.next = 0;
+        JsonArr.WriteTo(pContent);
+    end;
+
 }
 
 
