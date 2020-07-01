@@ -236,18 +236,29 @@ codeunit 60033 "UI Transfer Order Mgmt"
                 PostTransferReceipt.run(TransferHeader);
                 pContent := 'Transfer Order ' + TransferNo + ' Received'
             end;
-
-
     end;
-
 
     //List of Transfer Orders - ListOfTransferOrders [9111]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     procedure ListOfTransferOrders(VAR pFunction: Text[50]; VAR pContent: Text)
     var
+        TransferHeader: Record "Transfer Header";
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
 
     begin
         IF pFunction <> 'ListOfTransferOrders' THEN
             EXIT;
+
+        TransferHeader.reset;
+        if TransferHeader.findset then
+            repeat
+                JsonObj.add('TransferOrder', TransferHeader."No.");
+                JsonObj.add('FromLocation', TransferHeader."Transfer-from Code");
+                JsonObj.add('ToLocation', TransferHeader."Transfer-to Code");
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
+            until TransferHeader.next = 0;
+        JsonArr.WriteTo(pContent);
     end;
 }
