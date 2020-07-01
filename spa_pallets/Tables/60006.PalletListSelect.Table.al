@@ -18,7 +18,7 @@ table 60006 "Pallet List Select"
         {
             DataClassification = ToBeClassified;
         }
-        field(4; "Total Qty"; Integer)
+        field(4; "Total Qty"; Decimal)
         {
             DataClassification = ToBeClassified;
         }
