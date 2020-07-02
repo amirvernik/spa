@@ -57,6 +57,12 @@ page 60003 "Pallet Card"
                     ApplicationArea = all;
                     editable = false;
                 }
+
+                field("Disposal Status"; "Disposal Status")
+                {
+                    ApplicationArea = all;
+                    editable = false;
+                }
             }
 
             part(PalletLines; "Pallet Card Subpage")
