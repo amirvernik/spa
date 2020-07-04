@@ -4,6 +4,11 @@ pageextension 60003 PurchaseOrderListExt extends "Purchase Order List"
     {
         addafter("Buy-from Vendor Name")
         {
+            field("Grading Result PO"; "Grading Result PO")
+            {
+                Caption = 'Grading Result';
+                ApplicationArea = all;
+            }
             field("Microwave Process PO"; "Microwave Process PO")
             {
                 Caption = 'Value Add PO';
@@ -11,6 +16,11 @@ pageextension 60003 PurchaseOrderListExt extends "Purchase Order List"
             }
             field("Batch Number"; "Batch Number")
             {
+                ApplicationArea = all;
+            }
+            field(Comp_Received; Comp_Received)
+            {
+                Caption = ' Completely Received';
                 ApplicationArea = all;
             }
 
@@ -53,9 +63,14 @@ pageextension 60003 PurchaseOrderListExt extends "Purchase Order List"
         PO_Microwave_Process := true;
         if not rec."Microwave Process PO" then
             PO_Microwave_Process := false;
+        rec.CalcFields("Completely Received");
+        if rec."Completely Received" then
+            Comp_Received := true else
+            Comp_Received := false;
     end;
 
     var
         PO_Microwave_Process: boolean;
         RecGPurchaseHeader: Record "Purchase Header";
+        Comp_Received: Boolean;
 }

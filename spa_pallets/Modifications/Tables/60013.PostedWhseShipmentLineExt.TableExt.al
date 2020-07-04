@@ -2,7 +2,7 @@ tableextension 60013 PostedWhseShipmentLineExt extends "Posted Whse. Shipment Li
 {
     fields
     {
-        Field(60005; "Remaining Quantity"; Integer)
+        Field(60005; "Remaining Quantity"; Decimal)
         {
             DataClassification = ToBeClassified;
         }
