@@ -219,6 +219,31 @@ page 60003 "Pallet Card"
                 }
 
             }
+            group("Disposal Approval")
+            {
+                action("Approve Dispose Pallet")
+                {
+                    Enabled = ShowDisposePalletWorkFlow;
+                    ApplicationArea = All;
+                    Image = Approve;
+                    trigger OnAction()
+                    begin
+                        varinat := rec;
+                        DisposePalletWorkflow.SetStatusToApproveCodeDisposePallet(varinat);
+                    end;
+                }
+                action("Reject Dispose Pallet")
+                {
+                    Enabled = ShowDisposePalletWorkFlow;
+                    ApplicationArea = All;
+                    Image = Reject;
+                    trigger OnAction()
+                    begin
+                        varinat := rec;
+                        DisposePalletWorkflow.SetStatusToRejectCodeDisposePallet(varinat);
+                    end;
+                }
+            }
             action("Print Pallet")
             {
                 ApplicationArea = All;
@@ -287,6 +312,13 @@ page 60003 "Pallet Card"
             ShowDisposed := false;
         end;
 
+        if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
+            ShowDisposePalletWorkFlow := true;
+        end
+        else begin
+            ShowDisposePalletWorkFlow := false;
+        end;
+
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", rec."Pallet ID");
         if PackingMaterials.findfirst then
@@ -333,11 +365,15 @@ page 60003 "Pallet Card"
         PalletFunctions: Codeunit "Pallet Functions";
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         PalletDisposalMgmt: Codeunit "Pallet Disposal Management";
+
+        DisposePalletWorkflow: Codeunit "Dispose Pallet Workflow";
+        varinat: Variant;
         ShowClose: Boolean;
         ShowReopen: Boolean;
         PackingExists: Boolean;
         ShowDisposed: Boolean;
         ShowChanged: Boolean;
+        ShowDisposePalletWorkFlow: Boolean;
         PackingMaterials: Record "Packing Material Line";
 
 }
