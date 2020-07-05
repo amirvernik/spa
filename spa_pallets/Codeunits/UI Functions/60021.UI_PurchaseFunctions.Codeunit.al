@@ -177,6 +177,7 @@ codeunit 60021 "Purch. UI Functions"
         RM_Qty: Decimal;
         RM_Lot: code[20];
         VendorRec: Record Vendor;
+        ScrapQty: Decimal;
         OrderNumber: code[20];
         BatchNumber: code[20];
         PalletHeaderTemp: Record "Pallet Header" temporary;
@@ -232,6 +233,11 @@ codeunit 60021 "Purch. UI Functions"
                         if JSONBuffer.Value <> '' then
                             RM_Lot := JSONBuffer.Value;
 
+                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
+                    if JsonBuffer.path = 'scrapqty' then
+                        if JsonBuffer.value <> '' then
+                            Evaluate(ScrapQty, JSONBuffer.Value);
+
             UNTIL JSONBuffer.NEXT = 0;
 
             if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType <> '') then begin
@@ -280,7 +286,7 @@ codeunit 60021 "Purch. UI Functions"
                         PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
                         PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
                         PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-
+                        PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
                         PurchaseHeader.insert;
                     end;
                     if PurchaseType = 'regular' then begin

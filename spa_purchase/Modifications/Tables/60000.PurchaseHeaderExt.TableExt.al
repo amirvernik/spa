@@ -56,6 +56,10 @@ tableextension 60000 PurchaseHeaderExt extends "Purchase Header"
         {
 
         }
+        field(60010; "Scrap QTY (KG)"; Decimal)
+        {
+
+        }
 
     }
 

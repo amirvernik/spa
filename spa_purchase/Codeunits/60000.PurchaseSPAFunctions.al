@@ -5,7 +5,12 @@ codeunit 60000 "SPA Purchase Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostPurchaseDoc', '', true, true)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header")
     begin
-        error('12345');
+        //PrePack Waste on Value Add - Addition
+        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
+            if PurchaseHeader."Microwave Process PO" then
+                if PurchaseHeader."Scrap QTY (KG)" = 0 then
+                    Error(Err005);
+
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
             if PurchaseHeader."Grading Result PO" then
                 FctCheckReleasePO(PurchaseHeader);
@@ -51,6 +56,11 @@ codeunit 60000 "SPA Purchase Functions"
         maxEntry: Integer;
 
     begin
+        //PrePack Waste on Value Add - Addition
+        if pPurchaseHeader."Microwave Process PO" then
+            if pPurchaseHeader."Scrap QTY (KG)" = 0 then
+                error(Err005);
+
         if pPurchaseHeader."Grading Result PO" then
             if ((pPurchaseHeader."Number Of Raw Material Bins" = 0) or (pPurchaseHeader."Harvest Date" = 0D))
                 then
@@ -344,6 +354,7 @@ codeunit 60000 "SPA Purchase Functions"
         Err002: label 'Grade Result PO Must have Number of raw material bins/Harvest Date, Cant Post';
         Err003: label 'This is a Microwave PO Process, You must Edit RAW Material Data';
         Err004: label 'You must enter Vendor Shipment No.';
+        Err005: label 'You need to enter a Prepack Waste';
         Selection: Integer;
         RecGItemJournalLine: Record "Item Journal Line";
         RecPurchaseLine: Record "Purchase Line";

@@ -16,13 +16,11 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             {
                 ApplicationArea = all;
                 Editable = PO_Released;
-                visible = PO_Reg_Fields;
             }
             field("Harvest Date"; "Harvest Date")
             {
                 ApplicationArea = all;
                 Editable = PO_Released;
-                visible = PO_Reg_Fields;
             }
             field("Grading Result PO"; "Grading Result PO")
             {
@@ -40,6 +38,11 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             {
                 ApplicationArea = all;
                 editable = false;
+            }
+            field("Scrap QTY (KG)"; "Scrap QTY (KG)")
+            {
+                ApplicationArea = all;
+                Visible = ScrapVisible;
             }
         }
         addlast(content)
@@ -97,39 +100,33 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
     }
     trigger OnAfterGetRecord()
     begin
-        PO_Microwave_Process := true;
-        PO_Reg_Fields := true;
-
         if rec.Status = rec.status::Released then
             PO_Released := false
         else
             PO_Released := true;
 
-        if not rec."Microwave Process PO" then
-            PO_Microwave_Process := false;
-
         if rec."Microwave Process PO" then
-            PO_Reg_Fields := false;
+            ScrapVisible := true
+        else
+            ScrapVisible := false;
+
     end;
 
     trigger OnOpenPage()
     begin
-        PO_Microwave_Process := true;
-        PO_Reg_Fields := true;
         if rec.Status = rec.status::Released then
             PO_Released := false
         else
             PO_Released := true;
-        if not rec."Microwave Process PO" then
-            PO_Microwave_Process := false;
-        if rec."Microwave Process PO" then
-            PO_Reg_Fields := false;
 
+        if rec."Microwave Process PO" then
+            ScrapVisible := true
+        else
+            ScrapVisible := false;
     end;
 
     var
         PO_Released: Boolean;
-        PO_Microwave_Process: boolean;
         RecGPurchaseHeader: Record "Purchase Header";
-        PO_Reg_Fields: Boolean;
+        ScrapVisible: Boolean;
 }
