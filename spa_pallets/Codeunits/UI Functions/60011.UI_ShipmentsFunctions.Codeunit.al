@@ -31,7 +31,7 @@ codeunit 60011 "UI Shipments Functions"
                 ItemUOM.setrange("Default Unit Of Measure", true);
                 if itemuom.findfirst then
                     DefaultUOM := ItemUOM.Code else
-                    DefaultUOM := 'None';
+                    DefaultUOM := '';
                 JsonObj.add('Item No.', item."No.");
                 JsonObj.add('Description', DescText);
                 JsonObj.add('ItemCategory', Item."Item Category Code");
