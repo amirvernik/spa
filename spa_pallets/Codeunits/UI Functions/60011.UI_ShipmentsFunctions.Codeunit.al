@@ -11,6 +11,7 @@ codeunit 60011 "UI Shipments Functions"
         JsonArr: JsonArray;
         DescText: Text;
         QtyPerPallet: Decimal;
+        DefaultUOM: code[20];
 
     begin
         IF pFunction <> 'GetListOfItems' THEN
@@ -25,10 +26,17 @@ codeunit 60011 "UI Shipments Functions"
                     DescText := ConvertStr(item.Description, '"', ' ')
                 else
                     DescText := item.Description;
+                ItemUOM.reset;
+                ItemUOM.setrange("Item No.", Item."No.");
+                ItemUOM.setrange("Default Unit Of Measure", true);
+                if itemuom.findfirst then
+                    DefaultUOM := ItemUOM.Code else
+                    DefaultUOM := 'None';
                 JsonObj.add('Item No.', item."No.");
                 JsonObj.add('Description', DescText);
                 JsonObj.add('ItemCategory', Item."Item Category Code");
                 JsonObj.add('BaseUnitOfMeasure', Item."Base Unit of Measure");
+                Jsonobj.add('DefaultUnitOfMeasure', DefaultUOM);
                 JsonObj.add('QtyPerPallet', format(QtyPerPallet));
                 JsonObj.Add('MaxQtyPerPallet', format(Item."Max Qty Per Pallet"));
                 JsonArr.Add(JsonObj);
