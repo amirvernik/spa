@@ -352,6 +352,13 @@ page 60003 "Pallet Card"
             ShowDisposed := false;
         end;
 
+        if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
+            ShowDisposePalletWorkFlow := true;
+        end
+        else begin
+            ShowDisposePalletWorkFlow := false;
+        end;
+
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", rec."Pallet ID");
         if PackingMaterials.findfirst then
