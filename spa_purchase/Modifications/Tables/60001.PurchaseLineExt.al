@@ -40,6 +40,14 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
         {
 
         }
+        field(60003;"Web UI Unit of Measure";code[20])
+        {
+
+        }
+        field(60004;"Web UI Quantity";Decimal)
+        {
+            
+        }
         modify("No.")
         {
             trigger OnAfterValidate()

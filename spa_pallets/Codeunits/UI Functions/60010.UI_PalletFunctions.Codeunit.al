@@ -100,6 +100,7 @@ codeunit 60010 "UI Pallet Functions"
         RM_Pallet_Boolean: Boolean;
         PalletType: Text;
         VariantCode: Code[20];
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
 
     begin
         IF pFunction <> 'CreatePalletFromJson' THEN
@@ -261,7 +262,16 @@ codeunit 60010 "UI Pallet Functions"
                     purchaseline.validate("No.", PalletLine."Item No.");
                     PurchaseLine.validate("Variant Code", PalletLine."Variant Code");
                     purchaseline.validate("Location Code", PalletLine."Location Code");
-                    PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
+                    //New Web UI Fields - to Dummy Fields
+                    PurchaseLine."Web UI Unit of Measure" := UOM;
+                    PurchaseLine."Web UI Quantity" := PalletLine.Quantity;
+
+                    ItemUnitOfMeasure.reset;
+                    ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");
+                    ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
+                    if ItemUnitOfMeasure.findfirst then
+                        PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                    //PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                     PurchaseLine.validate("Qty. to Receive", 0);
                     PurchaseLine.validate("qty. to invoice", 0);
 

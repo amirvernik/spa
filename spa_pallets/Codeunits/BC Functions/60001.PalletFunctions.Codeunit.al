@@ -117,14 +117,14 @@ codeunit 60001 "Pallet Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInsertItemLedgEntry', '', true, true)]
     local procedure OnAfterInsertItemLedgerEntry(ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry")
     var
-        PalletSetup:Record "Pallet Process Setup";
+        PalletSetup: Record "Pallet Process Setup";
     begin
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
         ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
         ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
-        if ItemJournalLine."Journal Template Name" =  PalletSetup."Item Reclass Template" then
+        if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then
             PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
     end;
 
@@ -235,8 +235,8 @@ codeunit 60001 "Pallet Functions"
         Lbl002: label 'Pallet Line did not delete';
 
     begin
-        if rec."Purchase Order No." <> '' then
-            error(Err001);
+        //if rec."Purchase Order No." <> '' then
+        //    error(Err001);
 
         PalletReservation.reset;
         PalletReservation.setrange("Pallet ID", rec."Pallet ID");
