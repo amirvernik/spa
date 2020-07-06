@@ -218,6 +218,7 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), today);
                 end;
                 PalletLine.validate("Location Code", LocationCode);
+                PalletLine."Unit of Measure" := UOM;
                 PalletLine."Lot Number" := LOTNO;
                 PalletLine.Quantity := qty;
                 PalletLine.Insert();
