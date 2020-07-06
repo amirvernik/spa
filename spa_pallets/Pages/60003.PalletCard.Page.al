@@ -312,6 +312,7 @@ page 60003 "Pallet Card"
             ShowDisposed := false;
         end;
 
+        //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
             ShowDisposePalletWorkFlow := true;
         end
@@ -352,6 +353,7 @@ page 60003 "Pallet Card"
             ShowDisposed := false;
         end;
 
+        //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
             ShowDisposePalletWorkFlow := true;
         end
