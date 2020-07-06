@@ -51,6 +51,10 @@ table 60007 "Warehouse Pallet"
         {
             DataClassification = ToBeClassified;
         }
+        field(20;"Uploaded to Truck";Boolean)
+        {
+            DataClassification=ToBeClassified;
+        }
     }
 
     keys

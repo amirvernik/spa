@@ -10,6 +10,12 @@ page 60012 "Warehouse Pallet FactBox"
         {
             repeater(Pallets)
             {
+                field("Uploaded to Truck"; "Uploaded to Truck")
+                {
+                    caption = 'U';
+                    Editable = false;
+                    ApplicationArea = All;
+                }
                 field("Pallet ID"; "Pallet ID")
                 {
                     Editable = false;
