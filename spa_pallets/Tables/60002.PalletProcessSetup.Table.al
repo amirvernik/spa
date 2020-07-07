@@ -54,6 +54,18 @@ table 60002 "Pallet Process Setup"
             DataClassification = ToBeClassified;
             ExtendedDatatype = Masked;
         }
+        field(10; "Dispatch Type Code"; code[20])
+        {
+            Caption = 'Dispatch Type Code';
+            DataClassification = ToBeClassified;
+            TableRelation = "Format Type".code;
+        }
+        field(11; "Item Label Type Code"; code[20])
+        {
+            Caption = 'Item Label Type Code';
+            DataClassification = ToBeClassified;
+            TableRelation = "Format Type".code;
+        }
     }
     keys
     {

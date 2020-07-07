@@ -134,10 +134,37 @@ page 60005 "Pallet Process Setup"
                     MultiLine = true;
                 }
             }
+            group("Sticker Notes")
+            {
+                field("Dispatch Type Code"; "Dispatch Type Code")
+                {
+                    ApplicationArea = All;
+                }
+                field("Item Label Type Code"; "Item Label Type Code")
+                {
+                    ApplicationArea = All;
+                }
+            }
+        }
+
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action("Format Types")
+            {
+                Image = CodesList;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+                ApplicationArea = all;
+                RunObject = page "Format Types";
+            }
 
         }
     }
-
     trigger OnOpenPage()
     begin
         RESET;
