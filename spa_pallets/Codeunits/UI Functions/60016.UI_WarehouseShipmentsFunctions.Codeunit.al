@@ -692,4 +692,55 @@ codeunit 60016 "UI Whse Shipments Functions"
             end;
         end;
     end;
+
+    //Mark Pallet in Warehouse shipment - MarkPalletInWhseShipment[9122]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure MarkPalletInWhseShipment(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        ShipmentNo: code[20];
+        PalletID: code[20];
+        BoolMarkPallet: Boolean;
+        WarehousePallet: Record "Warehouse Pallet";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        Err001: label 'Error:Pallet does not exists in warehouse shipment';
+        NotPickedTxt: Label 'Not Picked';
+        PickedTxt: label 'Picked';
+
+    begin
+        IF pFunction <> 'MarkPalletInWhseShipment' THEN
+            EXIT;
+
+        JsonObj.ReadFrom(pContent);
+
+        //Get Shipment No.
+        JsonObj.SelectToken('shipnumber', JsonTkn);
+        ShipmentNo := JsonTkn.AsValue().AsText();
+
+        //Get Pallet ID
+        JsonObj.SelectToken('palletid', JsonTkn);
+        PalletID := JsonTkn.AsValue().AsText();
+
+        //Get Picked/not Picked
+        JsonObj.SelectToken('picked', JsonTkn);
+        BoolMarkPallet := JsonTkn.AsValue().AsBoolean();
+
+        //Check if Warehouse Pallet Exists
+        WarehousePallet.reset;
+        WarehousePallet.setrange("Whse Shipment No.", ShipmentNo);
+        WarehousePallet.setrange("Pallet ID", PalletID);
+        if WarehousePallet.findset then begin
+            repeat
+                WarehousePallet."Uploaded to Truck" := BoolMarkPallet;
+                WarehousePallet.modify;
+            until WarehousePallet.next = 0;
+            pcontent := 'Pallet ' + PalletID + ' In Shipment ' + ShipmentNo + ' Is marked as ';
+            if BoolMarkPallet then
+                pContent += PickedTxt else
+                pContent += NotPickedTxt;
+        end
+        else
+            pContent := Err001;
+    end;
 }

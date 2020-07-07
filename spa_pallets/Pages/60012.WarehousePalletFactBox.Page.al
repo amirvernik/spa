@@ -12,7 +12,7 @@ page 60012 "Warehouse Pallet FactBox"
             {
                 field("Uploaded to Truck"; "Uploaded to Truck")
                 {
-                    caption = 'U';
+                    caption = 'Pick';
                     Editable = false;
                     ApplicationArea = All;
                 }
