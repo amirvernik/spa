@@ -75,7 +75,19 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                         WarehouseShipmentManagement.RemoveAllPallets(rec);
                         currpage.update;
                     end;
-
+                }
+                action("Sticker Note")
+                {
+                    image = PrintCover;
+                    ApplicationArea = all;
+                    Visible = ShowRemovePallet;
+                    trigger OnAction()
+                    var
+                        StickerNoteFunctions: Codeunit "Sticker note functions";
+                    begin
+                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec);
+                        ;
+                    end;
                 }
             }
 

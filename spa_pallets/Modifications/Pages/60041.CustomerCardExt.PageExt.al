@@ -6,8 +6,9 @@ pageextension 60041 CustomerCardExt extends "Customer Card"
         {
             group("Sticker Note")
             {
-                field("Dispatch Format"; "Dispatch Format")
+                field("Dispatch Format Description"; "Dispatch Format Description")
                 {
+                    Caption = 'Dispatch Format';
                     Editable = false;
                     ApplicationArea = all;
                     trigger OnDrillDown()
@@ -23,12 +24,12 @@ pageextension 60041 CustomerCardExt extends "Customer Card"
                             StickerFormatPage.LOOKUPMODE := TRUE;
                             StickerFormat.reset;
                             StickerFormat.setrange("Format Type", PalletProccessSetup."Dispatch Type Code");
-                            //if StickerFormat.findset then begin
                             StickerFormatPage.SETRECORD(StickerFormat);
                             StickerFormatPage.SETTABLEVIEW(StickerFormat);
                             IF StickerFormatPage.RUNMODAL = ACTION::LookupOK THEN BEGIN
                                 StickerFormatPage.GETRECORD(StickerFormat);
-                                rec."Dispatch Format" := StickerFormat."Sticker Description";
+                                rec."Dispatch Format Code" := StickerFormat."Sticker Code";
+                                rec."Dispatch Format Description" := StickerFormat."Sticker Description";
                                 rec.modify;
                             END;
                             //end;
@@ -42,8 +43,9 @@ pageextension 60041 CustomerCardExt extends "Customer Card"
                 {
                     ApplicationArea = all;
                 }
-                field("Item Label Format"; "Item Label Format")
+                field("Item Label Format Description"; "Item Label Format Description")
                 {
+                    Caption = 'Item Label format';
                     editable = false;
                     ApplicationArea = all;
                     trigger OnDrillDown()
@@ -59,12 +61,12 @@ pageextension 60041 CustomerCardExt extends "Customer Card"
                             StickerFormatPage.LOOKUPMODE := TRUE;
                             StickerFormat.reset;
                             StickerFormat.setrange("Format Type", PalletProccessSetup."Item Label Type Code");
-                            //if StickerFormat.findset then begin
                             StickerFormatPage.SETRECORD(StickerFormat);
                             StickerFormatPage.SETTABLEVIEW(StickerFormat);
                             IF StickerFormatPage.RUNMODAL = ACTION::LookupOK THEN BEGIN
                                 StickerFormatPage.GETRECORD(StickerFormat);
-                                rec."Item Label Format" := StickerFormat."Sticker Description";
+                                rec."Item Label Format Code" := StickerFormat."Sticker Code";
+                                rec."Item Label Format Description" := StickerFormat."Sticker Description";
                                 rec.modify;
                             END;
                             //end;
@@ -75,6 +77,10 @@ pageextension 60041 CustomerCardExt extends "Customer Card"
                     end;
                 }
                 field("SSCC Sticker Note"; "SSCC Sticker Note")
+                {
+                    ApplicationArea = all;
+                }
+                field("Packing Days"; "Packing Days")
                 {
                     ApplicationArea = all;
                 }

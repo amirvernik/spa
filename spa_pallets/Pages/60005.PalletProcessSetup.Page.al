@@ -3,7 +3,7 @@ page 60005 "Pallet Process Setup"
 
     PageType = Card;
     SourceTable = "Pallet Process Setup";
-    Caption = 'Pallet Process Setup';
+    Caption = 'SPA General Setup';
     UsageCategory = Administration;
     ApplicationArea = all;
 
@@ -144,11 +144,25 @@ page 60005 "Pallet Process Setup"
                 {
                     ApplicationArea = All;
                 }
+                field("SSCC Label No. of Copies"; "SSCC Label No. of Copies")
+                {
+                    BlankZero = true;
+                    ApplicationArea = all;
+                }
+                field("Pallet Label No. of Copies"; "Pallet Label No. of Copies")
+                {
+                    BlankZero = true;
+                    ApplicationArea = all;
+                }
+                field("Sticker Root Directory"; "Sticker Root Directory")
+                {
+                    ApplicationArea = all;
+                    MultiLine = true;
+                }
+
             }
         }
-
     }
-
     actions
     {
         area(Processing)
@@ -161,6 +175,18 @@ page 60005 "Pallet Process Setup"
                 PromotedOnly = true;
                 ApplicationArea = all;
                 RunObject = page "Format Types";
+            }
+            action("Sticker Note Printers")
+            {
+                Image = PrintInstallment;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+                ApplicationArea = all;
+                trigger OnAction()
+                begin
+                    page.Run(page::"Sticker Note Printers");
+                end;
             }
 
         }

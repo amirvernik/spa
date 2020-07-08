@@ -89,6 +89,11 @@ table 60003 "Pallet Line"
             DataClassification = ToBeClassified;
 
         }
+        field(14;"Item Label No. of Copies";Integer)
+        {
+            Caption = 'Item Label No. of Copies';
+            DataClassification = ToBeClassified;            
+        }
         field(60019; "Reusable item"; Boolean)
         {
             Caption = 'Reusable item';

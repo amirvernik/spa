@@ -8,6 +8,10 @@ pageextension 60040 ItemUnitsOfMeasureExt extends "Item Units of Measure"
             {
                 ApplicationArea = all;
             }
+            field("Sticker Note Relation"; "Sticker Note Relation")
+            {
+                ApplicationArea = all;
+            }
         }
     }
 

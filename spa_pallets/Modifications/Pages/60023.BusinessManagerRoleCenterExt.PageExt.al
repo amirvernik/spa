@@ -38,6 +38,7 @@ pageextension 60023 BusinessManagerRoleExt extends "Business Manager Role Center
                     action("Pallet Process Setup")
                     {
                         RunObject = page "Pallet Process Setup";
+                        caption = 'SPA General Setup';
                         ApplicationArea = All;
                     }
 

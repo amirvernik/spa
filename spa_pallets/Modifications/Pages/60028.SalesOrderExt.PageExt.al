@@ -23,6 +23,17 @@ pageextension 60028 SalesOrderExt extends "Sales Order"
                 ApplicationArea = all;
                 Editable = false;
             }
+            field("Packing Days"; "Packing Days")
+            {
+                BlankZero = true;
+                ApplicationArea = all;
+                Editable = false;
+            }
+            field("Pack-out Date"; "Pack-out Date")
+            {
+                ApplicationArea = all;
+                Editable = false;
+            }
         }
     }
 

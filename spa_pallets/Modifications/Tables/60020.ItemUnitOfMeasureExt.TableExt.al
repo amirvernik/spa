@@ -18,6 +18,11 @@ tableextension 60020 ItemUnitOfMeasureExt extends "Item Unit of Measure"
 
             end;
         }
+        field(60001;"Sticker Note Relation";integer)
+        {
+            Caption = 'Sticker Note Relation';
+            DataClassification = ToBeClassified;            
+        }
     }
 
     var

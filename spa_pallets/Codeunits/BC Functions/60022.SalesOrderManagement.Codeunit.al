@@ -25,8 +25,11 @@ codeunit 60022 "Sales Orders Management"
     var
         CustomerRec: Record Customer;
     begin
-        if CustomerRec.get(rec."Sell-to Customer No.") then
+        if CustomerRec.get(rec."Sell-to Customer No.") then begin
             rec."Shipping Time" := CustomerRec."Shipping Time";
+            rec."Packing Days" := CustomerRec."Packing Days";
+        end;
+
     end;
 
     //On After Change Ship-to Address
@@ -76,9 +79,11 @@ codeunit 60022 "Sales Orders Management"
     [EventSubscriber(ObjectType::Codeunit, codeunit::"Release Sales Document", 'OnAfterReleaseSalesDoc', '', true, true)]
     local procedure OnAfterReleaseSalesDocument(var SalesHeader: Record "Sales Header")
     var
+        Customer: Record Customer;
         SalesLine: Record "Sales Line";
         SalesLineWOLocation: Label 'Not all lines have locations, please update lines';
         LocationTemp: Record Location temporary;
+        Err001: label 'Customer does not have Packing days, Please update and release again';
     begin
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
             //Change Req. Delivery Date
@@ -88,6 +93,13 @@ codeunit 60022 "Sales Orders Management"
                 SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
             //SalesHeader.modify;
 
+            //Calculate Packing Date
+            if Customer.get(SalesHeader."Sell-to Customer No.") then
+                if customer."Packing Days" = 0 then
+                    SalesHeader."Pack-out Date" := SalesHeader."Requested Delivery Date";
+            salesheader."Pack-out Date" := calcdate('-' + format(SalesHeader."Packing Days") + 'D', SalesHeader."Requested Delivery Date");
+
+            //Calculate Dispatch Date
             SalesLine.reset;
             SalesLine.setrange("Document Type", SalesHeader."Document Type");
             SalesLine.Setrange("Document No.", SalesHeader."No.");
@@ -97,6 +109,9 @@ codeunit 60022 "Sales Orders Management"
                     SalesLine.modify;
                 until SalesLine.next = 0;
 
+            //The dispatch date cant be before then the pack out date
+            if SalesHeader."Dispatch Date" < SalesHeader."Pack-out Date" then
+                SalesHeader."Dispatch Date" := SalesHeader."Pack-out Date";
 
             //Calculate SPA location New field
             LocationTemp.reset;
@@ -141,6 +156,8 @@ codeunit 60022 "Sales Orders Management"
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
             SalesHeader."SPA Location" := '';
             SalesHeader."Dispatch Date" := 0D;
+            SalesHeader."Pack-out Date" := 0D;
+            SalesHeader."Packing Days" := 0;
             SalesHeader.modify;
         end;
     end;

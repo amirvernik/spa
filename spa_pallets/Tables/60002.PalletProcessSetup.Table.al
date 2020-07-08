@@ -66,6 +66,21 @@ table 60002 "Pallet Process Setup"
             DataClassification = ToBeClassified;
             TableRelation = "Format Type".code;
         }
+        field(12; "SSCC Label No. of Copies"; Integer)
+        {
+            Caption = 'SSCC Label No. of Copies';
+            DataClassification = ToBeClassified;
+        }
+        field(13; "Pallet Label No. of Copies"; Integer)
+        {
+            Caption = 'Pallet Label No. of Copies';
+            DataClassification = ToBeClassified;
+        }
+        field(15;"Sticker Root Directory";Text[1024])
+        {
+            Caption = 'Sticker root Directory';
+            DataClassification=ToBeClassified;
+        }
     }
     keys
     {

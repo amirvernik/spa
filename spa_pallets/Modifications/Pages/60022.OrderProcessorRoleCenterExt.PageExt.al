@@ -23,7 +23,8 @@ pageextension 60022 OrderProcessorRoleExt extends "Order Processor Role Center"
                     }
                     action("Pallet Change Quality")
                     {
-                        RunObject = page "Pallet Change Quality";;
+                        RunObject = page "Pallet Change Quality";
+                        ;
                         ApplicationArea = All;
                     }
                 }
@@ -37,9 +38,9 @@ pageextension 60022 OrderProcessorRoleExt extends "Order Processor Role Center"
                     action("Pallet Process Setup")
                     {
                         RunObject = page "Pallet Process Setup";
+                        caption = 'SPA General Setup';
                         ApplicationArea = All;
                     }
-
                 }
                 group("SPA Reports")
                 {

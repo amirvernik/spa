@@ -194,6 +194,17 @@ page 60003 "Pallet Card"
                             page.run(page::"Pallet Ledger Entries", PalletLedgerEntry);
                     end;
                 }
+                action("Sticker Note")
+                {
+                    image = PrintCover;
+                    ApplicationArea = all;
+                    trigger OnAction()
+                    var
+                        StickerNoteFunctions: Codeunit "Sticker note functions";
+                    begin
+                        StickerNoteFunctions.CreatePalletStickerNoteFromPallet(rec);
+                    end;
+                }
             }
             group("Value Add")
             {
