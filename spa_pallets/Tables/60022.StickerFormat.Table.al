@@ -27,6 +27,13 @@ table 60022 "Sticker Format"
         }
     }
 
+    fieldgroups
+    {
+        fieldgroup(DropDown; "Sticker Code", "Sticker Description")
+        {
+
+        }
+    }
     var
         myInt: Integer;
 

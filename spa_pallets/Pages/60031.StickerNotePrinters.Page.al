@@ -23,6 +23,11 @@ page 60031 "Sticker Note Printers"
                 {
                     ApplicationArea = All;
                 }
+                field("Sticker Note Description"; "Sticker Note Description")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                }
                 field("Location Code"; "Location Code")
                 {
                     ApplicationArea = All;

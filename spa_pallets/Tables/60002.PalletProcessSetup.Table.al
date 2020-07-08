@@ -76,11 +76,23 @@ table 60002 "Pallet Process Setup"
             Caption = 'Pallet Label No. of Copies';
             DataClassification = ToBeClassified;
         }
-        field(15;"Sticker Root Directory";Text[1024])
+        field(15; "Sticker Root Directory"; Text[1024])
         {
             Caption = 'Sticker root Directory';
-            DataClassification=ToBeClassified;
+            DataClassification = ToBeClassified;
         }
+        field(20; "Company Prefix"; Text[20])
+        {
+            Caption = 'Company Prefix';
+            DataClassification = ToBeClassified;
+        }
+        field(21; "SSCC No. Series"; Text[20])
+        {
+            Caption = 'SSCC No. Series';
+            TableRelation = "No. Series";
+            DataClassification = ToBeClassified;
+        }
+
     }
     keys
     {

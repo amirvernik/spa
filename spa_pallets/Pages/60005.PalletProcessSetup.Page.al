@@ -159,7 +159,15 @@ page 60005 "Pallet Process Setup"
                     ApplicationArea = all;
                     MultiLine = true;
                 }
+                field("Company Prefix"; "Company Prefix")
+                {
+                    ApplicationArea = all;
+                }
+                field("SSCC No. Series"; "SSCC No. Series")
+                {
+                    ApplicationArea = all;
 
+                }
             }
         }
     }

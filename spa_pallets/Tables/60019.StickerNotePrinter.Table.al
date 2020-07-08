@@ -1,7 +1,6 @@
 table 60019 "Sticker note Printer"
 {
     DataClassification = ToBeClassified;
-
     fields
     {
         field(10; "User Code"; code[20])
@@ -19,18 +18,34 @@ table 60019 "Sticker note Printer"
         {
             TableRelation = "Sticker Format"."Sticker Code" where("Format Type" = field("Sticker Note Type"));
             DataClassification = ToBeClassified;
+            trigger OnValidate()
+            var
+                StickerFormat: Record "Sticker Format";
+            begin
+                StickerFormat.reset;
+                StickerFormat.setrange("Format Type", rec."Sticker Note Type");
+                StickerFormat.setrange("Sticker Code", rec."Sticker Note Format");
+                if StickerFormat.findfirst then
+                    rec."Sticker Note Description" := StickerFormat."Sticker Description";
+
+            end;
         }
-        field(40; "Location Code"; code[20])
+
+        field(40; "Sticker Note Description"; code[20])
+        {
+            DataClassification = ToBeClassified;
+        }
+        field(50; "Location Code"; code[20])
         {
             DataClassification = ToBeClassified;
             TableRelation = location.code;
         }
 
-        field(50; "Printer Path"; text[1024])
+        field(60; "Printer Path"; text[1024])
         {
             DataClassification = ToBeClassified;
         }
-        field(60; "Printer Description"; Text[80])
+        field(70; "Printer Description"; Text[80])
         {
             DataClassification = ToBeClassified;
         }
@@ -42,7 +57,6 @@ table 60019 "Sticker note Printer"
             Clustered = true;
         }
     }
-
     var
         myInt: Integer;
 
