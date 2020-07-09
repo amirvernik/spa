@@ -37,12 +37,13 @@ codeunit 60001 "Pallet Functions"
                 PalletLines.modify;
             until PalletLines.next = 0;
 
+        UpdateNoOfCopies(pPalletHeader); //Change No. Of Copies
         AddMaterials(pPalletHeader); //Add Materials
         PalletLedgerFunctions.PosPalletLedger(pPalletHeader); //Positive on Pallet Ledger
         ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
         ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
         //AddPoLines(pPalletHeader); //Add PO Lines
-        TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO
+        TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO        
     end;
 
     //Reopen Pallet - Global Function
@@ -294,6 +295,24 @@ codeunit 60001 "Pallet Functions"
             exit(PalletLedgerEntry."Entry No." + 1)
         else
             exit(1);
+    end;
+
+    //Update No. of Copies
+    procedure UpdateNoOfCopies(PalletHeader: Record "Pallet Header");
+    var
+        Palletline: Record "Pallet Line";
+        ItemUOM: Record "Item Unit of Measure";
+    begin
+        Palletline.reset;
+        Palletline.setrange(Palletline."Pallet ID", PalletHeader."Pallet ID");
+        if palletline.findset then
+            repeat
+                if ItemUOM.get(Palletline."Item No.", Palletline."Unit of Measure") then begin
+                    Palletline."Item Label No. of Copies" := Palletline.Quantity *
+                        ItemUOM."Sticker Note Relation";
+                    Palletline.modify;
+                end;
+            until palletline.next = 0;
     end;
 
     local procedure GetLastEntryPacking(var pPalletHeader: Record "Pallet Header"): Integer
