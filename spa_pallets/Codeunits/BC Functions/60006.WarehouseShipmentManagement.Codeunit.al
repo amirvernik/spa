@@ -63,7 +63,7 @@ codeunit 60006 "Warehouse Shipment Management"
     var
         PalletListSelect: Record "Pallet List Select" temporary;
         WarehousePallet: Record "Warehouse Pallet";
-        PalletItemTemp: Record Item temporary;
+        PalletItemTemp: Record "Item Variant" temporary;
         BoolPallet: Boolean;
     begin
         if PalletItemTemp.findset then
@@ -79,9 +79,10 @@ codeunit 60006 "Warehouse Shipment Management"
         WarehouseShipmentLine.setrange("No.", WarehouseShipment."No.");
         if WarehouseShipmentLine.findset then
             repeat
-                if not PalletItemTemp.get(WarehouseShipmentLine."Item No.") then begin
+                if not PalletItemTemp.get(WarehouseShipmentLine."Item No.", WarehouseShipmentLine."Variant Code") then begin
                     PalletItemTemp.init;
-                    PalletItemTemp."No." := WarehouseShipmentLine."Item No.";
+                    PalletItemTemp.code := WarehouseShipmentLine."Variant Code";
+                    PalletItemTemp."Item No." := WarehouseShipmentLine."Item No.";
                     PalletItemTemp.Insert;
                 end;
             until WarehouseShipmentLine.next = 0;
@@ -100,7 +101,7 @@ codeunit 60006 "Warehouse Shipment Management"
                 PalletLine.setrange("Pallet ID", Palletheader."Pallet ID");
                 if PalletLine.findset then
                     repeat
-                        if PalletItemTemp.get(palletline."Item No.") then
+                        if PalletItemTemp.get(PalletLine."Item No.", palletline."Variant Code") then
                             BoolPallet := true;
                     until palletline.next = 0;
 

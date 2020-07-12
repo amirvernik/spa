@@ -220,7 +220,7 @@ codeunit 60010 "UI Pallet Functions"
                 PalletLine.validate("Location Code", LocationCode);
                 PalletLine."Unit of Measure" := UOM;
                 PalletLine."Lot Number" := LOTNO;
-                PalletLine.Quantity := qty;
+                PalletLine.validate(Quantity, qty);
                 PalletLine.Insert();
             end;
         END;

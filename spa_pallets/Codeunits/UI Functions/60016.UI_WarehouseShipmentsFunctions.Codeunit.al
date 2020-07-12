@@ -232,21 +232,23 @@ codeunit 60016 "UI Whse Shipments Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure AddPalletToWhseShipment(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        JsonBuffer: Record "JSON Buffer" temporary;
         RecGReservationEntry: Record "Reservation Entry";
         RecGReservationEntry2: Record "Reservation Entry";
         MaxEntry: integer;
-        Json_Text: Text;
         PalletHeaderTemp: Record "Pallet Header" temporary;
         WarehousePallet: Record "Warehouse Pallet";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         LineNumber: Integer;
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
-        QuantityToUpdateShip: Integer;
-        QuantityRemain: Integer;
+        QuantityToUpdateShip: Decimal;
+        //QuantityRemain: Integer;
         ShipmentNumnber: Code[20];
-        PalletID: code[20];
+        PalletCode: code[20];
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        JsonArr: JsonArray;
+        Searcher: Integer;
 
     begin
         IF pFunction <> 'AddPalletToWhseShipment' THEN
@@ -255,32 +257,40 @@ codeunit 60016 "UI Whse Shipments Functions"
         if PalletHeaderTemp.findset then
             PalletHeaderTemp.deleteall;
 
-        JsonBuffer.ReadFromText(pContent);
+        //Get Shipment No.
+        JsonObj.ReadFrom(pContent);
+        JsonObj.SelectToken('shipmentno', JsonTkn);
+        ShipmentNumnber := JsonTkn.AsValue().AsText();
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 2);
-        JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
-        if JsonBuffer.findfirst then
-            ShipmentNumnber := JsonBuffer.value;
+        //Search Pallets
+        JsonObj.SelectToken('pallets', JsonTkn);
+        JsonArr := JsonTkn.AsArray();
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 4);
-        JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
-        if JsonBuffer.findset then
-            repeat
-                if not PalletHeaderTemp.get(JsonBuffer.value) then begin
-                    PalletHeaderTemp.init;
-                    PalletHeaderTemp."Pallet ID" := JsonBuffer.value;
-                    PalletHeaderTemp.insert;
-                end;
-            until JsonBuffer.next = 0;
+        Searcher := 0;
+
+        while Searcher < JsonArr.Count do begin
+            Palletcode := '';
+
+            JsonArr.Get(Searcher, JsonTkn);
+            JsonObj := JsonTkn.AsObject();
+
+            JsonObj.SelectToken('palletid', JsonTkn);
+            PalletCode := JsonTkn.AsValue().AsText();
+
+            if not PalletHeaderTemp.get(PalletCode) then begin
+                PalletHeaderTemp.init;
+                PalletHeaderTemp."Pallet ID" := PalletCode;
+                PalletHeaderTemp.insert;
+                Searcher += 1;
+            end;
+        end;
 
         PalletHeaderTemp.reset;
         if PalletHeaderTemp.findset then begin
             LineNumber := 10000;
             repeat
                 PalletLine.reset;
-                PalletLine.setrange("Pallet ID", PalletHeaderTemp."Pallet ID");
+                PalletLine.setrange(PalletLine."Pallet ID", PalletHeaderTemp."Pallet ID");
                 if palletline.findset then
                     repeat
                         QuantityToUpdateShip := PalletLine.Quantity;
@@ -288,6 +298,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                             WarehouseShipmentLine.reset;
                             WarehouseShipmentLine.setrange("No.", ShipmentNumnber);
                             WarehouseShipmentLine.setrange("Item No.", PalletLine."Item No.");
+                            WarehouseShipmentLine.setrange("Variant Code", PalletLine."Variant Code");
                             WarehouseShipmentLine.setrange("Unit of Measure Code", PalletLine."Unit of Measure");
                             WarehouseShipmentLine.setrange("Location Code", PalletLine."Location Code");
                             WarehouseShipmentLine.setfilter(WarehouseShipmentLine."Remaining Quantity", '>%1', 0);
@@ -329,9 +340,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                                     QuantityToUpdateShip -= WarehouseShipmentLine."Remaining Quantity";
                                 end;
                             end;
-
                         end;
-
                     until palletline.next = 0;
             until PalletHeaderTemp.next = 0;
         end;
@@ -342,7 +351,8 @@ codeunit 60016 "UI Whse Shipments Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure RemovePalletFromWhseShip(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        JsonBuffer: Record "JSON Buffer" temporary;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
         ShipmentNo: code[20];
         PalletID: code[20];
         Obj_JsonText: Text;
@@ -354,50 +364,44 @@ codeunit 60016 "UI Whse Shipments Functions"
     begin
         IF pFunction <> 'RemovePalletFromWhseShip' THEN
             EXIT;
-        JsonBuffer.ReadFromText(pContent);
+
+        //Get Shipment No.
+        JsonObj.ReadFrom(pContent);
+
+        //Get Pallet ID
+        JsonObj.SelectToken('shipmentno', JsonTkn);
+        ShipmentNo := JsonTkn.AsValue().AsText();
 
         //Depth 2 - Header
-        JSONBuffer.RESET;
-        //JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        IF JSONBuffer.FINDSET THEN begin
-            REPEAT
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF STRPOS(JSONBuffer.Path, 'shipmentno') > 0 THEN
-                        ShipmentNo := JSONBuffer.Value;
+        JsonObj.SelectToken('palletid', JsonTkn);
+        PalletID := JsonTkn.AsValue().AsText();
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF STRPOS(JSONBuffer.Path, 'palletid') > 0 THEN
-                        PalletID := JSONBuffer.Value;
-
-            UNTIL JSONBuffer.NEXT = 0;
-
-            if (ShipmentNo <> '') and (PalletID <> '') then begin
-                WarehousePallet.reset;
-                WarehousePallet.setrange(WarehousePallet."Whse Shipment No.", ShipmentNo);
-                WarehousePallet.setrange("Pallet ID", PalletID);
-                if WarehousePallet.findset then begin
-                    repeat
-                        if RecGReservationEntry.get(WarehousePallet."Reserve. Entry No.") then
-                            RecGReservationEntry.Delete();
-                        if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
-                            WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
-                            WarehouseShipmentLine.modify;
-                        end;
-                        WarehousePallet.Delete();
-                    until WarehousePallet.next = 0;
-                    if PalletHeader.get(WarehousePallet."Pallet ID") then begin
-                        PalletHeader."Exist in warehouse shipment" := false;
-                        PalletHeader.modify;
+        if (ShipmentNo <> '') and (PalletID <> '') then begin
+            WarehousePallet.reset;
+            WarehousePallet.setrange(WarehousePallet."Whse Shipment No.", ShipmentNo);
+            WarehousePallet.setrange("Pallet ID", PalletID);
+            if WarehousePallet.findset then begin
+                repeat
+                    if RecGReservationEntry.get(WarehousePallet."Reserve. Entry No.") then
+                        RecGReservationEntry.Delete();
+                    if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
+                        WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
+                        WarehouseShipmentLine.modify;
                     end;
-                    pContent := 'Pallet ' + PalletID + ' Removed from Shipment ' + ShipmentNo;
-                end
-                else
-                    pContent := 'Pallet ' + PalletID + ' does not exist on Shipment ' + ShipmentNo;
-
+                    WarehousePallet.Delete();
+                until WarehousePallet.next = 0;
+                if PalletHeader.get(WarehousePallet."Pallet ID") then begin
+                    PalletHeader."Exist in warehouse shipment" := false;
+                    PalletHeader.modify;
+                end;
+                pContent := 'Pallet ' + PalletID + ' Removed from Shipment ' + ShipmentNo;
             end
             else
-                pContent := 'Error, shipment or Pallet doesnot exist' + ShipmentNo + PalletID;
-        end;
+                pContent := 'Pallet ' + PalletID + ' does not exist on Shipment ' + ShipmentNo;
+
+        end
+        else
+            pContent := 'Error, shipment or Pallet doesnot exist' + ShipmentNo + PalletID;
     end;
 
     //Get List of Pallet in Shipment - GetListOfPalletsInShipment [8641]
@@ -619,8 +623,6 @@ codeunit 60016 "UI Whse Shipments Functions"
                         Obj_JsonText += '{"ShipmentNo": ' +
                                 '"' + ShipmentNo +
                                 '","PalletList":[';
-
-
                         repeat
                             palletheader.get(PalletListSelect."Pallet ID");
                             palletheader.CalcFields(palletheader."Total Qty");
