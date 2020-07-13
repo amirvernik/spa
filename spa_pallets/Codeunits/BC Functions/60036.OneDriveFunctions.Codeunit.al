@@ -61,8 +61,7 @@ codeunit 60036 "OneDrive Functions"
 
     begin
         PalletProcessSetup.get;
-        lurl := 'https://graph.microsoft.com/v1.0/drives/b!n_bXBuEsCEucmYgFGf8wffyBEKewIlhAhyd9TRgxns3jzmLoNwG6QaMII_XtilwB/:Maxsoft/' + FileName + ':/createUploadSession';
-
+        lurl := 'https://graph.microsoft.com/v1.0/drives/' + PalletProcessSetup."OneDrive Drive ID" + '/drive/root:/createUploadSession';
         Bearer := 'Bearer ' + BearerToken;
         lHeaders.Clear();
         lContent.GetHeaders(lHeaders);
@@ -80,8 +79,8 @@ codeunit 60036 "OneDrive Functions"
         Clear(BaseTxt);
         if lClient.Send(lRequest, lResponse) then begin
             lResponse.Content().ReadAs(BaseTxt);
-            lJsonObj.ReadFrom(BaseTxt);
             message(BaseTxt);
+            lJsonObj.ReadFrom(BaseTxt);
             if lResponse.IsSuccessStatusCode() then begin
                 lJsonObj.Get('uploadUrl', lJsonToken);
                 lJsonToken.WriteTo(WebUrl);

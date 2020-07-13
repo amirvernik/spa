@@ -162,11 +162,6 @@ page 60005 "Pallet Process Setup"
                     BlankZero = true;
                     ApplicationArea = all;
                 }
-                field("Sticker Root Directory"; "Sticker Root Directory")
-                {
-                    ApplicationArea = all;
-                    MultiLine = true;
-                }
                 field("Company Prefix"; "Company Prefix")
                 {
                     ApplicationArea = all;

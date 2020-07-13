@@ -75,17 +75,68 @@ codeunit 60035 "Sticker note functions"
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")
     var
+        TypeOfPO: Label 'All,SSCC Label,Dispatch Label,Item Label';
+        Selection: integer;
     begin
-        CreateDispatchStickerNote; //Dispatch Label Sticker note
-        CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
-        CreateItemLabelStickerNote; //Item Label Sticker Note
+        Selection := STRMENU(TypeOfPO, 1);
+        if selection = 1 then begin
+            CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
+            CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
+            CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+        end;
+        if selection = 2 then
+            CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
+        if selection = 3 then
+            CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
+        if selection = 4 then
+            CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+
     end;
 
     //Dispatch Label Sticker note
-    procedure CreateDispatchStickerNote()
+    procedure CreateDispatchStickerNote(pShipmentHeader: Record "Warehouse Shipment Header")
     var
+        PalletProcessSetup: Record "Pallet Process Setup";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WarehousePallet: Record "Warehouse Pallet";
+        SalesHeader: Record "Sales Header";
+        CustomerRec: Record customer;
+        StickerPrinter: Record "Sticker note Printer";
+        FileName: Text;
+        TempBlob: codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
     begin
-
+        FileName := '';
+        PalletProcessSetup.get;
+        WarehouseShipmentLine.reset;
+        WarehouseShipmentLine.setrange("No.", pShipmentHeader."No.");
+        if WarehouseShipmentLine.findset then
+            repeat
+                WarehousePallet.reset;
+                WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
+                WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                if WarehousePallet.findset then
+                    repeat
+                        if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then
+                            if CustomerRec.get(SalesHeader."Sell-to Customer No.") then begin
+                                //if CustomerRec."SSCC Sticker Note" then begin
+                                StickerPrinter.reset;
+                                StickerPrinter.setrange("User Code", UserId);
+                                StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."Dispatch Type Code");
+                                StickerPrinter.setrange("Sticker Note Format", CustomerRec."Dispatch Format Code");
+                                StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
+                                if StickerPrinter.findfirst then
+                                    FileName := StickerPrinter."Printer Path" + '_Dispatch_' + WarehouseShipmentLine."No." +
+                                        '_' + format(WarehouseShipmentLine."Line No.") +
+                                        '_' + WarehousePallet."Lot No." + '.txt';
+                                TempBlob.CreateOutStream(OutStr);
+                                OutStr.WriteText(WarehousePallet."Lot No.");
+                            end;
+                    until WarehousePallet.next = 0;
+            until WarehouseShipmentLine.next = 0;
+        TempBlob.CreateInStream(InStr);
+        DownloadFromStream(InStr, '', '', '', fileName);
     end;
 
     //SSCC Label Sticker note
@@ -198,22 +249,52 @@ codeunit 60035 "Sticker note functions"
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
-
-
-
-
-
-
-
-
-
     end;
 
     //Item Label Sticker Note
-    procedure CreateItemLabelStickerNote()
+    procedure CreateItemLabelStickerNote(pShipmentHeader: Record "Warehouse Shipment Header")
     var
+        PalletProcessSetup: Record "Pallet Process Setup";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        WarehousePallet: Record "Warehouse Pallet";
+        SalesHeader: Record "Sales Header";
+        CustomerRec: Record customer;
+        StickerPrinter: Record "Sticker note Printer";
+        FileName: Text;
+        TempBlob: codeunit "Temp Blob";
+        OutStr: OutStream;
+        InStr: InStream;
     begin
-
+        FileName := '';
+        PalletProcessSetup.get;
+        WarehouseShipmentLine.reset;
+        WarehouseShipmentLine.setrange("No.", pShipmentHeader."No.");
+        if WarehouseShipmentLine.findset then
+            repeat
+                WarehousePallet.reset;
+                WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
+                WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                if WarehousePallet.findset then
+                    repeat
+                        if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then
+                            if CustomerRec.get(SalesHeader."Sell-to Customer No.") then begin
+                                //if CustomerRec."SSCC Sticker Note" then begin
+                                StickerPrinter.reset;
+                                StickerPrinter.setrange("User Code", UserId);
+                                StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."Item Label Type Code");
+                                StickerPrinter.setrange("Sticker Note Format", CustomerRec."Item Label Format Code");
+                                StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
+                                if StickerPrinter.findfirst then
+                                    FileName := StickerPrinter."Printer Path" + '_ItemLabel_' + WarehouseShipmentLine."No." +
+                                        '_' + format(WarehouseShipmentLine."Line No.") +
+                                        '_' + WarehousePallet."Lot No." + '.txt';
+                                TempBlob.CreateOutStream(OutStr);
+                                OutStr.WriteText(WarehousePallet."Lot No.");
+                            end;
+                    until WarehousePallet.next = 0;
+            until WarehouseShipmentLine.next = 0;
+        TempBlob.CreateInStream(InStr);
+        DownloadFromStream(InStr, '', '', '', fileName);
     end;
 
     procedure GenerateSSCC(): Text
