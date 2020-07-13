@@ -136,6 +136,14 @@ page 60005 "Pallet Process Setup"
             }
             group("Sticker Notes")
             {
+                field("Pallet Label Type Code"; "Pallet Label Type Code")
+                {
+                    ApplicationArea = all;
+                }
+                field("SSCC Label Type Code"; "SSCC Label Type Code")
+                {
+                    ApplicationArea = all;
+                }
                 field("Dispatch Type Code"; "Dispatch Type Code")
                 {
                     ApplicationArea = All;

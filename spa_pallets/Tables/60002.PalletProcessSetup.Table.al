@@ -107,12 +107,23 @@ table 60002 "Pallet Process Setup"
             Caption = 'OneDrive Client Secret';
             DataClassification = ToBeClassified;
         }
-        field(33;"OneDrive Drive ID";Text[50])
+        field(33; "OneDrive Drive ID"; Text[50])
         {
             Caption = 'OneDrive Drive ID';
-            DataClassification = ToBeClassified;            
+            DataClassification = ToBeClassified;
         }
-
+        field(40; "Pallet Label Type Code"; code[20])
+        {
+            Caption = 'Pallet Label Type Code';
+            DataClassification = ToBeClassified;
+            TableRelation = "Format Type".code;
+        }
+        field(41; "SSCC Label Type Code"; code[20])
+        {
+            Caption = 'SSCC Label Type Code';
+            DataClassification = ToBeClassified;
+            TableRelation = "Format Type".code;
+        }
     }
     keys
     {
