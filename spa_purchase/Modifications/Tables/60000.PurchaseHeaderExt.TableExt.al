@@ -60,6 +60,10 @@ tableextension 60000 PurchaseHeaderExt extends "Purchase Header"
         {
 
         }
+        field(60020; "Variety Code"; code[10])
+        {
+            
+        }
 
     }
 

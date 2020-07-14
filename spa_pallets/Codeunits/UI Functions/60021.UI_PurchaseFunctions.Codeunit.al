@@ -22,6 +22,7 @@ codeunit 60021 "Purch. UI Functions"
         VendorRec: Record Vendor;
         OrderNumber: code[20];
         BatchNumber: code[20];
+        VarietyCode: code[10];
 
     begin
         IF pFunction <> 'CreatePurchaseHeader' THEN
@@ -40,6 +41,11 @@ codeunit 60021 "Purch. UI Functions"
                     IF JSONBuffer.Path = 'packingslipno' THEN
                         if JSONBuffer.Value <> '' then
                             VendorShipmentNo := JSONBuffer.Value;
+
+                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
+                    IF JSONBuffer.Path = 'varietycode' THEN
+                        if JSONBuffer.Value <> '' then
+                            VarietyCode := JSONBuffer.Value;
 
                 IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
                     if JSONBuffer.Value <> '' then
@@ -99,6 +105,7 @@ codeunit 60021 "Purch. UI Functions"
                         PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
                         PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
                         PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                        PurchaseHeader."Variety Code" := VarietyCode;
                         PurchaseHeader.insert;
                     end;
                     if PurchaseType = 'microwave' then begin

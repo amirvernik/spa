@@ -397,6 +397,7 @@ codeunit 60011 "UI Shipments Functions"
                             OrderType := 'MicrowavePO';
                         JsonObj.add('Purchase Order No', purchaseHeader."No.");
                         JsonObj.add('Batch Number', purchaseHeader."Batch Number");
+                        JsonObj.add('VarietyCode', purchaseHeader."Variety Code");
                         JsonObj.add('Type', OrderType);
                         JsonObj.add('Vendor', format(purchaseHeader."Buy-from Vendor No."));
                         JsonObj.add('HarvestDate', format(purchaseHeader."Harvest Date"));
