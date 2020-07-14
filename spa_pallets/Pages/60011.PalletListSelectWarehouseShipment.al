@@ -72,6 +72,7 @@ page 60011 "Pallet List Select Whse Ship"
                                     WarehouseShipmentLine.setrange("No.", ShipmentNumnber);
                                     WarehouseShipmentLine.setrange("Item No.", PalletLine."Item No.");
                                     WarehouseShipmentLine.setrange("Unit of Measure Code", PalletLine."Unit of Measure");
+                                    WarehouseShipmentLine.Setrange("Variant Code", PalletLine."Variant Code");
                                     WarehouseShipmentLine.setrange("Location Code", PalletLine."Location Code");
                                     WarehouseShipmentLine.setfilter(WarehouseShipmentLine."Remaining Quantity", '>%1', 0);
                                     if WarehouseShipmentLine.findfirst then begin

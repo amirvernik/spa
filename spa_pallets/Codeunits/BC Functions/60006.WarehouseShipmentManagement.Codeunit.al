@@ -79,7 +79,7 @@ codeunit 60006 "Warehouse Shipment Management"
         WarehouseShipmentLine.setrange("No.", WarehouseShipment."No.");
         if WarehouseShipmentLine.findset then
             repeat
-                if not PalletItemTemp.get(WarehouseShipmentLine."Item No.", WarehouseShipmentLine."Variant Code") then begin
+                if not PalletItemTemp.get(PalletLine."Item No.", PalletLine."Variant Code") then begin
                     PalletItemTemp.init;
                     PalletItemTemp.code := WarehouseShipmentLine."Variant Code";
                     PalletItemTemp."Item No." := WarehouseShipmentLine."Item No.";
@@ -94,14 +94,15 @@ codeunit 60006 "Warehouse Shipment Management"
         palletheader.setrange(palletheader."Pallet Status", palletheader."Pallet Status"::Closed);
         palletheader.setrange(palletheader."Location Code", WarehouseShipment."Location Code");
         palletheader.setrange(palletheader."Exist in warehouse shipment", false);
+        Palletheader.setrange(Palletheader."Raw Material Pallet", false);
         if palletheader.findset then begin
-            BoolPallet := false;
             repeat
+                BoolPallet := false;
                 PalletLine.reset;
                 PalletLine.setrange("Pallet ID", Palletheader."Pallet ID");
                 if PalletLine.findset then
                     repeat
-                        if PalletItemTemp.get(PalletLine."Item No.", palletline."Variant Code") then
+                        if PalletItemTemp.get(PalletLine."Item No.", PalletLine."Variant Code") then
                             BoolPallet := true;
                     until palletline.next = 0;
 
@@ -114,6 +115,7 @@ codeunit 60006 "Warehouse Shipment Management"
                     PalletListSelect.insert;
                 end;
             until palletheader.next = 0;
+
             page.run(page::"Pallet List Select Whse Ship", PalletListSelect);
         end
         else
