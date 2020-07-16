@@ -92,24 +92,9 @@ table 60002 "Pallet Process Setup"
             TableRelation = "No. Series";
             DataClassification = ToBeClassified;
         }
-        field(30; "OneDrive Directory ID"; Text[50])
+        field(30; "Sticker API URI"; text[1024])
         {
-            Caption = 'OneDrive Directory ID';
-            DataClassification = ToBeClassified;
-        }
-        field(31; "OneDrive Client ID"; Text[50])
-        {
-            Caption = 'OneDrive client ID';
-            DataClassification = ToBeClassified;
-        }
-        field(32; "OneDrive Client Secret"; Text[50])
-        {
-            Caption = 'OneDrive Client Secret';
-            DataClassification = ToBeClassified;
-        }
-        field(33; "OneDrive Drive ID"; Text[50])
-        {
-            Caption = 'OneDrive Drive ID';
+            caption = 'Sticker API URI';
             DataClassification = ToBeClassified;
         }
         field(40; "Pallet Label Type Code"; code[20])

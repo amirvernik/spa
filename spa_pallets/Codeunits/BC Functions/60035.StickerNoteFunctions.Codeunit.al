@@ -5,7 +5,6 @@ codeunit 60035 "Sticker note functions"
     var
         PalletLine: Record "Pallet Line";
         Err001: label 'You cannot print a sticker note for an open pallet';
-        OneDriveFunctions: Codeunit "OneDrive Functions";
         PalletProcessSetup: Record "Pallet Process Setup";
         PalletHeaderText: Text;
         PalletLineText: Text;
@@ -20,6 +19,9 @@ codeunit 60035 "Sticker note functions"
         StickerPrinter: Record "Sticker note Printer";
         PrinterPath: Text;
         LabelFormat: Text;
+        Base64Functions: Codeunit "Base64 Convert";
+        JsonAsText: Text;
+        uri: Text;
     begin
         PalletProcessSetup.Get();
         TempBlob.CreateOutStream(OutStr);
@@ -75,12 +77,12 @@ codeunit 60035 "Sticker note functions"
                 OutStr.WriteText();
             until PalletLine.next = 0;
 
-        //BearerToken := OneDriveFunctions.GetBearerToken;
-        //message(BearerToken);
-        //message(OneDriveFunctions.CreateUploadURL('1234.txt', BearerToken));
-        TempBlob.CreateInStream(InStr);
-        DownloadFromStream(InStr, '', '', '', fileName);
-
+        TempBlob.CreateInStream(Instr);
+        /*JsonAsText := Base64Functions.ToBase64(InStr);
+        Message(JsonAsText);
+        uri := 'https://postman-echo.com/post';
+        message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
+        DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
     end;
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")
@@ -128,6 +130,7 @@ codeunit 60035 "Sticker note functions"
         CompanyInformation: Record "Company Information";
         CompanyText: Text;
         PurchaseHeader: Record "Purchase Header";
+        Base64Functions: Codeunit "Base64 Convert";
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -244,8 +247,13 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText(CompanyText);
                         OutStr.WriteText();
 
-                        TempBlob.CreateInStream(InStr);
-                        DownloadFromStream(InStr, '', '', '', fileName);
+                        TempBlob.CreateInStream(Instr);
+                        /*JsonAsText := Base64Functions.ToBase64(InStr);
+                        Message(JsonAsText);
+                        uri := 'https://postman-echo.com/post';
+                        message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
+                        DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
+
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
@@ -278,6 +286,7 @@ codeunit 60035 "Sticker note functions"
         StickerPrinter: Record "Sticker note Printer";
         PrinterPath: Text;
         LabelFormat: Text;
+        Base64Functions: Codeunit "Base64 convert";
 
     begin
         PalletProcessSetup.get;
@@ -367,8 +376,13 @@ codeunit 60035 "Sticker note functions"
                                     OutStr.WriteText(format(PalletProcessSetup."SSCC Label No. of Copies"));
                                     OutStr.WriteText();
 
-                                    TempBlob.CreateInStream(InStr);
-                                    DownloadFromStream(InStr, '', '', '', fileName);
+                                    TempBlob.CreateInStream(Instr);
+                                    /*JsonAsText := Base64Functions.ToBase64(InStr);
+                                    Message(JsonAsText);
+                                    uri := 'https://postman-echo.com/post';
+                                    message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
+                                    DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
+
                                 end;
 
                     until WarehousePallet.next = 0;
@@ -400,6 +414,7 @@ codeunit 60035 "Sticker note functions"
         CompanyInformation: Record "Company Information";
         CompanyText: Text;
         PurchaseHeader: Record "Purchase Header";
+        Base64Functions: Codeunit "Base64 convert";
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -516,8 +531,13 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText(CompanyText);
                         OutStr.WriteText();
 
-                        TempBlob.CreateInStream(InStr);
-                        DownloadFromStream(InStr, '', '', '', fileName);
+                        TempBlob.CreateInStream(Instr);
+                        /*JsonAsText := Base64Functions.ToBase64(InStr);
+                        Message(JsonAsText);
+                        uri := 'https://postman-echo.com/post';
+                        message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
+                        DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
+
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
@@ -564,4 +584,57 @@ codeunit 60035 "Sticker note functions"
 
     var
         Splitter: label '|';
+
+    Procedure ConvertFileToJson(pFileName: Text; Base64Content: text): Text
+    var
+        JsonText: Text;
+        JsonObj: JsonObject;
+    begin
+        JsonObj.Add('FileName', pFileName);
+        JsonObj.Add('Content', Base64Content);
+        JsonObj.WriteTo(JsonText);
+        exit(JsonText);
+    end;
+
+    procedure MakeRequest(uri: Text; payload: Text) responseText: Text;
+    var
+        TempBlob: Codeunit "Temp Blob";
+        REsponseBlob: Codeunit "Temp Blob";
+        client: HttpClient;
+        request: HttpRequestMessage;
+        WebResponse: HttpResponseMessage;
+        contentHeaders: HttpHeaders;
+        content: HttpContent;
+        Instr: InStream;
+        ResponseInstr: InStream;
+        Outstr: OutStream;
+        StartDateTime: DateTime;
+        TotalDuration: Duration;
+
+    begin
+        // Add the payload to the content 
+        content.WriteFrom(payload);
+        // Retrieve the contentHeaders associated with the content 
+        content.GetHeaders(contentHeaders);
+        contentHeaders.Clear();
+        contentHeaders.Add('Content-Type', 'application/json');
+        contentHeaders.Add('Content-Length', format(StrLen(payload)));
+        // Assigning content to request.Content will actually create a copy of the content and assign it. 
+        // After this line, modifying the content variable or its associated headers will not reflect in 
+        // the content associated with the request message 
+        request.Content := content;
+        request.SetRequestUri(uri);
+        request.Method := 'POST';
+        StartDateTime := CurrentDateTime();
+        client.Send(request, WebResponse);
+        TotalDuration := CurrentDateTime() - StartDateTime;
+        //>>LOG
+        tempblob.CreateInStream(Instr);
+        content.ReadAs(Instr);
+        ResponseBlob.CreateInStream(ResponseInstr);
+        WebResponse.Content().ReadAs(ResponseInstr);
+
+        // Read the response content as XML. 
+        WebResponse.Content().ReadAs(responseText);
+    end;
 }
