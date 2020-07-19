@@ -237,27 +237,296 @@ codeunit 60034 "UI Transfer Order Management"
             end;
     end;
 
-    //List of Transfer Orders - ListOfTransferOrders [9111]
+    //List of Transfer Orders - GetListOfTransferOrdersForPallet [9111]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
-    procedure ListOfTransferOrders(VAR pFunction: Text[50]; VAR pContent: Text)
+    procedure GetListOfTransferOrdersForPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     var
         TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
         JsonObj: JsonObject;
+        JsonObjLines: JsonObject;
         JsonArr: JsonArray;
+        JsonArrLines: JsonArray;
 
     begin
-        IF pFunction <> 'ListOfTransferOrders' THEN
+        IF pFunction <> 'GetListOfTransferOrdersForPallet' THEN
             EXIT;
 
         TransferHeader.reset;
         if TransferHeader.findset then
             repeat
-                JsonObj.add('TransferOrder', TransferHeader."No.");
-                JsonObj.add('FromLocation', TransferHeader."Transfer-from Code");
-                JsonObj.add('ToLocation', TransferHeader."Transfer-to Code");
-                JsonArr.Add(JsonObj);
-                clear(JsonObj);
+                if CheckIfTransferOrderShipped(TransferHeader) then
+                    if CheckIfPallet(TransferHeader) then begin
+                        JsonObj.add('TransferOrder', TransferHeader."No.");
+                        JsonObj.add('FromLocation', TransferHeader."Transfer-from Code");
+                        JsonObj.add('ToLocation', TransferHeader."Transfer-to Code");
+                        TransferLine.reset;
+                        TransferLine.setrange("Document No.", TransferHeader."No.");
+                        if TransferLine.findset then begin
+                            repeat
+                                Clear(JsonObjLines);
+                                JsonObjLines.add('LineNo', TransferLine."Line No.");
+                                JsonObjLines.add('ItemNo', TransferLine."Item No.");
+                                JsonObjLines.add('VarietyCode', TransferLine."Variant Code");
+                                JsonObjLines.add('QtyToShip', TransferLine."Qty. to Ship");
+                                JsonObjLines.add('LotNo', TransferLine."Lot No.");
+                                JsonObjLines.add('PalletID', TransferLine."Pallet ID");
+                                JsonArrLines.Add(JsonObjLines);
+                            until TransferLine.next = 0;
+                            if JsonArrLines.Count > 0 then
+                                JsonObj.add('Item List', JsonArrLines);
+                            clear(JsonArrLines);
+                            JsonArr.Add(JsonObj);
+                            clear(JsonObj);
+                        end;
+                    end;
             until TransferHeader.next = 0;
         JsonArr.WriteTo(pContent);
+    end;
+
+    //List of Transfer Orders - GetListOfTransferOrdersForItem [9237]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    procedure GetListOfTransferOrdersForItem(VAR pFunction: Text[50]; VAR pContent: Text)
+    var
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        JsonObj: JsonObject;
+        JsonObjLines: JsonObject;
+        JsonArr: JsonArray;
+        JsonArrLines: JsonArray;
+
+    begin
+        IF pFunction <> 'GetListOfTransferOrdersForItem' THEN
+            EXIT;
+
+        TransferHeader.reset;
+        if TransferHeader.findset then
+            repeat
+                if CheckIfTransferOrderShipped(TransferHeader) then
+                    if not CheckIfPallet(TransferHeader) then begin
+                        JsonObj.add('TransferOrder', TransferHeader."No.");
+                        JsonObj.add('FromLocation', TransferHeader."Transfer-from Code");
+                        JsonObj.add('ToLocation', TransferHeader."Transfer-to Code");
+                        TransferLine.reset;
+                        TransferLine.setrange("Document No.", TransferHeader."No.");
+                        if TransferLine.findset then begin
+                            repeat
+                                Clear(JsonObjLines);
+                                JsonObjLines.add('LineNo', TransferLine."Line No.");
+                                JsonObjLines.add('ItemNo', TransferLine."Item No.");
+                                JsonObjLines.add('VarietyCode', TransferLine."Variant Code");
+                                JsonObjLines.add('QtyToShip', TransferLine."Qty. to Ship");
+                                JsonArrLines.Add(JsonObjLines);
+                            until TransferLine.next = 0;
+                            if JsonArrLines.Count > 0 then
+                                JsonObj.add('Item List', JsonArrLines);
+                            clear(JsonArrLines);
+                            JsonArr.Add(JsonObj);
+                            clear(JsonObj);
+                        end;
+                    end;
+            until TransferHeader.next = 0;
+        JsonArr.WriteTo(pContent);
+    end;
+
+    //Delete Transfer Order Line - DeleteTransferOrderLine [9238]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    procedure DeleteTransferOrderLine(VAR pFunction: Text[50]; VAR pContent: Text)
+    var
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        TransferNo: code[20];
+        LineNo: Integer;
+        TransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        Err001: Label 'Error : Transfer Order Line Shipped, cant delete';
+        Err002: Label 'Error : Transfer Order is not released';
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        IF pFunction <> 'DeleteTransferOrderLine' THEN
+            EXIT;
+
+        JsonObj.ReadFrom(pContent);
+
+        //Get Transfer Order No.
+        JsonObj.SelectToken('transferno', JsonTkn);
+        TransferNo := JsonTkn.AsValue().AsText();
+
+        //Get Transfer Order Line
+        JsonObj.SelectToken('lineno', JsonTkn);
+        LineNo := JsonTkn.AsValue().AsInteger();
+
+        //TRansfer Order Line is shipped
+        if TransferLine.get(TransferNo, LineNo) then
+            if TransferLine."Qty. Shipped (Base)" > 10 then begin
+                pContent := err001;
+                exit;
+            end;
+
+        if TransferLine.get(TransferNo, LineNo) then begin
+            TransferLine.Delete();
+            ReservationEntry.reset;
+            ReservationEntry.setrange("Source ID", TransferNo);
+            ReservationEntry.setrange("Source Type", 5741);
+            ReservationEntry.setrange("Source Ref. No.", LineNo);
+            if ReservationEntry.findset then
+                ReservationEntry.deleteall;
+        end;
+        pContent := 'Transfer Order ' + TransferNo + ' Line No. ' + format(LineNo) + ' Deleted';
+    end;
+
+    //Add Transfer Order Line - AddTransferOrderLine [9239]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    procedure AddTransferOrderLine(VAR pFunction: Text[50]; VAR pContent: Text)
+    var
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        TransferNo: code[20];
+        PalletId: code[20];
+        TransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        ReservationEntry: Record "Reservation Entry";
+        PalletHeader: Record "Pallet Header";
+        PalletLine: Record "Pallet Line";
+        LineNumber: integer;
+        RecGReservationEntry: Record "Reservation Entry";
+        RecGReservationEntry2: Record "Reservation Entry";
+        ItemRec: Record Item;
+        maxEntry: Integer;
+
+    begin
+        IF pFunction <> 'AddTransferOrderLine' THEN
+            EXIT;
+
+        JsonObj.ReadFrom(pContent);
+
+        //Get Transfer Order No.
+        JsonObj.SelectToken('transferno', JsonTkn);
+        TransferNo := JsonTkn.AsValue().AsText();
+
+        //Get Transfer Order Line
+        JsonObj.SelectToken('palletid', JsonTkn);
+        PalletId := JsonTkn.AsValue().AsText();
+
+        PalletLine.reset;
+        PalletLine.setrange("Pallet ID", PalletId);
+        if palletline.findset then
+            repeat
+                TransferLine.reset;
+                transferline.setrange("Document No.", TransferNo);
+                if TransferLine.FindLast then
+                    LineNumber := TransferLine."Line No." + 10000
+                else
+                    LineNumber := 1000;
+
+                TransferLine.init;
+                TransferLine."Document No." := TransferNo;
+                TransferLine."Line No." := LineNumber;
+                TransferLine.validate("Item No.", PalletLine."Item No.");
+                TransferLine."Variant Code" := PalletLine."Variant Code";
+                TransferLine.validate(Quantity, PalletLine.Quantity);
+                TransferLine.validate("Qty. to Ship", PalletLine.Quantity);
+                TransferLine."Pallet ID" := PalletId;
+                TransferLine."Lot No." := PalletLine."Lot Number";
+                if PalletHeader.get(PalletLine."Pallet ID") then
+                    TransferLine."Pallet Type" := PalletHeader."Pallet Type";
+                TransferLine.insert;
+                //Create Reservation Entry
+                //From Location - Negative
+                if ItemRec.get(TransferLine."Item No.") then
+                    if itemrec."Lot Nos." <> '' then begin
+                        //Create Reservation Entry
+
+                        RecGReservationEntry2.reset;
+                        if RecGReservationEntry2.findlast then
+                            maxEntry := RecGReservationEntry2."Entry No." + 1;
+
+                        RecGReservationEntry.init;
+                        RecGReservationEntry."Entry No." := MaxEntry;
+                        //V16.0 - Changed From [2] to "Surplus" on Enum
+                        RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
+                        //V16.0 - Changed From [2] to "surplus" on Enum
+                        RecGReservationEntry.validate("Creation Date", Today);
+                        RecGReservationEntry."Created By" := UserId;
+                        RecGReservationEntry."Expected Receipt Date" := Today;
+                        RecGReservationEntry."Shipment Date" := today;
+                        RecGReservationEntry."Source Type" := 5741;
+                        RecGReservationEntry."Source Subtype" := 0;
+                        RecGReservationEntry."Source ID" := TransferLine."Document No.";
+                        RecGReservationEntry."Source Ref. No." := TransferLine."Line No.";
+                        RecGReservationEntry."Location Code" := TransferLine."Transfer-from Code";
+                        //V16.0 - Changed From [1] to "Lot No." on Enum
+                        RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                        //V16.0 - Changed From [1] to "Lot No." on Enum
+                        RecGReservationEntry."Lot No." := TransferLine."Lot No.";
+                        RecGReservationEntry.validate("Item No.", TransferLine."Item No.");
+                        if TransferLine."Variant Code" <> '' then
+                            RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
+                        RecGReservationEntry.validate("Quantity (Base)", -1 * TransferLine.Quantity);
+                        RecGReservationEntry.validate(Quantity, -1 * TransferLine.Quantity);
+                        RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                        RecGReservationEntry."Packing Date" := PalletHeader."Creation Date";
+                        RecGReservationEntry.Positive := false;
+                        RecGReservationEntry.insert;
+
+                        //To Location - Positive
+                        RecGReservationEntry2.reset;
+                        if RecGReservationEntry2.findlast then
+                            maxEntry := RecGReservationEntry2."Entry No." + 1;
+
+                        RecGReservationEntry.init;
+                        RecGReservationEntry."Entry No." := MaxEntry;
+                        //V16.0 - Changed From [2] to "Surplus" on Enum
+                        RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
+                        //V16.0 - Changed From [2] to "Surplus" on Enum
+                        RecGReservationEntry.validate("Creation Date", Today);
+                        RecGReservationEntry."Created By" := UserId;
+                        RecGReservationEntry."Expected Receipt Date" := Today;
+                        RecGReservationEntry."Shipment Date" := today;
+                        RecGReservationEntry."Source Type" := 5741;
+                        RecGReservationEntry."Source Subtype" := 1;
+                        RecGReservationEntry."Source ID" := TransferLine."Document No.";
+                        RecGReservationEntry."Source Ref. No." := TransferLine."Line No.";
+                        RecGReservationEntry."Location Code" := TransferLine."Transfer-to Code";
+                        //V16.0 - Changed From [1] to "Lot No." on Enum
+                        RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                        //V16.0 - Changed From [1] to "Lot No." on Enum
+                        RecGReservationEntry."Lot No." := TransferLine."Lot No.";
+                        RecGReservationEntry.validate("Item No.", TransferLine."Item No.");
+                        if TransferLine."Variant Code" <> '' then
+                            RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
+                        RecGReservationEntry.validate("Quantity (Base)", TransferLine.Quantity);
+                        RecGReservationEntry.validate(Quantity, TransferLine.Quantity);
+                        RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                        RecGReservationEntry."Packing Date" := PalletHeader."Creation Date";
+                        RecGReservationEntry.Positive := true;
+                        RecGReservationEntry.insert;
+                    end;
+            until palletline.next = 0;
+        pContent := 'Transfer Order ' + TransferNo + ' Line No. ' + format(LineNumber) + ' Added';
+    end;
+
+    procedure CheckIfTransferOrderShipped(pTransferHeader: Record "Transfer Header"): Boolean
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.reset;
+        TransferLine.setrange("Document No.", pTransferHeader."No.");
+        TransferLine.setfilter("Qty. to Ship", '>%1', 0);
+        if TransferLine.findfirst then
+            exit(true) else
+            exit(false);
+    end;
+
+    procedure CheckIfPallet(pTransferHeader: Record "Transfer Header"): Boolean
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.reset;
+        TransferLine.setrange("Document No.", pTransferHeader."No.");
+        TransferLine.setfilter("Pallet ID", '<>%1', '');
+        if TransferLine.findfirst then
+            exit(true) else
+            exit(false);
     end;
 }

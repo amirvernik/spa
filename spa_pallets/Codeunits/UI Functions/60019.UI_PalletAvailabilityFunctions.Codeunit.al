@@ -154,7 +154,7 @@ codeunit 60019 "UI Pallet Availability"
                     if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::closed then
                         if PalletHeader."Raw Material Pallet" = true then begin
                             JsonObj.add('palletId', PalletLine."Pallet ID");
-                            JsonObj.add('qty', format(PalletLine.Quantity));
+                            JsonObj.add('qty', format(PalletLine.quantity));
                             JsonArr.Add(JsonObj);
                             clear(JsonObj);
                         end;

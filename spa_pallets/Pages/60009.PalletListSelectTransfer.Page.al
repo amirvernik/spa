@@ -62,6 +62,7 @@ page 60009 "Pallet List Select Transfer"
                 until rec.next = 0;
             end;
         end;
+
         TransferLine.reset;
         TransferLine.setrange("Document No.", TransferOrderNumber);
         if TransferLine.findset then
@@ -93,7 +94,7 @@ page 60009 "Pallet List Select Transfer"
                         //V16.0 - Changed From [1] to "Lot No." on Enum
                         RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
                         //V16.0 - Changed From [1] to "Lot No." on Enum
-                        RecGReservationEntry."Lot No." := PalletLine."Lot Number";
+                        RecGReservationEntry."Lot No." := TransferLine."Lot No.";
                         RecGReservationEntry.validate("Item No.", TransferLine."Item No.");
                         if TransferLine."Variant Code" <> '' then
                             RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
@@ -126,7 +127,7 @@ page 60009 "Pallet List Select Transfer"
                         //V16.0 - Changed From [1] to "Lot No." on Enum
                         RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
                         //V16.0 - Changed From [1] to "Lot No." on Enum
-                        RecGReservationEntry."Lot No." := PalletLine."Lot Number";
+                        RecGReservationEntry."Lot No." := TransferLine."Lot No.";
                         RecGReservationEntry.validate("Item No.", TransferLine."Item No.");
                         if TransferLine."Variant Code" <> '' then
                             RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");

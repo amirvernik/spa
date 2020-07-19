@@ -7,6 +7,10 @@ tableextension 60016 WarehouseShipmentHeaderExt extends "Warehouse Shipment Head
         {
             DataClassification = ToBeClassified;
         }
+        field(60001; "Allocated"; Boolean)
+        {
+            DataClassification = ToBeClassified;
+        }
     }
     var
         myInt: Integer;

@@ -9,6 +9,11 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                 editable = false;
                 ApplicationArea = all;
             }
+            field(Allocated; Allocated)
+            {
+                Editable = false;
+                ApplicationArea = all;
+            }
         }
         addafter(Control1901796907)
         {

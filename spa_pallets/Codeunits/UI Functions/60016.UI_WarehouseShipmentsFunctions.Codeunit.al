@@ -404,8 +404,8 @@ codeunit 60016 "UI Whse Shipments Functions"
             pContent := 'Error, shipment or Pallet doesnot exist' + ShipmentNo + PalletID;
     end;
 
-    //Get List of Pallet in Shipment - GetListOfPalletsInShipment [8641]
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    //Get List of Pallet in Shipment - GetListOfPalletsInShipment [8641] - Removed / Not im use
+    /*[EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfPalletsInShipment(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
 
@@ -463,7 +463,7 @@ codeunit 60016 "UI Whse Shipments Functions"
             pContent := 'No Pallets in Shipment'
         else
             pContent := Obj_JsonText;
-    end;
+    end;*/
 
     //Get List of Pallet in Shipment Line - GetListOfPalletsInShipmentLine [8802]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
@@ -477,6 +477,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         WarehouseShipmentHeader: Record "warehouse Shipment Header";
         ItemRecTemp: Record item temporary;
         WarehousePallet: Record "Warehouse Pallet";
+        UploadedText: Text;
 
     begin
         IF pFunction <> 'GetListOfPalletsInShipmentLine' THEN
@@ -511,6 +512,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                     if not ItemRecTemp.get(WarehousePallet."Pallet ID") then begin
                         ItemRecTemp.init;
                         ItemRecTemp."No." := WarehousePallet."Pallet ID";
+                        ItemRecTemp.Blocked := WarehousePallet."Uploaded to Truck";
                         ItemRecTemp.insert;
                     end;
                 until WarehousePallet.next = 0;
@@ -518,7 +520,8 @@ codeunit 60016 "UI Whse Shipments Functions"
                 ItemRecTemp.reset;
                 if ItemRecTemp.findset then
                     repeat
-                        Obj_JsonText += '{"PalletID" :"' + ItemRecTemp."No." + '"},';
+                        Obj_JsonText += '{"PalletID" :"' + ItemRecTemp."No." + '",' +
+                        '"Uploaded" :"' + format(ItemRecTemp.Blocked) + '"},';
 
                     until ItemRecTemp.next = 0;
 
@@ -746,4 +749,46 @@ codeunit 60016 "UI Whse Shipments Functions"
         else
             pContent := Err001;
     end;
+
+    //Mark Shipment allocated - MarkShipmentAllocated[9240]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure MarkShipmentAllocated(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        ShipmentNo: code[20];
+        BoolMarkShipment: Boolean;
+        Err001: label 'Error:Shipment not found';
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        NotAllocatedTxt: Label 'Not Allocated';
+        allocatedTxt: label 'Allocated';
+
+    begin
+        IF pFunction <> 'MarkShipmentAllocated' THEN
+            EXIT;
+
+        JsonObj.ReadFrom(pContent);
+
+        //Get Shipment No.
+        JsonObj.SelectToken('shipmentno', JsonTkn);
+        ShipmentNo := JsonTkn.AsValue().AsText();
+
+        //Get Picked/not Picked
+        JsonObj.SelectToken('allocated', JsonTkn);
+        BoolMarkShipment := JsonTkn.AsValue().AsBoolean();
+
+        //Check if Warehouse Pallet Exists
+        if WarehouseShipmentHeader.get(ShipmentNo) then begin
+            WarehouseShipmentHeader.Allocated := BoolMarkShipment;
+            WarehouseShipmentHeader.modify;
+
+            pcontent := 'Shipment ' + ShipmentNo + ' Is marked as ';
+            if BoolMarkShipment then
+                pContent += allocatedTxt else
+                pContent += NotAllocatedTxt;
+        end
+        else
+            pContent := Err001;
+    end;
+
 }

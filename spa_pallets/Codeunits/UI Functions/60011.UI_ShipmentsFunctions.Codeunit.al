@@ -360,6 +360,7 @@ codeunit 60011 "UI Shipments Functions"
         JsonArr: JsonArray;
         PurchaseType: text;
         OrderType: Text;
+        ItemVariant: Record "item variant";
     begin
         IF pFunction <> 'GetListOfOpenPurchaseOrders' THEN
             EXIT;
@@ -398,6 +399,10 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Purchase Order No', purchaseHeader."No.");
                         JsonObj.add('Batch Number', purchaseHeader."Batch Number");
                         JsonObj.add('VarietyCode', purchaseHeader."Variety Code");
+                        ItemVariant.reset;
+                        ItemVariant.setrange(code, purchaseHeader."Variety Code");
+                        if ItemVariant.findfirst then
+                            JsonObj.add('VarietyDescription', ItemVariant.Description);
                         JsonObj.add('Type', OrderType);
                         JsonObj.add('Vendor', format(purchaseHeader."Buy-from Vendor No."));
                         JsonObj.add('HarvestDate', format(purchaseHeader."Harvest Date"));

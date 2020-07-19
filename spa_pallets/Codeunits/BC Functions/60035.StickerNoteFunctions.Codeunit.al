@@ -78,11 +78,12 @@ codeunit 60035 "Sticker note functions"
             until PalletLine.next = 0;
 
         TempBlob.CreateInStream(Instr);
-        /*JsonAsText := Base64Functions.ToBase64(InStr);
-        Message(JsonAsText);
-        uri := 'https://postman-echo.com/post';
-        message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
-        DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
+        JsonAsText := Base64Functions.ToBase64(InStr);
+        //Message(JsonAsText);
+        //uri := 'https://postman-echo.com/post';
+        uri := PalletProcessSetup."Sticker API URI";
+        MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+        message('Sent to Printer');
     end;
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")
@@ -131,6 +132,8 @@ codeunit 60035 "Sticker note functions"
         CompanyText: Text;
         PurchaseHeader: Record "Purchase Header";
         Base64Functions: Codeunit "Base64 Convert";
+        JsonAsText: Text;
+        uri: text;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -248,12 +251,13 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText();
 
                         TempBlob.CreateInStream(Instr);
-                        /*JsonAsText := Base64Functions.ToBase64(InStr);
-                        Message(JsonAsText);
-                        uri := 'https://postman-echo.com/post';
-                        message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
-                        DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
-
+                        JsonAsText := Base64Functions.ToBase64(InStr);
+                        //Message(JsonAsText);
+                        //uri := 'https://postman-echo.com/post';
+                        uri := PalletProcessSetup."Sticker API URI";
+                        MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+                        message('Sent to Printer');
+                    //DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
@@ -287,6 +291,8 @@ codeunit 60035 "Sticker note functions"
         PrinterPath: Text;
         LabelFormat: Text;
         Base64Functions: Codeunit "Base64 convert";
+        JsonAsText: Text;
+        uri: text;
 
     begin
         PalletProcessSetup.get;
@@ -377,11 +383,13 @@ codeunit 60035 "Sticker note functions"
                                     OutStr.WriteText();
 
                                     TempBlob.CreateInStream(Instr);
-                                    /*JsonAsText := Base64Functions.ToBase64(InStr);
-                                    Message(JsonAsText);
-                                    uri := 'https://postman-echo.com/post';
-                                    message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
-                                    DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
+                                    JsonAsText := Base64Functions.ToBase64(InStr);
+                                    //Message(JsonAsText);
+                                    //uri := 'https://postman-echo.com/post';
+                                    uri := PalletProcessSetup."Sticker API URI";
+                                    MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+                                    message('Sent to Printer');
+                                    //DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
 
                                 end;
 
@@ -415,6 +423,8 @@ codeunit 60035 "Sticker note functions"
         CompanyText: Text;
         PurchaseHeader: Record "Purchase Header";
         Base64Functions: Codeunit "Base64 convert";
+        JsonAsText: Text;
+        uri: text;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -532,11 +542,13 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText();
 
                         TempBlob.CreateInStream(Instr);
-                        /*JsonAsText := Base64Functions.ToBase64(InStr);
-                        Message(JsonAsText);
-                        uri := 'https://postman-echo.com/post';
-                        message(MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText)));*/
-                        DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
+                        JsonAsText := Base64Functions.ToBase64(InStr);
+                        //Message(JsonAsText);
+                        //uri := 'https://postman-echo.com/post';
+                        uri := PalletProcessSetup."Sticker API URI";
+                        MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+                        message('Sent to Printer');
+                    //DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
 
 
                     until WarehousePallet.next = 0;

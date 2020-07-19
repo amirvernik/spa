@@ -47,7 +47,6 @@ page 60011 "Pallet List Select Whse Ship"
                 if WarehouseShipmentheader.findfirst then
                     page.run(7335, WarehouseShipmentHeader);
             end;
-
         end;
 
         //Page is Open with OK
