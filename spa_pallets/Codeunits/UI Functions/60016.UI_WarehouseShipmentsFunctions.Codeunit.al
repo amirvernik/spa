@@ -24,6 +24,9 @@ codeunit 60016 "UI Whse Shipments Functions"
                     JsonObj.add('Shipment No.', WarehouseShipmentHeader."No.");
                     JsonObj.add('Shipment Date', format(WarehouseShipmentHeader."Shipment Date"));
                     JsonObj.add('Location Code', WarehouseShipmentHeader."Location Code");
+                    jsonobj.add('ExternalDocNum', WarehouseShipmentHeader."External Document No.");
+                    JsonObj.add('Allocated', WarehouseShipmentHeader.Allocated);
+                    JsonObj.add('ShipmentDate', WarehouseShipmentHeader."Shipment Date");
                     repeat
                         Clear(JsonObjLines);
                         JsonObjLines.add('Item No', WarehouseShipmentLine."Item No.");
@@ -521,7 +524,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                 if ItemRecTemp.findset then
                     repeat
                         Obj_JsonText += '{"PalletID" :"' + ItemRecTemp."No." + '",' +
-                        '"Uploaded" :"' + format(ItemRecTemp.Blocked) + '"},';
+                        '"Picked" :"' + format(ItemRecTemp.Blocked) + '"},';
 
                     until ItemRecTemp.next = 0;
 

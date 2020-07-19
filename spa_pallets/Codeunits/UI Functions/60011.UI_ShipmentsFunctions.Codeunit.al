@@ -263,6 +263,8 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Customer Name', SalesHeader."Sell-to Customer name");
                         JsonObj.add('Ship-to Address', SalesHeader."Ship-to Address");
                         JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
+                        JsonObj.add('ExternalDocNum', Salesheader."External Document No.");
+                        JsonObj.add('ReqDeliveryDate', Salesheader."Requested Delivery Date");
                         SalesLine.reset;
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");

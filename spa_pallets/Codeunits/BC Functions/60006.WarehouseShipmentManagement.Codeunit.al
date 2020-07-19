@@ -79,7 +79,7 @@ codeunit 60006 "Warehouse Shipment Management"
         WarehouseShipmentLine.setrange("No.", WarehouseShipment."No.");
         if WarehouseShipmentLine.findset then
             repeat
-                if not PalletItemTemp.get(PalletLine."Item No.", PalletLine."Variant Code") then begin
+                if not PalletItemTemp.get(WarehouseShipmentLine."Item No.", WarehouseShipmentLine."Variant Code") then begin
                     PalletItemTemp.init;
                     PalletItemTemp.code := WarehouseShipmentLine."Variant Code";
                     PalletItemTemp."Item No." := WarehouseShipmentLine."Item No.";
