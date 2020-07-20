@@ -26,7 +26,6 @@ codeunit 60016 "UI Whse Shipments Functions"
                     JsonObj.add('Location Code', WarehouseShipmentHeader."Location Code");
                     jsonobj.add('ExternalDocNum', WarehouseShipmentHeader."External Document No.");
                     JsonObj.add('Allocated', WarehouseShipmentHeader.Allocated);
-                    JsonObj.add('ShipmentDate', WarehouseShipmentHeader."Shipment Date");
                     repeat
                         Clear(JsonObjLines);
                         JsonObjLines.add('Item No', WarehouseShipmentLine."Item No.");
