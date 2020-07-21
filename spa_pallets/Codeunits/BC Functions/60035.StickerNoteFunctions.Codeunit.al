@@ -78,15 +78,10 @@ codeunit 60035 "Sticker note functions"
                 OutStr.WriteText(PalletLineText);
                 OutStr.WriteText();
             until PalletLine.next = 0;
-
+        TempBlob.CreateInStream(InStr);
         BearerToken := OneDriveFunctions.GetBearerToken();
-        Message(BearerToken);
-        UploadURL := OneDriveFunctions.CreateUploadURL('123.txt', BearerToken, outstr)
-        /*TempBlob.CreateInStream(Instr);
-        JsonAsText := Base64Functions.ToBase64(InStr);
-        uri := PalletProcessSetup."Sticker API URI";
-        MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
-        message('Sent to Printer');*/
+        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
+        message('Sent to Printer');
     end;
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")
@@ -137,6 +132,8 @@ codeunit 60035 "Sticker note functions"
         Base64Functions: Codeunit "Base64 Convert";
         JsonAsText: Text;
         uri: text;
+        BearerToken: text;
+        OneDriveFunctions: Codeunit "OneDrive Functions";
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -253,14 +250,10 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText(CompanyText);
                         OutStr.WriteText();
 
-                        TempBlob.CreateInStream(Instr);
-                        JsonAsText := Base64Functions.ToBase64(InStr);
-                        //Message(JsonAsText);
-                        //uri := 'https://postman-echo.com/post';
-                        uri := PalletProcessSetup."Sticker API URI";
-                        MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+                        TempBlob.CreateInStream(InStr);
+                        BearerToken := OneDriveFunctions.GetBearerToken();
+                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
                         message('Sent to Printer');
-                    //DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
@@ -296,6 +289,8 @@ codeunit 60035 "Sticker note functions"
         Base64Functions: Codeunit "Base64 convert";
         JsonAsText: Text;
         uri: text;
+        BearerToken: text;
+        OneDriveFunctions: Codeunit "OneDrive Functions";
 
     begin
         PalletProcessSetup.get;
@@ -385,14 +380,10 @@ codeunit 60035 "Sticker note functions"
                                     OutStr.WriteText(format(PalletProcessSetup."SSCC Label No. of Copies"));
                                     OutStr.WriteText();
 
-                                    TempBlob.CreateInStream(Instr);
-                                    JsonAsText := Base64Functions.ToBase64(InStr);
-                                    //Message(JsonAsText);
-                                    //uri := 'https://postman-echo.com/post';
-                                    uri := PalletProcessSetup."Sticker API URI";
-                                    MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+                                    TempBlob.CreateInStream(InStr);
+                                    BearerToken := OneDriveFunctions.GetBearerToken();
+                                    OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
                                     message('Sent to Printer');
-                                    //DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
 
                                 end;
 
@@ -428,6 +419,9 @@ codeunit 60035 "Sticker note functions"
         Base64Functions: Codeunit "Base64 convert";
         JsonAsText: Text;
         uri: text;
+        BearerToken: text;
+        OneDriveFunctions: Codeunit "OneDrive Functions";
+
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -544,15 +538,10 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText(CompanyText);
                         OutStr.WriteText();
 
-                        TempBlob.CreateInStream(Instr);
-                        JsonAsText := Base64Functions.ToBase64(InStr);
-                        //Message(JsonAsText);
-                        //uri := 'https://postman-echo.com/post';
-                        uri := PalletProcessSetup."Sticker API URI";
-                        MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
+                        TempBlob.CreateInStream(InStr);
+                        BearerToken := OneDriveFunctions.GetBearerToken();
+                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
                         message('Sent to Printer');
-                    //DOWNLOADFROMSTREAM(Instr, 'Save File', '', 'All Files (*.*)|*.*', FileName);
-
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;

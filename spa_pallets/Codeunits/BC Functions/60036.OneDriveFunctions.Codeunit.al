@@ -16,12 +16,16 @@ codeunit 60036 "OneDrive Functions"
         APITokenLocal: Text;
         lDirectory: Text;
         PalletProcessSetup: Record "Pallet Process Setup";
+        responseText: Text;
     begin
         PalletProcessSetup.get;
+        //lDirectory := '394ca742-61cd-41ec-b3c2-2b828ef9dcd6';// PalletProcessSetup."OneDrive Directory ID";
         lDirectory := PalletProcessSetup."OneDrive Directory ID";
-        lUrl := 'https://login.microsoftonline.com/' + lDirectory + '/oauth2/v2.0/token';
+        lSecret := palletProcessSetup."OneDrive Client Secret";
         lClientID := PalletProcessSetup."OneDrive Client ID";
-        lSecret := PalletProcessSetup."OneDrive Client Secret";
+        lUrl := 'https://login.microsoftonline.com/' + lDirectory + '/oauth2/v2.0/token';
+        //lClientID := '3321b880-99b3-4c0f-b9b8-9ba5e6e1a767';//PalletProcessSetup."OneDrive Client ID";
+        //lSecret := '6nDgAy.qn.90cH.3BiGyC~3hHpduLST1M1';//PalletProcessSetup."OneDrive Client Secret";
         BaseTxt := 'grant_type=client_credentials&client_id=' + lClientID + '&client_secret=' + lSecret + '&scope=https://graph.microsoft.com/.default';
         lContent.Clear();
         lContent.WriteFrom(BaseTxt);
@@ -36,6 +40,7 @@ codeunit 60036 "OneDrive Functions"
             lJsonObj.Get('access_token', lJsonToken);
             lJsonToken.WriteTo(APITokenLocal);
             APITokenLocal := DelChr(APITokenLocal, '=', '"');
+            lResponse.Content.ReadAs(responseText);
             Exit(APITokenLocal);
         end
         else
@@ -43,7 +48,7 @@ codeunit 60036 "OneDrive Functions"
     end;
 
 
-    Procedure CreateUploadURL(FileName: Text; BearerToken: Text; OutStr: OutStream): Text
+    Procedure UploadFile(FileName: Text; BearerToken: Text; pInstr: InStream): Text
     var
         lUrl: Text;
         Bearer: Text;
@@ -59,10 +64,13 @@ codeunit 60036 "OneDrive Functions"
         lJsonToken: JsonToken;
         WebUrl: Text;
         PalletProcessSetup: Record "Pallet Process Setup";
+        lOneDrive: Text;
 
     begin
         PalletProcessSetup.get;
-        lUrl := 'https://graph.microsoft.com/v1.0/drives/' + PalletProcessSetup."OneDrive Drive ID" + '/root:/' + FileName + ':/content';
+        lOneDrive := PalletProcessSetup."OneDrive Drive ID";
+        //lUrl := 'https://graph.microsoft.com/v1.0/drives/' + 'b!bU7-uco0aUOfOS6tDaxnOmiiplOkFSBGoBfqcq18K0aSue4scQHFQZM5CLGlSEGW' + '/root:/BC/' + FileName + ':/content';
+        lUrl := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/BC/' + FileName + ':/content';
         Bearer := 'Bearer ' + BearerToken;
         lHeaders.Clear();
         lContent.GetHeaders(lHeaders);
@@ -70,9 +78,8 @@ codeunit 60036 "OneDrive Functions"
         lHeaders.Add('Content-Type', 'text/plain');
         lreqHeaders := lClient.DefaultRequestHeaders();
         lreqHeaders.Add('Authorization', Bearer);
-        lreqHeaders.Remove('Accept');
-        lreqHeaders.Add('Accept', 'text/plain');
-        lContent.WriteFrom('ABCDEFG');
+        lContent.WriteFrom(pInstr);
+        lRequest.Content := lContent;
         lRequest.GetHeaders(lReqHeaders);
         lContent.GetHeaders(lHeaders);
         lRequest.Method := 'PUT';
@@ -80,10 +87,10 @@ codeunit 60036 "OneDrive Functions"
         lRequest.GetHeaders(lReqHeaders);
         if lClient.Send(lRequest, lResponse) then begin
             lResponse.Content().ReadAs(BaseTxt);
-            message(BaseTxt);
+            //  message(BaseTxt);
             lJsonObj.ReadFrom(BaseTxt);
             if lResponse.IsSuccessStatusCode() then begin
-                lJsonObj.Get('uploadUrl', lJsonToken);
+                lJsonObj.Get('createdDateTime', lJsonToken);
                 lJsonToken.WriteTo(WebUrl);
                 WebUrl := DelChr(WebUrl, '=', '"');
                 exit(WebUrl);
