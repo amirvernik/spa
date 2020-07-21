@@ -109,6 +109,26 @@ table 60002 "Pallet Process Setup"
             DataClassification = ToBeClassified;
             TableRelation = "Format Type".code;
         }
+        field(50; "OneDrive Directory ID"; text[1024])
+        {
+            Caption = 'OneDrive Directory ID';
+            DataClassification = ToBeClassified;
+        }
+        field(60; "OneDrive Client ID"; text[1024])
+        {
+            Caption = 'OneDrive Client ID';
+            DataClassification = ToBeClassified;
+        }
+        field(70; "OneDrive Client Secret"; text[1024])
+        {
+            Caption = 'OneDrive Client Secret';
+            DataClassification = ToBeClassified;
+        }
+        field(80; "OneDrive Drive ID"; text[1024])
+        {
+            Caption = 'OneDrive Drive ID';
+            DataClassification = ToBeClassified;
+        }
     }
     keys
     {

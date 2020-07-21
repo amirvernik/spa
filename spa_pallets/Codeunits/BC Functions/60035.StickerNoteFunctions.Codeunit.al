@@ -11,7 +11,6 @@ codeunit 60035 "Sticker note functions"
         FooterText: Text;
         PackDate_Line5: Date;
         PackDate_Text: text;
-        BearerToken: Text;
         TempBlob: codeunit "Temp Blob";
         OutStr: OutStream;
         InStr: InStream;
@@ -22,6 +21,9 @@ codeunit 60035 "Sticker note functions"
         Base64Functions: Codeunit "Base64 Convert";
         JsonAsText: Text;
         uri: Text;
+        OneDriveFunctions: Codeunit "OneDrive Functions";
+        BearerToken: text;
+        UploadURL: text;
     begin
         PalletProcessSetup.Get();
         TempBlob.CreateOutStream(OutStr);
@@ -77,13 +79,14 @@ codeunit 60035 "Sticker note functions"
                 OutStr.WriteText();
             until PalletLine.next = 0;
 
-        TempBlob.CreateInStream(Instr);
+        BearerToken := OneDriveFunctions.GetBearerToken();
+        Message(BearerToken);
+        UploadURL := OneDriveFunctions.CreateUploadURL('123.txt', BearerToken, outstr)
+        /*TempBlob.CreateInStream(Instr);
         JsonAsText := Base64Functions.ToBase64(InStr);
-        //Message(JsonAsText);
-        //uri := 'https://postman-echo.com/post';
         uri := PalletProcessSetup."Sticker API URI";
         MakeRequest(uri, ConvertFileToJson(FileName, JsonAsText));
-        message('Sent to Printer');
+        message('Sent to Printer');*/
     end;
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")

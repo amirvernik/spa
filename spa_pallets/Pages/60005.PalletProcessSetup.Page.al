@@ -175,6 +175,26 @@ page 60005 "Pallet Process Setup"
                     ApplicationArea = all;
                 }
             }
+            group("One Drive")
+            {
+
+                field("OneDrive Directory ID"; "OneDrive Directory ID")
+                {
+                    ApplicationArea = all;
+                }
+                field("OneDrive Client ID"; "OneDrive Client ID")
+                {
+                    ApplicationArea = all;
+                }
+                field("OneDrive Client Secret"; "OneDrive Client Secret")
+                {
+                    ApplicationArea = all;
+                }
+                field("OneDrive Drive ID"; "OneDrive Drive ID")
+                {
+                    ApplicationArea = all;
+                }
+            }
 
         }
     }
