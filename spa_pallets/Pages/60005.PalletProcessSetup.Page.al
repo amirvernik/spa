@@ -202,6 +202,28 @@ page 60005 "Pallet Process Setup"
     {
         area(Processing)
         {
+            action("Check")
+            {
+                image = CheckList;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedOnly = true;
+                ApplicationArea = all;
+                trigger OnAction()
+                var
+                    TempBlob: Codeunit "Temp Blob";
+                    InStr: InStream;
+                    Outstr: OutStream;
+                    BearerToken: text;
+                    OneDriveFunctions: Codeunit "OneDrive Functions";
+                begin
+                    TempBlob.CreateOutStream(OutStr);
+                    Outstr.WriteText('Amir Vernik Test');
+                    TempBlob.CreateInStream(InStr);
+                    BearerToken := OneDriveFunctions.GetBearerToken();
+                    OneDriveFunctions.UploadFile('123456789.txt', BearerToken, InStr);
+                end;
+            }
             action("Format Types")
             {
                 Image = CodesList;
