@@ -168,7 +168,6 @@ codeunit 60021 "Purch. UI Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CreatePurchaseHeaderMW(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        JsonBuffer: Record "JSON Buffer" temporary;
         PurchaseHeader: Record "purchase header";
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         NoSeriesManagement: Codeunit NoSeriesManagement;
@@ -188,66 +187,179 @@ codeunit 60021 "Purch. UI Functions"
         OrderNumber: code[20];
         BatchNumber: code[20];
         PalletHeaderTemp: Record "Pallet Header" temporary;
+        PalletLineTemp: Record "Pallet Line" temporary;
         PalletHeader: Record "Pallet Header";
+        PalletLine: Record "Pallet Line";
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
-
+        JsonObj: JsonObject;
+        JsonTknAll: JsonToken; //All Json
+        JsonTkn: jsontoken; //Getting Data From
+        JsonTkn2: JsonToken;
+        JsontokenLines: JsonToken;
+        JsonTokenLinesData: JsonToken;
+        JsonArr: JsonArray;
+        JsonArrLines: JsonArray;
+        Searcher: Integer;
+        Searcher_Lines: Integer;
+        PalletID: code[20];
+        PalletItem: code[20];
+        PalletVariety: code[10];
+        PalletConsumed: Decimal;
+        Err001: Label 'Cant consume more than remaining';
+        PalletsNotConsumed: Boolean;
+        JsonResult: JsonObject;
     begin
         IF pFunction <> 'CreatePurchaseHeaderMW' THEN
             EXIT;
-        JsonBuffer.ReadFromText(pContent);
-        //Depth 2 - Header
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        IF JSONBuffer.FINDSET THEN begin
-            REPEAT
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'vendorno' THEN
-                        VendorNo := JSONBuffer.Value;
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'packingslipno' THEN
-                        if JSONBuffer.Value <> '' then
-                            VendorShipmentNo := JSONBuffer.Value;
+        if PalletLineTemp.findset then
+            PalletLineTemp.deleteall;
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    if JSONBuffer.Value <> '' then
-                        IF JSONBuffer.Path = 'binquantity' THEN
-                            evaluate(BinQuantity, JSONBuffer.Value);
+        JsonObj.ReadFrom(pContent);
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'harvestdate' THEN
-                        evaluate(HarvestDate, JSONBuffer.Value);
+        //Get Vendor No.
+        JsonObj.SelectToken('vendorno', JsonTkn);
+        VendorNo := JsonTkn.AsValue().AsText();
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'purchasetype' THEN
-                        PurchaseType := JSONBuffer.Value;
+        //Get Packing Slip No. [Vendor Shipment No.]
+        JsonObj.SelectToken('packingslipno', JsonTkn);
+        VendorShipmentNo := JsonTkn.AsValue().AsText();
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'rmitem' THEN
-                        RM_Item := JSONBuffer.Value;
+        //Get Packing Slip No. [Vendor Shipment No.]
+        JsonObj.SelectToken('packingslipno', JsonTkn);
+        VendorShipmentNo := JsonTkn.AsValue().AsText();
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'rmlocation' THEN
-                        RM_Location := JSONBuffer.Value;
+        //Get Bin Quantity
+        JsonObj.SelectToken('binquantity', JsonTkn);
+        BinQuantity := JsonTkn.AsValue().AsDecimal();
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'rmqty' THEN
-                        if JSONBuffer.Value <> '' then
-                            evaluate(RM_Qty, JSONBuffer.Value);
+        //Get Harvest Date
+        JsonObj.SelectToken('harvestdate', JsonTkn);
+        evaluate(HarvestDate, JsonTkn.AsValue().AsText());
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF JSONBuffer.Path = 'rmlotno' THEN
-                        if JSONBuffer.Value <> '' then
-                            RM_Lot := JSONBuffer.Value;
+        //Get Purchase Type
+        JsonObj.SelectToken('purchasetype', JsonTkn);
+        PurchaseType := JsonTkn.AsValue().AsText();
 
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    if JsonBuffer.path = 'scrapqty' then
-                        if JsonBuffer.value <> '' then
-                            Evaluate(ScrapQty, JSONBuffer.Value);
+        //Get Raw Material Item
+        JsonObj.SelectToken('rmitem', JsonTkn);
+        RM_Item := JsonTkn.AsValue().AsText();
 
-            UNTIL JSONBuffer.NEXT = 0;
+        //Get Raw Material Location
+        JsonObj.SelectToken('rmlocation', JsonTkn);
+        RM_Location := JsonTkn.AsValue().AsText();
 
-            if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType <> '') then begin
+        //Get Raw Material Qty
+        JsonObj.SelectToken('rmqty', JsonTkn);
+        RM_Qty := JsonTkn.AsValue().AsDecimal();
+
+        //Get Raw Material Lot No.
+        JsonObj.SelectToken('rmlotno', JsonTkn);
+        RM_Lot := JsonTkn.AsValue().AsText();
+
+        //Get Scrap Qty
+        JsonObj.SelectToken('scrapqty', JsonTkn);
+        ScrapQty := JsonTkn.AsValue().AsDecimal();
+
+        JsonObj.SelectToken('scrapqty', JsonTkn);
+
+        JsonObj.SelectToken('pallets', JsonTkn);
+        JsonArr := JsonTkn.AsArray();
+
+        pContent := '';
+        Searcher := 0;
+        while searcher < JsonArr.Count do begin
+
+            //Getting PalletID for each Pallet
+            JsonArr.get(searcher, JsonTknAll);
+            JsonObj := JsonTknAll.AsObject();
+
+            JsonObj.SelectToken('palletid', JsonTkn2);
+            PalletID := JsonTkn2.AsValue().AsText();
+
+            //Creating Pallet Header temp for consuming
+            PalletHeaderTemp.init;
+            PalletHeaderTemp."Pallet ID" := PalletID;
+            PalletHeaderTemp.insert;
+
+            searcher += 1;
+
+            //Getting the Lines
+            JsonObj.SelectToken('palletLines', JsonTkn);
+            JsonArrLines := JsonTkn.AsArray();
+            Searcher_Lines := 0;
+            while Searcher_Lines < JsonArrLines.Count do begin
+
+                //Getting Pllaet Line Data
+                JsonArrLines.get(Searcher_Lines, JsontokenLines);
+                JsonObj := JsontokenLines.AsObject();
+
+                JsonObj.SelectToken('itemId', JsonTokenLinesData);
+                PalletItem := JsonTokenLinesData.AsValue().AsText();
+
+                JsonObj.SelectToken('variety', JsonTokenLinesData);
+                PalletVariety := JsonTokenLinesData.AsValue().AsText();
+
+                JsonObj.SelectToken('consumingQty', JsonTokenLinesData);
+                PalletConsumed := JsonTokenLinesData.AsValue().AsDecimal();
+
+                PalletLine.reset;
+                PalletLine.setrange("Pallet ID", PalletID);
+                PalletLine.SetRange("Lot Number", RM_Lot);
+                PalletLine.setrange("Item No.", PalletItem);
+                PalletLine.setrange("Variant Code", PalletVariety);
+                if PalletLine.findfirst then begin
+                    PalletLineTemp.init;
+                    PalletLineTemp.TransferFields(PalletLine);
+                    PalletLineTemp."QTY Consumed" := PalletConsumed;
+                    palletlinetemp.insert();
+                end;
+                Searcher_Lines += 1;
+            end;
+        end;
+        PalletLineTemp.reset;
+        if PalletLineTemp.findset then
+            repeat
+                if PalletLine.get(PalletLineTemp."Pallet ID", PalletLineTemp."Line No.") then begin
+                    if PalletLineTemp."QTY Consumed" <= PalletLine."Remaining Qty" then begin
+                        PalletLine."QTY Consumed" += PalletLineTemp."QTY Consumed";
+                        PalletLine."Remaining Qty" -= PalletLineTemp."QTY Consumed";
+                        PalletLine.modify;
+
+                        PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
+
+                        PalletLineTemp."Exists on Warehouse Shipment" := true;
+                        PalletLineTemp.modify;
+                    end
+                end;
+            until PalletLineTemp.next = 0;
+
+        //if all consumed
+        PalletLineTemp.reset;
+        PalletLineTemp.setrange("Exists on Warehouse Shipment", false);
+        if PalletLineTemp.findfirst then
+            PalletsNotConsumed := true;
+
+        //Mark Pallets as consumed/Partially consumed
+        if not PalletsNotConsumed then begin
+            PalletHeaderTemp.reset;
+            if PalletHeaderTemp.findset then
+                repeat
+                    PalletHeader.get(PalletHeaderTemp."Pallet ID");
+                    PalletLine.reset;
+                    PalletLine.setrange("Pallet ID", PalletHeaderTemp."Pallet ID");
+                    PalletLine.setfilter("Remaining Qty", '<>%1', 0);
+                    if PalletLine.findfirst then
+                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::"Partially consumed"
+                    else
+                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
+                    PalletHeader.modify;
+                until PalletHeaderTemp.next = 0;
+        end;
+
+        //Creating The PO
+        if not PalletsNotConsumed then begin
+            if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType = 'microwave') then begin
                 PurchaseProcessSetup.get;
                 if PurchaseProcessSetup."Batch No. Series" <> '' then begin
                     PurchaseSetup.get;
@@ -256,108 +368,115 @@ codeunit 60021 "Purch. UI Functions"
                     OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", Today, true);
                     BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", Today, true);
                     PurchaseHeader."No." := OrderNumber;
+                    purchaseheader.insert;
 
-                    if PurchaseType = 'grading' then begin
-                        PurchaseHeader."Grading Result PO" := true;
-                        if Vendorrec.get(VendorNo) then
-                            PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                        PurchaseHeader.validate("Order Date", Today);
-                        PurchaseHeader.validate("Document Date", today);
-                        PurchaseHeader.validate("posting Date", today);
-                        PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
-                        PurchaseHeader."Harvest Date" := HarvestDate;
-                        PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
-                        PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
-                        PurchaseHeader."Batch Number" := BatchNumber;
-                        PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
-                        PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
-                        PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-                        PurchaseHeader.insert;
-                    end;
-                    if PurchaseType = 'microwave' then begin
-                        PurchaseHeader."Microwave Process PO" := true;
-                        if Vendorrec.get(VendorNo) then
-                            PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                        PurchaseHeader.validate("Order Date", Today);
-                        PurchaseHeader.validate("Document Date", today);
-                        PurchaseHeader.validate("posting Date", today);
-                        PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
-                        PurchaseHeader."Harvest Date" := HarvestDate;
-                        PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
-                        PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
-                        PurchaseHeader."Batch Number" := rm_lot;
-                        PurchaseHeader."Raw Material Item" := RM_Item;
-                        PurchaseHeader."RM Location" := RM_Location;
-                        PurchaseHeader."RM Qty" := RM_Qty;
-                        PurchaseHeader."Item LOT Number" := rm_lot;
-                        PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
-                        PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
-                        PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-                        PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
-                        PurchaseHeader.insert;
-                    end;
-                    if PurchaseType = 'regular' then begin
-                        if Vendorrec.get(VendorNo) then
-                            PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                        PurchaseHeader.validate("Order Date", Today);
-                        PurchaseHeader.validate("Document Date", today);
-                        PurchaseHeader.validate("posting Date", today);
-                        PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
-                        PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
-                        PurchaseHeader."Batch Number" := BatchNumber;
-                        PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
-                        PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
-                        PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-                        PurchaseHeader.insert;
-                    end;
+                    PurchaseHeader."Microwave Process PO" := true;
+                    if Vendorrec.get(VendorNo) then
+                        PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                    PurchaseHeader.validate("Order Date", Today);
+                    PurchaseHeader.validate("Document Date", today);
+                    PurchaseHeader.validate("posting Date", today);
+                    PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                    PurchaseHeader."Harvest Date" := HarvestDate;
+                    PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                    PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                    PurchaseHeader."Batch Number" := rm_lot;
+                    PurchaseHeader."Raw Material Item" := RM_Item;
+                    PurchaseHeader."RM Location" := RM_Location;
+                    PurchaseHeader."RM Qty" := RM_Qty;
+                    PurchaseHeader."Item LOT Number" := rm_lot;
+                    PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                    PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                    PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                    PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
+                    PurchaseHeader.modify;
 
+                    //Sending Result Json
+                    JsonResult.Add('PO number', OrderNumber);
+                    JsonResult.add('Batch Number', BatchNumber);
+                    JsonResult.WriteTo(pContent);
                 end;
             end;
         end;
 
-        //Assign the Pallets
-        if PalletHeaderTemp.findset then
-            PalletHeaderTemp.deleteall;
+        //If po not created
+        if PalletsNotConsumed then
+            pContent := 'Pallets cannot be consumed, PO not created';
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 3);
-        jsonbuffer.SetRange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
-        IF JSONBuffer.FINDSET THEN begin
-            REPEAT
-                if strpos(JsonBuffer.path, 'palletid') > 0 then begin
-                    PalletHeaderTemp.init;
-                    PalletHeaderTemp."Pallet ID" := JSONBuffer.value;
-                    PalletHeaderTemp.insert;
-                end;
-            until JsonBuffer.next = 0;
-        end;
-
-        PalletHeaderTemp.reset;
-        if PalletHeaderTemp.findset then
-            repeat
-                if PalletHeader.get(PalletHeaderTemp."Pallet ID") then begin
-                    PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
-                    PalletHeader.modify;
-                    PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
-                end;
-            until PalletHeaderTemp.next = 0;
-
-        if PurchaseHeader.get(PurchaseHeader."Document Type"::order, OrderNumber) then begin
-            Obj_JsonText += '[{' +
-                        '"PO number": ' +
-                        '"' + PurchaseHeader."No." + '"' +
-                        ',' +
-                        '"Batch Number": "' +
-                        PurchaseHeader."Batch Number" +
-                        '"},';
-
-            Obj_JsonText := copystr(Obj_JsonText, 1, strlen(Obj_JsonText) - 1);
-            Obj_JsonText += ']';
-
-            pContent := Obj_JsonText;
-
-        end;
     end;
+
+
+
+    /*if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType <> '') then begin
+        PurchaseProcessSetup.get;
+        if PurchaseProcessSetup."Batch No. Series" <> '' then begin
+            PurchaseSetup.get;
+            PurchaseHeader.init;
+            PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::order;
+            OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", Today, true);
+            BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", Today, true);
+            PurchaseHeader."No." := OrderNumber;
+
+            if PurchaseType = 'grading' then begin
+                PurchaseHeader."Grading Result PO" := true;
+                if Vendorrec.get(VendorNo) then
+                    PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                PurchaseHeader.validate("Order Date", Today);
+                PurchaseHeader.validate("Document Date", today);
+                PurchaseHeader.validate("posting Date", today);
+                PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                PurchaseHeader."Harvest Date" := HarvestDate;
+                PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                PurchaseHeader."Batch Number" := BatchNumber;
+                PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                PurchaseHeader.insert;
+            end;
+            if PurchaseType = 'microwave' then begin
+                PurchaseHeader."Microwave Process PO" := true;
+                if Vendorrec.get(VendorNo) then
+                    PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                PurchaseHeader.validate("Order Date", Today);
+                PurchaseHeader.validate("Document Date", today);
+                PurchaseHeader.validate("posting Date", today);
+                PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                PurchaseHeader."Harvest Date" := HarvestDate;
+                PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                PurchaseHeader."Batch Number" := rm_lot;
+                PurchaseHeader."Raw Material Item" := RM_Item;
+                PurchaseHeader."RM Location" := RM_Location;
+                PurchaseHeader."RM Qty" := RM_Qty;
+                PurchaseHeader."Item LOT Number" := rm_lot;
+                PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
+                PurchaseHeader.insert;
+            end;
+            if PurchaseType = 'regular' then begin
+                if Vendorrec.get(VendorNo) then
+                    PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                PurchaseHeader.validate("Order Date", Today);
+                PurchaseHeader.validate("Document Date", today);
+                PurchaseHeader.validate("posting Date", today);
+                PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                PurchaseHeader."Batch Number" := BatchNumber;
+                PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                PurchaseHeader.insert;
+            end;
+        end;
+    end;*/
+    //end;
+
+
+
+
 
     //Complete Purchsae Order Batch - CompleteMicrowaveBatch [8818]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
@@ -368,6 +487,7 @@ codeunit 60021 "Purch. UI Functions"
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         OrderNo: code[20];
         BatchNumber: code[20];
+        ScrapQty: Integer;
         ItemJournalLine: Record "Item Journal Line";
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
 
@@ -391,9 +511,20 @@ codeunit 60021 "Purch. UI Functions"
         if JsonBuffer.FindFirst() then
             BatchNumber := JsonBuffer.value;
 
+        JSONBuffer.RESET;
+        //JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
+        JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
+        JsonBuffer.SetRange(JSONBuffer.path, 'scrapqty');
+        if JsonBuffer.FindFirst() then
+            evaluate(ScrapQty, JsonBuffer.value);
+
         if PurchaseHeader.get(PurchaseHeader."Document Type"::order, OrderNo) then begin
             if PurchaseHeader."Microwave Process PO" then begin
                 if not PurchaseHeader."RM Add Neg" then begin
+                    //Edit Scrap Qty
+                    PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
+                    PurchaseHeader.modify;
+
                     PalletLedgerEntry.Reset;
                     PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::"Consume Raw Materials");
                     PalletLedgerEntry.setrange("Lot Number", BatchNumber);
