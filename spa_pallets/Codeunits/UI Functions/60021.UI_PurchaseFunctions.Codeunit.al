@@ -317,6 +317,7 @@ codeunit 60021 "Purch. UI Functions"
                 Searcher_Lines += 1;
             end;
         end;
+
         PalletLineTemp.reset;
         if PalletLineTemp.findset then
             repeat
@@ -636,67 +637,158 @@ codeunit 60021 "Purch. UI Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure AddPalletsToMWPurchaseOrder(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        JsonBuffer: Record "JSON Buffer" temporary;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        JsonArr: JsonArray;
+        JsonArrLines: JsonArray;
+        JsonTkn2: JsonToken;
+        JsonTknAll: JsonToken;
+        JsontokenLines: JsonToken;
+        JsonTokenLinesData: JsonToken;
         OrderNo: code[20];
         BatchNumber: code[20];
         TotalQty: Decimal;
+        PalletID: code[20];
         PurchaseHeader: Record "Purchase Header";
         PalletHeader: Record "Pallet Header";
         PalletInt: Integer;
         TotalInt: Integer;
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
-
+        PalletHeaderTemp: Record "Pallet Header" temporary;
+        PalletLineTemp: Record "Pallet Line" temporary;
+        PalletLine: Record "Pallet Line";
+        Searcher: Integer;
+        Searcher_Lines: Integer;
+        PalletItem: code[20];
+        PalletVariety: code[10];
+        PalletConsumed: Decimal;
+        PalletsNotConsumed: Boolean;
     begin
         IF pFunction <> 'AddPalletsToMWPurchaseOrder' THEN
             EXIT;
 
-        JsonBuffer.ReadFromText(pContent);
+        if PalletLineTemp.findset then
+            PalletLineTemp.deleteall;
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
-        if jsonbuffer.findset then
+        JsonObj.ReadFrom(pContent);
+
+        //Get Order No.
+        JsonObj.SelectToken('orderNum', JsonTkn);
+        OrderNo := JsonTkn.AsValue().AsText();
+
+        //Get Batch Number
+        JsonObj.SelectToken('batch', JsonTkn);
+        BatchNumber := JsonTkn.AsValue().AsText();
+
+        //Get total Qty
+        JsonObj.SelectToken('totalQty', JsonTkn);
+        TotalQty := JsonTkn.AsValue().AsDecimal();
+
+        JsonObj.SelectToken('pallets', JsonTkn);
+        JsonArr := JsonTkn.AsArray();
+
+        pContent := '';
+        Searcher := 0;
+        while searcher < JsonArr.Count do begin
+
+            //Getting PalletID for each Pallet
+            JsonArr.get(searcher, JsonTknAll);
+            JsonObj := JsonTknAll.AsObject();
+
+            JsonObj.SelectToken('palletId', JsonTkn2);
+            PalletID := JsonTkn2.AsValue().AsText();
+
+            //Creating Pallet Header temp for consuming
+            PalletHeaderTemp.init;
+            PalletHeaderTemp."Pallet ID" := PalletID;
+            PalletHeaderTemp.insert;
+
+            searcher += 1;
+
+            //Getting the Lines
+            JsonObj.SelectToken('palletLines', JsonTkn);
+            JsonArrLines := JsonTkn.AsArray();
+            Searcher_Lines := 0;
+            while Searcher_Lines < JsonArrLines.Count do begin
+
+                //Getting Pllaet Line Data
+                JsonArrLines.get(Searcher_Lines, JsontokenLines);
+                JsonObj := JsontokenLines.AsObject();
+
+                JsonObj.SelectToken('itemId', JsonTokenLinesData);
+                PalletItem := JsonTokenLinesData.AsValue().AsText();
+
+                JsonObj.SelectToken('variety', JsonTokenLinesData);
+                PalletVariety := JsonTokenLinesData.AsValue().AsText();
+
+                JsonObj.SelectToken('consumingQty', JsonTokenLinesData);
+                PalletConsumed := JsonTokenLinesData.AsValue().AsDecimal();
+
+                PalletLine.reset;
+                PalletLine.setrange("Pallet ID", PalletID);
+                PalletLine.SetRange("Lot Number", BatchNumber);
+                PalletLine.setrange("Item No.", PalletItem);
+                PalletLine.setrange("Variant Code", PalletVariety);
+                if PalletLine.findfirst then begin
+                    PalletLineTemp.init;
+                    PalletLineTemp.TransferFields(PalletLine);
+                    PalletLineTemp."QTY Consumed" := PalletConsumed;
+                    palletlinetemp.insert();
+                end;
+                Searcher_Lines += 1;
+            end;
+        end;
+
+        PalletLineTemp.reset;
+        if PalletLineTemp.findset then
             repeat
-                if JSONBuffer.path = 'orderNum' then
-                    OrderNo := JsonBuffer.value;
-                if JSONBuffer.path = 'batch' then
-                    BatchNumber := JsonBuffer.value;
-                if JSONBuffer.path = 'totalQty' then
-                    evaluate(TotalQty, JsonBuffer.value);
-            until jsonbuffer.next = 0;
+                if PalletLine.get(PalletLineTemp."Pallet ID", PalletLineTemp."Line No.") then begin
+                    if PalletLineTemp."QTY Consumed" <= PalletLine."Remaining Qty" then begin
+                        PalletLine."QTY Consumed" += PalletLineTemp."QTY Consumed";
+                        PalletLine."Remaining Qty" -= PalletLineTemp."QTY Consumed";
+                        PalletLine.modify;
 
-        PurchaseHeader.reset;
-        PurchaseHeader.setrange(purchaseheader."Document Type", PurchaseHeader."Document Type"::order);
-        PurchaseHeader.setrange(PurchaseHeader."No.", OrderNo);
-        PurchaseHeader.setrange(PurchaseHeader."Batch Number", BatchNumber);
-        if PurchaseHeader.findfirst then begin
-            TotalInt := 0;
-            PalletInt := 0;
-            JSONBuffer.RESET;
-            JSONBuffer.SETRANGE(JSONBuffer.Depth, 3);
-            JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
-            if jsonbuffer.findset then
-                repeat
-                    if strpos(JsonBuffer.path, 'palletId') > 0 then begin
-                        TotalInt += 1;
-                        if PalletHeader.get(JsonBuffer.value) then begin
-                            PalletInt += 1;
-                            PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
-                            PalletHeader.modify;
-                            PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
-                        end;
-                    end;
-                until JsonBuffer.next = 0;
+                        PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
 
-            if PalletInt = TotalInt then begin
-                pContent := 'Success';
+                        PalletLineTemp."Exists on Warehouse Shipment" := true;
+                        PalletLineTemp.modify;
+                    end
+                end;
+            until PalletLineTemp.next = 0;
+
+        //if all consumed
+        PalletLineTemp.reset;
+        PalletLineTemp.setrange("Exists on Warehouse Shipment", false);
+        if PalletLineTemp.findfirst then
+            PalletsNotConsumed := true;
+
+        //Mark Pallets as consumed/Partially consumed
+        if not PalletsNotConsumed then begin
+
+            if purchaseheader.get(purchaseheader."Document Type"::order, OrderNo) then begin
                 PurchaseHeader."RM Qty" += TotalQty;
                 PurchaseHeader.modify;
-            end
-            else
-                pContent := 'Error';
-        end
+            end;
+
+            PalletHeaderTemp.reset;
+            if PalletHeaderTemp.findset then
+                repeat
+                    PalletHeader.get(PalletHeaderTemp."Pallet ID");
+                    PalletLine.reset;
+                    PalletLine.setrange("Pallet ID", PalletHeaderTemp."Pallet ID");
+                    PalletLine.setfilter("Remaining Qty", '<>%1', 0);
+                    if PalletLine.findfirst then
+                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::"Partially consumed"
+                    else
+                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
+                    PalletHeader.modify;
+                until PalletHeaderTemp.next = 0;
+        end;
+
+        //If not consumed
+        if PalletsNotConsumed then
+            pContent := 'Pallets cannot be consumed'
         else
-            pContent := 'error, no such Purchase Order exist';
+            pContent := 'Pallets Added Succesfully';
     end;
 }
