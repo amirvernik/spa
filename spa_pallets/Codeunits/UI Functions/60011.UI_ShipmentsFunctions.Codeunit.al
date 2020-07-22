@@ -409,12 +409,12 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Vendor', format(purchaseHeader."Buy-from Vendor No."));
                         JsonObj.add('HarvestDate', format(purchaseHeader."Harvest Date"));
                         JsonObj.add('BinQuantity', format(purchaseHeader."Number Of Raw Material Bins"));
-                        JsonObj.add('SupplierPackingSlip', OrderType);
+                        JsonObj.add('SupplierPackingSlip', purchaseheader."Vendor Shipment No.");
                         JsonObj.add('Location Code', purchaseHeader."Location Code");
                         JsonObj.add('RM Location', purchaseHeader."RM Location");
                         JsonObj.add('RawMaterialItem', purchaseHeader."Raw Material Item");
                         JsonObj.add('RawMaterialBatch', purchaseHeader."Item LOT Number");
-                        JsonObj.add('RawMaterialQuantity', OrderType);
+                        JsonObj.add('RawMaterialQuantity', purchaseHeader."RM Qty");
                         JsonArr.Add(JsonObj);
                         clear(JsonObj);
                     end;
