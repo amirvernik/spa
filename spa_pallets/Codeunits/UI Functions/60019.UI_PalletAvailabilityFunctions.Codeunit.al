@@ -106,43 +106,41 @@ codeunit 60019 "UI Pallet Availability"
     local procedure GetListForMWPallets(VAR pFunction: Text[50]; VAR pContent: Text)
     var
         PalletHeaderTemp: Record "Pallet Header" temporary;
+        PalletLineTemp: Record "Pallet Line" temporary;
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
-        JsonObj: JsonObject;
-        JsonArr: JsonArray;
-        JsonBuffer: Record "JSON Buffer" temporary;
         ItemNumber: code[20];
         BatchNumber: code[20];
-        VariantCode: code[20];
+        VariantCode: code[10];
+        JsonObjRead: JsonObject;
+        JsonTokenRead: JsonToken;
+        JsonObjectAll: JsonObject;
+        JsonArrayPallets: JsonArray;
+        JsonArrayLines: JsonArray;
+        JsonObjPallet: JsonObject;
+        JsonObjLines: JsonObject;
+        jarr: JsonArray;
+        jobj: JsonObject;
+
     begin
         IF pFunction <> 'GetListForMWPallets' THEN
             EXIT;
 
-        if PalletHeaderTemp.findset then
-            PalletHeaderTemp.deleteall;
+        JsonObjRead.ReadFrom(pContent);
 
-        JsonBuffer.ReadFromText(pContent);
+        //Get Item Number
+        JsonObjRead.SelectToken('item', JsonTokenRead);
+        ItemNumber := JsonTokenRead.AsValue().AsText();
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
-        JsonBuffer.setrange(JsonBuffer.path, 'item');
-        if JsonBuffer.findfirst then
-            ItemNumber := JsonBuffer.value;
+        //Get Batch Number
+        JsonObjRead.SelectToken('batch', JsonTokenRead);
+        BatchNumber := JsonTokenRead.AsValue().AsText();
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
-        JsonBuffer.setrange(JsonBuffer.path, 'varietycode');
-        if JsonBuffer.findfirst then
-            VariantCode := JsonBuffer.value;
+        //Get Variety Code
+        JsonObjRead.SelectToken('varietycode', JsonTokenRead);
+        VariantCode := JsonTokenRead.AsValue().AsText();
 
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JsonBuffer.setrange(JsonBuffer."Token type", JsonBuffer."Token type"::String);
-        JsonBuffer.setrange(JsonBuffer.path, 'batch');
-        if JsonBuffer.findfirst then
-            BatchNumber := JsonBuffer.value;
+        pContent := '';
 
         PalletLine.reset;
         PalletLine.setrange("Item No.", ItemNumber);
@@ -150,19 +148,48 @@ codeunit 60019 "UI Pallet Availability"
         PalletLine.setrange("Lot Number", BatchNumber);
         if PalletLine.findset then begin
             repeat
-                if PalletHeader.get(PalletLine."Pallet ID") then
-                    if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::closed then
-                        if PalletHeader."Raw Material Pallet" = true then begin
-                            JsonObj.add('palletId', PalletLine."Pallet ID");
-                            JsonObj.add('qty', format(PalletLine.quantity));
-                            JsonArr.Add(JsonObj);
-                            clear(JsonObj);
-                        end;
+                if not PalletHeaderTemp.get(PalletLine."Pallet ID") then begin
+                    PalletHeaderTemp.init;
+                    PalletHeaderTemp."Pallet ID" := PalletLine."Pallet ID";
+                    PalletHeaderTemp.insert;
+                    PalletLineTemp.init;
+                    PalletLineTemp.TransferFields(PalletLine);
+                    PalletLineTemp.insert;
+                end;
             until PalletLine.next = 0;
         end;
-        //JsonArr.WriteTo(pContent);
-        if JsonArr.Count > 0 then
-            JsonArr.WriteTo(pContent)
+
+        clear(JsonObjectAll);
+
+        PalletHeaderTemp.reset;
+        if PalletHeaderTemp.findset then
+            repeat
+                JsonObjPallet.add('palletid', PalletHeaderTemp."Pallet ID");
+
+                PalletLineTemp.reset;
+                PalletLineTemp.setrange("Pallet ID", PalletHeaderTemp."Pallet ID");
+                if PalletLineTemp.findset then
+                    repeat
+                        clear(JsonObjLines);
+                        JsonObjLines.add('palletid', PalletLineTemp."Pallet ID");
+                        JsonObjLines.Add('itemId', PalletLineTemp."Item No.");
+                        JsonObjLines.add('variety', PalletLineTemp."Variant Code");
+                        JsonObjLines.add('remainingQty', PalletLineTemp."Remaining Qty");
+                        jarr.Add(JsonObjLines);
+                        JsonObjPallet.add('palletLines', jarr);
+
+                        Clear(jarr);
+                    until palletlinetemp.next = 0;
+
+                JsonArrayPallets.add(JsonObjPallet);
+                // JsonArrayPallets.Add(jobj);
+                clear(JsonObjPallet);
+
+                clear(jobj);
+            until PalletHeaderTemp.next = 0;
+
+        if JsonArrayPallets.Count > 0 then
+            JsonArrayPallets.WriteTo(pContent)
         else
             pContent := 'error,could not find pallets';
     end;
