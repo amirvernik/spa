@@ -76,11 +76,10 @@ codeunit 60035 "Sticker note functions"
                                     format(PalletLine."Remaining Qty") + Splitter +
                                     format(PalletLine."Expiration Date");
                 OutStr.WriteText(PalletLineText);
-                OutStr.WriteText();
             until PalletLine.next = 0;
         TempBlob.CreateInStream(InStr);
         BearerToken := OneDriveFunctions.GetBearerToken();
-        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);       
+        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
     end;
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")
@@ -88,18 +87,28 @@ codeunit 60035 "Sticker note functions"
         TypeOfPO: Label 'All,SSCC Label,Dispatch Label,Item Label';
         Selection: integer;
     begin
-        Selection := STRMENU(TypeOfPO, 1);
+        Selection := STRMENU(TypeOfPO, 1, 'Please select the Desired format');
         if selection = 1 then begin
             CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
             CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
             CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+            message('All Warehouse Shipment Sticker notes sent to Printer');
         end;
-        if selection = 2 then
+        if selection = 2 then begin
             CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
-        if selection = 3 then
+            message('SSCC Label Sticker note sent to Printer');
+        end;
+
+        if selection = 3 then begin
             CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
-        if selection = 4 then
+            message('Dispatch Label Sticker note sent to Printer');
+        end;
+
+        if selection = 4 then begin
             CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+            message('Item Label Sticker note sent to Printer');
+        end;
+
 
     end;
 
@@ -155,7 +164,7 @@ codeunit 60035 "Sticker note functions"
                                 //if CustomerRec."SSCC Sticker Note" then begin
                                 StickerPrinter.reset;
                                 StickerPrinter.setrange("User Code", UserId);
-                                StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."Item Label Type Code");
+                                StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."Dispatch Type Code");
                                 StickerPrinter.setrange("Sticker Note Format", CustomerRec."Dispatch Format Code");
                                 StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
                                 if StickerPrinter.findfirst then begin
@@ -184,8 +193,7 @@ codeunit 60035 "Sticker note functions"
                                                     format(PalletHeader."Exist in warehouse shipment") + Splitter +
                                                     format(PalletHeader."Raw Material Pallet") + Splitter +
                                                     PalletHeader."Pallet Type" + Splitter +
-                                                    format(PalletHeader."Disposal Status") + Splitter +
-                                                    format(PalletProcessSetup."Pallet Label No. of Copies");
+                                                    format(PalletHeader."Disposal Status");
                                 OutStr.WriteText(PalletHeaderText);
                                 OutStr.WriteText();
                             end;
@@ -203,7 +211,8 @@ codeunit 60035 "Sticker note functions"
                                                     format(PalletLine.Quantity) + Splitter +
                                                     format(PalletLine."QTY Consumed") + Splitter +
                                                     format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date");
+                                                    format(PalletLine."Expiration Date") + Splitter +
+                                                    format(CustomerRec."Dispatch Format No. of Copies");
                                 if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
                                     PalletLine."Purchase Order No.") then begin
                                     PalletLineText += Splitter +
@@ -251,7 +260,7 @@ codeunit 60035 "Sticker note functions"
 
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
-                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);                        
+                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
@@ -289,6 +298,7 @@ codeunit 60035 "Sticker note functions"
         uri: text;
         BearerToken: text;
         OneDriveFunctions: Codeunit "OneDrive Functions";
+        GTIN_Text: Text;
 
     begin
         PalletProcessSetup.get;
@@ -329,8 +339,10 @@ codeunit 60035 "Sticker note functions"
                                     OutStr.WriteText();
 
                                     if ItemRec.get(WarehouseShipmentLine."Item No.") then
-                                        OutStr.WriteText(ItemRec.GTIN);
-                                    GTINText_Line2 := ItemRec.GTIN;
+                                        GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN;
+
+                                    OutStr.WriteText(GTIN_Text);
+                                    GTINText_Line2 := GTIN_Text;
                                     OutStr.WriteText();
 
                                     NumberOfCrates_Line3 := '99'; //Line 3
@@ -380,7 +392,7 @@ codeunit 60035 "Sticker note functions"
 
                                     TempBlob.CreateInStream(InStr);
                                     BearerToken := OneDriveFunctions.GetBearerToken();
-                                    OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);                                    
+                                    OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
 
                                 end;
 
@@ -470,8 +482,7 @@ codeunit 60035 "Sticker note functions"
                                                     format(PalletHeader."Exist in warehouse shipment") + Splitter +
                                                     format(PalletHeader."Raw Material Pallet") + Splitter +
                                                     PalletHeader."Pallet Type" + Splitter +
-                                                    format(PalletHeader."Disposal Status") + Splitter +
-                                                    format(PalletProcessSetup."Pallet Label No. of Copies");
+                                                    format(PalletHeader."Disposal Status");
                                 OutStr.WriteText(PalletHeaderText);
                                 OutStr.WriteText();
                             end;
@@ -489,7 +500,8 @@ codeunit 60035 "Sticker note functions"
                                                     format(PalletLine.Quantity) + Splitter +
                                                     format(PalletLine."QTY Consumed") + Splitter +
                                                     format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date");
+                                                    format(PalletLine."Expiration Date") + splitter +
+                                                    format(PalletLine."Item Label No. of Copies");
                                 if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
                                     PalletLine."Purchase Order No.") then begin
                                     PalletLineText += Splitter +
@@ -516,7 +528,9 @@ codeunit 60035 "Sticker note functions"
                             ItemAttrText := copystr(ItemAttrText, 1, strlen(ItemAttrText) - 1);
                             OutStr.WriteText(ItemAttrText);
                             OutStr.WriteText();
-                        end;
+                        end
+                        else
+                            OutStr.WriteText();
 
                         SalesHeaderText := SalesHeader."Sell-to Customer No." + Splitter +
                                         SalesHeader."Sell-to Customer Name" + Splitter +
@@ -537,7 +551,7 @@ codeunit 60035 "Sticker note functions"
 
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
-                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);                        
+                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;

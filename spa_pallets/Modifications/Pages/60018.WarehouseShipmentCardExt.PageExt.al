@@ -90,9 +90,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                     var
                         StickerNoteFunctions: Codeunit "Sticker note functions";
                     begin
-                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec);
-                        message('Warehouse Shipment Sticker notes sent to Printer');
-                        ;
+                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec);                                            
                     end;
                 }
             }

@@ -207,6 +207,7 @@ page 60005 "Pallet Process Setup"
             {
                 image = CheckList;
                 Promoted = true;
+                visible = false;
                 PromotedCategory = Process;
                 PromotedOnly = true;
                 ApplicationArea = all;
