@@ -80,8 +80,7 @@ codeunit 60035 "Sticker note functions"
             until PalletLine.next = 0;
         TempBlob.CreateInStream(InStr);
         BearerToken := OneDriveFunctions.GetBearerToken();
-        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
-        message('Sent to Printer');
+        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);       
     end;
 
     procedure CreatePalletStickerNoteFromShipment(var ShipmentHeader: Record "Warehouse Shipment Header")
@@ -252,15 +251,14 @@ codeunit 60035 "Sticker note functions"
 
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
-                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
-                        message('Sent to Printer');
+                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);                        
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
     end;
 
     //SSCC Label Sticker note
-    procedure CreateSSCCStickernote(pShipmentHeader: Record "Warehouse Shipment Header")
+    procedure CreateSSCCStickerNote(pShipmentHeader: Record "Warehouse Shipment Header")
     var
         CompanyInformation: Record "Company Information";
         ItemRec: Record Item;
@@ -382,8 +380,7 @@ codeunit 60035 "Sticker note functions"
 
                                     TempBlob.CreateInStream(InStr);
                                     BearerToken := OneDriveFunctions.GetBearerToken();
-                                    OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
-                                    message('Sent to Printer');
+                                    OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);                                    
 
                                 end;
 
@@ -540,8 +537,7 @@ codeunit 60035 "Sticker note functions"
 
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
-                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);
-                        message('Sent to Printer');
+                        OneDriveFunctions.UploadFile(FileName, BearerToken, InStr);                        
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;

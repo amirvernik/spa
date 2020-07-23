@@ -172,6 +172,7 @@ page 60005 "Pallet Process Setup"
                 }
                 field("Sticker API URI"; "Sticker API URI")
                 {
+                    visible = false;
                     ApplicationArea = all;
                 }
             }

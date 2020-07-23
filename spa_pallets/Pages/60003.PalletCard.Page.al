@@ -203,6 +203,7 @@ page 60003 "Pallet Card"
                         StickerNoteFunctions: Codeunit "Sticker note functions";
                     begin
                         StickerNoteFunctions.CreatePalletStickerNoteFromPallet(rec);
+                        message('Pallet Sticker note sent to Printer');
                     end;
                 }
             }
