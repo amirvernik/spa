@@ -210,7 +210,8 @@ codeunit 60011 "UI Shipments Functions"
         toDate: date;
         Salesheader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        BoolExistsInWhseShip: Boolean;
         JsonObj: JsonObject;
         JsonObjLines: JsonObject;
         JsonArr: JsonArray;
@@ -257,6 +258,15 @@ codeunit 60011 "UI Shipments Functions"
                     SalesLine.setrange("Document No.", Salesheader."No.");
                     SalesLine.setrange("Location Code", LocationCode);
                     if SalesLine.findset then begin
+                        WarehouseShipmentLine.reset;
+                        WarehouseShipmentLine.setrange("Source Type", 37);
+                        WarehouseShipmentLine.setrange("Source Document", WarehouseShipmentLine."Source Document"::"Sales Order");
+                        WarehouseShipmentLine.setrange("Source No.", Salesheader."No.");
+                        if WarehouseShipmentLine.findfirst then
+                            BoolExistsInWhseShip := true
+                        else
+                            BoolExistsInWhseShip := false;
+
                         JsonObj.add('Sales Order No', Salesheader."No.");
                         JsonObj.add('Locaion Code', SalesHeader."SPA Location");
                         JsonObj.add('Customer', SalesHeader."Sell-to Customer No.");
@@ -265,6 +275,7 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
                         JsonObj.add('ExternalDocNum', Salesheader."External Document No.");
                         JsonObj.add('ReqDeliveryDate', Salesheader."Requested Delivery Date");
+                        JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip);
                         SalesLine.reset;
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");

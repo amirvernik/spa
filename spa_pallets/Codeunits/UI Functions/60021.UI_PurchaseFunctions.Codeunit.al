@@ -98,6 +98,7 @@ codeunit 60021 "Purch. UI Functions"
                         PurchaseHeader.validate("Document Date", today);
                         PurchaseHeader.validate("posting Date", today);
                         PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                        PurchaseHeader."Variety Code" := VarietyCode;
                         PurchaseHeader."Harvest Date" := HarvestDate;
                         PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
                         PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
@@ -136,6 +137,7 @@ codeunit 60021 "Purch. UI Functions"
                         PurchaseHeader.validate("Order Date", Today);
                         PurchaseHeader.validate("Document Date", today);
                         PurchaseHeader.validate("posting Date", today);
+                        PurchaseHeader."Variety Code" := VarietyCode;
                         PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
                         PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
                         PurchaseHeader."Batch Number" := BatchNumber;
@@ -208,6 +210,7 @@ codeunit 60021 "Purch. UI Functions"
         Err001: Label 'Cant consume more than remaining';
         PalletsNotConsumed: Boolean;
         JsonResult: JsonObject;
+        Variety_Code: code[10];
     begin
         IF pFunction <> 'CreatePurchaseHeaderMW' THEN
             EXIT;
@@ -261,7 +264,9 @@ codeunit 60021 "Purch. UI Functions"
         JsonObj.SelectToken('scrapqty', JsonTkn);
         ScrapQty := JsonTkn.AsValue().AsDecimal();
 
-        JsonObj.SelectToken('scrapqty', JsonTkn);
+        //Get Variety code
+        JsonObj.SelectToken('varietycode', JsonTkn);
+        Variety_Code := JsonTkn.AsValue().AsText();
 
         JsonObj.SelectToken('pallets', JsonTkn);
         JsonArr := JsonTkn.AsArray();
@@ -378,6 +383,7 @@ codeunit 60021 "Purch. UI Functions"
                     PurchaseHeader.validate("Document Date", today);
                     PurchaseHeader.validate("posting Date", today);
                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                    PurchaseHeader."Variety Code" := Variety_Code;
                     PurchaseHeader."Harvest Date" := HarvestDate;
                     PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
                     PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
