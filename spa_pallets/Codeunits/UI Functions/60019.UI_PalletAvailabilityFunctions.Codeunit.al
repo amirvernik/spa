@@ -146,6 +146,7 @@ codeunit 60019 "UI Pallet Availability"
         PalletLine.setrange("Item No.", ItemNumber);
         PalletLine.SetRange("Variant Code", VariantCode);
         PalletLine.setrange("Lot Number", BatchNumber);
+        palletline.setfilter("Remaining Qty", '<>%1', 0);
         if PalletLine.findset then begin
             repeat
                 if not PalletHeaderTemp.get(PalletLine."Pallet ID") then begin
