@@ -9,6 +9,7 @@ codeunit 60034 "UI Transfer Order Management"
         PalletID: code[20];
         FromLocation: code[20];
         ToLocation: code[20];
+        InTransitLocation: code[20];
         TransferHeader: Record "Transfer Header";
         TransferLine: Record "Transfer Line";
         PalletHeader: Record "Pallet Header";
@@ -33,11 +34,15 @@ codeunit 60034 "UI Transfer Order Management"
         JsonObj.SelectToken('to', JsonTkn);
         ToLocation := JsonTkn.AsValue().AsText();
 
+        JsonObj.SelectToken('intransit', JsonTkn);
+        InTransitLocation := JsonTkn.AsValue().AsText();
+
         //Create the Transfer Order
         TransferHeader.init;
         TransferHeader.insert(true);
         TransferHeader.validate("Transfer-from Code", FromLocation);
         TransferHeader.validate("Transfer-to Code", ToLocation);
+        TransferHeader.validate("In-Transit Code", InTransitLocation);
         TransferHeader.modify;
         TransferNo := TransferHeader."No.";
 
@@ -385,7 +390,15 @@ codeunit 60034 "UI Transfer Order Management"
                         RecGReservationEntry.insert;
                     end;
             until palletline.next = 0;
-        pContent := 'Transfer Order ' + TransferNo + ' Line No. ' + format(LineNumber) + ' Added';
+        if TransferLine.get(TransferNo, LineNumber) then begin
+            JsonObj.add('message', 'Success');
+            JsonObj.add('lineNum', LineNumber);
+            JsonObj.WriteTo(pContent);
+        end
+        else begin
+            JsonObj.add('message', 'Error');
+            JsonObj.WriteTo(pContent);
+        end;
     end;
 
     procedure CheckIfTransferOrderShipped(pTransferHeader: Record "Transfer Header"): Boolean
