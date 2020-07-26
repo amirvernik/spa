@@ -2,7 +2,7 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
 {
     fields
     {
-        field(60000; "Qty. (Base) SPA"; Integer)
+        field(60000; "Qty. (Base) SPA"; Decimal)
         {
             trigger OnValidate()
             var
@@ -40,13 +40,13 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
         {
 
         }
-        field(60003;"Web UI Unit of Measure";code[20])
+        field(60003; "Web UI Unit of Measure"; code[20])
         {
 
         }
-        field(60004;"Web UI Quantity";Decimal)
+        field(60004; "Web UI Quantity"; Decimal)
         {
-            
+
         }
         modify("No.")
         {

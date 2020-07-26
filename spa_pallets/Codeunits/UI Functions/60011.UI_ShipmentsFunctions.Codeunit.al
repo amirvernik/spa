@@ -398,8 +398,10 @@ codeunit 60011 "UI Shipments Functions"
 
             if purchaseHeader.findset then begin
                 repeat
-                    purchaseHeader.CalcFields("Completely Received");
-                    if (NOT purchaseHeader."Completely Received") and
+                    //Removed by oren's request - 26/07/2020
+                    //purchaseHeader.CalcFields("Completely Received");
+                    //if (NOT purchaseHeader."Completely Received") and
+                    if
                         ((purchaseHeader.Status = purchaseHeader.status::Open) or
                         (purchaseHeader.Status = purchaseHeader.status::released)) and
                         (purchaseHeader."Grading Result PO" or purchaseHeader."Microwave Process PO") then begin
