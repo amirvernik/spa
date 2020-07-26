@@ -49,6 +49,14 @@ table 60019 "Sticker note Printer"
         {
             DataClassification = ToBeClassified;
         }
+        field(80; "Sticker Format Name(BTW)"; Text[250])
+        {
+            DataClassification = ToBeClassified;
+        }
+        field(90; "Printer Name"; text[250])
+        {
+            DataClassification = ToBeClassified;
+        }
     }
     keys
     {

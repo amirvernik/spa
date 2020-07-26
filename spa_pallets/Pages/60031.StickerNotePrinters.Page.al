@@ -41,7 +41,14 @@ page 60031 "Sticker Note Printers"
                 {
                     ApplicationArea = all;
                 }
-
+                field("Sticker Format Name(BTW)"; "Sticker Format Name(BTW)")
+                {
+                    ApplicationArea = all;
+                }
+                field("Printer Name"; "Printer Name")
+                {
+                    ApplicationArea = all;
+                }
             }
         }
     }

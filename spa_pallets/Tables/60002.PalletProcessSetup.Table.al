@@ -129,6 +129,11 @@ table 60002 "Pallet Process Setup"
             Caption = 'OneDrive Drive ID';
             DataClassification = ToBeClassified;
         }
+        field(90; "OneDrive Root Directory"; Text[50])
+        {
+            Caption = 'OneDrive root Directory';
+            DataClassification = ToBeClassified;
+        }
     }
     keys
     {

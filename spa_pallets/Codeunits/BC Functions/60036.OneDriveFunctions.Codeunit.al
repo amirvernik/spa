@@ -48,7 +48,7 @@ codeunit 60037 "OneDrive Functions"
     end;
 
 
-    Procedure UploadFile(FileName: Text; BearerToken: Text; pInstr: InStream): Text
+    Procedure UploadFile(DirectoryPath: text; FileName: Text; BearerToken: Text; pInstr: InStream): Text
     var
         lUrl: Text;
         Bearer: Text;
@@ -70,7 +70,8 @@ codeunit 60037 "OneDrive Functions"
         PalletProcessSetup.get;
         lOneDrive := PalletProcessSetup."OneDrive Drive ID";
         //lUrl := 'https://graph.microsoft.com/v1.0/drives/' + 'b!bU7-uco0aUOfOS6tDaxnOmiiplOkFSBGoBfqcq18K0aSue4scQHFQZM5CLGlSEGW' + '/root:/BC/' + FileName + ':/content';
-        lUrl := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/BC/' + FileName + ':/content';
+        //lUrl := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/BC/' + FileName + ':/content';
+        lUrl := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/' + DirectoryPath + '/' + FileName + ':/content';
         Bearer := 'Bearer ' + BearerToken;
         lHeaders.Clear();
         lContent.GetHeaders(lHeaders);

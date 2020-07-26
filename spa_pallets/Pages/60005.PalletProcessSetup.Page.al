@@ -195,8 +195,12 @@ page 60005 "Pallet Process Setup"
                 {
                     ApplicationArea = all;
                 }
-            }
+                field("OneDrive Root Directory"; "OneDrive Root Directory")
+                {
+                    ApplicationArea = all;
+                }
 
+            }
         }
     }
     actions
@@ -223,7 +227,7 @@ page 60005 "Pallet Process Setup"
                     Outstr.WriteText('Amir Vernik Test');
                     TempBlob.CreateInStream(InStr);
                     BearerToken := OneDriveFunctions.GetBearerToken();
-                    OneDriveFunctions.UploadFile('123456789.txt', BearerToken, InStr);
+                    OneDriveFunctions.UploadFile('BC', '123456789.txt', BearerToken, InStr);
                 end;
             }
             action("Format Types")
