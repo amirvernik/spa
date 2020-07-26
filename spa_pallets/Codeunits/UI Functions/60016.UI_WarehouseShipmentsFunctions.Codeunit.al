@@ -208,6 +208,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                 SalesLineCheck.setrange(SalesLineCheck."Line No.", SalesOrdersTempLines."Line No.");
                 if SalesLineCheck.findfirst then begin
                     WarehouseShipmentLine.validate("Item No.", SalesLineCheck."No.");
+                    WarehouseShipmentLine.validate("Variant Code", SalesLineCheck."Variant Code");
                     WarehouseShipmentLine.Description := SalesLineCheck.Description;
                     WarehouseShipmentLine.Quantity := SalesLineCheck.Quantity;
                     WarehouseShipmentLine."Qty. to Ship" := SalesLineCheck.quantity;
