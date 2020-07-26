@@ -449,6 +449,7 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
                 if WarehousePallet.findset then
                     repeat
+                        PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.");
                         ItemText := '';
                         if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then
                             if CustomerRec.get(SalesHeader."Sell-to Customer No.") then begin
@@ -462,7 +463,7 @@ codeunit 60035 "Sticker note functions"
                                     FirstLine := '%BTW% /AF="' +
                                                 StickerPrinter."Sticker Format Name(BTW)" +
                                                 '" /D="%Trigger File Name%" /PRN="barcode_mechal"   /R=3 /P /C=' +
-                                                format(CustomerRec."Dispatch Format No. of Copies");
+                                                format(PalletLine."Item Label No. of Copies");
                                     SecondLine := '%END%';
                                     PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
                                     LabelFormat := CustomerRec."Item Label Format Description";
