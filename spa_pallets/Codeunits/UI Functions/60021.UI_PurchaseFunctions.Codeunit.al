@@ -489,7 +489,8 @@ codeunit 60021 "Purch. UI Functions"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CompleteMicrowaveBatch(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
-        JsonBuffer: Record "JSON Buffer" temporary;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
         PurchaseHeader: Record "Purchase Header";
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         OrderNo: code[20];
@@ -502,35 +503,23 @@ codeunit 60021 "Purch. UI Functions"
         IF pFunction <> 'CompleteMicrowaveBatch' THEN
             EXIT;
 
-        JsonBuffer.ReadFromText(pContent);
+        JsonObj.ReadFrom(pContent);
 
-        JSONBuffer.RESET;
-        //JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
-        JsonBuffer.SetRange(JSONBuffer.path, 'orderno');
-        if JsonBuffer.FindFirst() then
-            OrderNo := JsonBuffer.value;
+        //Get Order Number
+        JsonObj.SelectToken('orderno', JsonTkn);
+        OrderNo := JsonTkn.AsValue().AsText();
 
-        JSONBuffer.RESET;
-        //JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
-        JsonBuffer.SetRange(JSONBuffer.path, 'batch');
-        if JsonBuffer.FindFirst() then
-            BatchNumber := JsonBuffer.value;
+        //Get Batch Number
+        JsonObj.SelectToken('batch', JsonTkn);
+        BatchNumber := JsonTkn.AsValue().AsText();
 
-        JSONBuffer.RESET;
-        //JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
-        JsonBuffer.SetRange(JSONBuffer.path, 'scrapqty');
-        if JsonBuffer.FindFirst() then
-            evaluate(ScrapQty, JsonBuffer.value);
+        //Get Scrap Qty
+        JsonObj.SelectToken('scrapqty', JsonTkn);
+        ScrapQty := JsonTkn.AsValue().AsDecimal();
 
         if PurchaseHeader.get(PurchaseHeader."Document Type"::order, OrderNo) then begin
             if PurchaseHeader."Microwave Process PO" then begin
                 if not PurchaseHeader."RM Add Neg" then begin
-                    //Edit Scrap Qty
-                    PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
-                    PurchaseHeader.modify;
 
                     PalletLedgerEntry.Reset;
                     PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::"Consume Raw Materials");
@@ -550,8 +539,11 @@ codeunit 60021 "Purch. UI Functions"
                             CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
                             if GetLastErrorText = '' then begin
                                 PurchaseHeader."RM Add Neg" := true;
+                                //Edit Scrap Qty
+                                PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
                                 PurchaseHeader.modify;
                                 pContent := 'Success';
+
                             end
                             else
                                 pContent := GetLastErrorText;

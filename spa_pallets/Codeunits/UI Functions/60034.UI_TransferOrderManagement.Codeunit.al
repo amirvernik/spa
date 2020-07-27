@@ -61,6 +61,7 @@ codeunit 60034 "UI Transfer Order Management"
         Err001: Label 'Error : Transfer Order does not exist';
         Err002: Label 'Error : Transfer Order is not released';
         PostTransferShipment: Codeunit "TransferOrder-Post Shipment";
+        ReleaseTransfer: Codeunit "Release Transfer Document";
 
     begin
         IF pFunction <> 'ShipTransferOrder' THEN
@@ -82,6 +83,7 @@ codeunit 60034 "UI Transfer Order Management"
 
         if TransferHeader.get(TransferNo) then
             if TransferHeader.status = TransferHeader.status::Released then begin
+                ReleaseTransfer.Run(TransferHeader);
                 PostTransferShipment.run(TransferHeader);
                 pContent := 'Transfer Order ' + TransferNo + ' Shipped';
             end;
@@ -262,11 +264,12 @@ codeunit 60034 "UI Transfer Order Management"
         pContent := 'Transfer Order ' + TransferNo + ' Line No. ' + format(LineNo) + ' Deleted';
     end;
 
-    //Add Transfer Order Line - AddTransferOrderLine [9239]
+    //Add Transfer Order Line From Pallet - AddTransferOrderLinePallet [9239]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
-    procedure AddTransferOrderLine(VAR pFunction: Text[50]; VAR pContent: Text)
+    procedure AddTransferOrderLinePallet(VAR pFunction: Text[50]; VAR pContent: Text)
     var
         JsonObj: JsonObject;
+        JsonObjResult: JsonObject;
         JsonTkn: JsonToken;
         TransferNo: code[20];
         PalletId: code[20];
@@ -282,7 +285,7 @@ codeunit 60034 "UI Transfer Order Management"
         maxEntry: Integer;
 
     begin
-        IF pFunction <> 'AddTransferOrderLine' THEN
+        IF pFunction <> 'AddTransferOrderLinePallet' THEN
             EXIT;
 
         JsonObj.ReadFrom(pContent);
@@ -291,7 +294,7 @@ codeunit 60034 "UI Transfer Order Management"
         JsonObj.SelectToken('transferno', JsonTkn);
         TransferNo := JsonTkn.AsValue().AsText();
 
-        //Get Transfer Order Line
+        //Get Pallet ID
         JsonObj.SelectToken('palletid', JsonTkn);
         PalletId := JsonTkn.AsValue().AsText();
 
@@ -304,7 +307,7 @@ codeunit 60034 "UI Transfer Order Management"
                 if TransferLine.FindLast then
                     LineNumber := TransferLine."Line No." + 10000
                 else
-                    LineNumber := 1000;
+                    LineNumber := 10000;
 
                 TransferLine.init;
                 TransferLine."Document No." := TransferNo;
@@ -391,13 +394,83 @@ codeunit 60034 "UI Transfer Order Management"
                     end;
             until palletline.next = 0;
         if TransferLine.get(TransferNo, LineNumber) then begin
-            JsonObj.add('message', 'Success');
-            JsonObj.add('lineNum', LineNumber);
-            JsonObj.WriteTo(pContent);
+            JsonObjResult.add('message', 'Success');
+            JsonObjResult.add('lineNum', LineNumber);
+            JsonObjResult.WriteTo(pContent);
         end
         else begin
-            JsonObj.add('message', 'Error');
-            JsonObj.WriteTo(pContent);
+            JsonObjResult.add('message', 'Error');
+            JsonObjResult.WriteTo(pContent);
+        end;
+    end;
+
+    //Add Transfer Order Line From Item - AddTransferOrderLineItem [9268]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    procedure AddTransferOrderLineItem(VAR pFunction: Text[50]; VAR pContent: Text)
+    var
+        JsonObj: JsonObject;
+        JsonObjResult: JsonObject;
+        JsonTkn: JsonToken;
+        TransferNo: code[20];
+        ItemNumber: code[20];
+        VariantCode: code[20];
+        QtyToShip: Decimal;
+        TransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        LineNumber: integer;
+        RecGReservationEntry: Record "Reservation Entry";
+        RecGReservationEntry2: Record "Reservation Entry";
+        ItemRec: Record Item;
+        maxEntry: Integer;
+
+    begin
+        IF pFunction <> 'AddTransferOrderLineItem' THEN
+            EXIT;
+
+        JsonObj.ReadFrom(pContent);
+
+        //Get Transfer Order No.
+        JsonObj.SelectToken('transferno', JsonTkn);
+        TransferNo := JsonTkn.AsValue().AsText();
+
+        //Get Item Number
+        JsonObj.SelectToken('itemno', JsonTkn);
+        ItemNumber := JsonTkn.AsValue().AsText();
+
+        //Get Variety Code
+        JsonObj.SelectToken('varietycode', JsonTkn);
+        VariantCode := JsonTkn.AsValue().AsText();
+
+        //Get Qty to Ship
+        JsonObj.SelectToken('quantity', JsonTkn);
+        QtyToShip := JsonTkn.AsValue().AsDecimal();
+
+        pContent := '';
+
+        TransferLine.reset;
+        transferline.setrange("Document No.", TransferNo);
+        if TransferLine.FindLast then
+            LineNumber := TransferLine."Line No." + 10000
+        else
+            LineNumber := 10000;
+
+        TransferLine.init;
+        TransferLine."Document No." := TransferNo;
+        TransferLine."Line No." := LineNumber;
+        TransferLine.validate("Item No.", ItemNumber);
+        TransferLine.validate("Variant Code", VariantCode);
+        TransferLine.validate(Quantity, QtyToShip);
+        TransferLine.validate("Qty. to Ship", QtyToShip);
+        TransferLine.insert;
+
+        if TransferLine.get(TransferNo, LineNumber) then begin
+            JsonObjResult.add('message', 'Success');
+            JsonObjResult.add('lineNum', LineNumber);
+            JsonObjResult.WriteTo(pContent);
+        end
+        else begin
+            JsonObjResult.add('message', 'Error');
+            JsonObjResult.WriteTo(pContent);
         end;
     end;
 

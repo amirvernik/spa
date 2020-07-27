@@ -2,7 +2,7 @@ codeunit 60036 "UI Sticker Note Functions"
 {
     //Print Sticker Note - Pallet Sticker Note From UI
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
-    procedure PrintPalletStikcers(VAR pFunction: Text[50]; VAR pContent: Text)
+    procedure PrintPalletSticker(VAR pFunction: Text[50]; VAR pContent: Text)
     var
         JsonObj: JsonObject;
         JsonTkn: JsonToken;
@@ -11,7 +11,7 @@ codeunit 60036 "UI Sticker Note Functions"
         StickerNoteFunctions: Codeunit "Sticker note functions";
 
     begin
-        IF pFunction <> 'PrintPalletStikcers' THEN
+        IF pFunction <> 'PrintPalletSticker' THEN
             EXIT;
 
         JsonObj.ReadFrom(pContent);
