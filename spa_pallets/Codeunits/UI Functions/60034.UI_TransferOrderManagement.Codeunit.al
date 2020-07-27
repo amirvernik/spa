@@ -119,9 +119,9 @@ codeunit 60034 "UI Transfer Order Management"
         if not TransferHeader.get(TransferNo) then
             pContent := err001;
 
-        if TransferHeader.get(TransferNo) then
-            if TransferHeader.Status <> TransferHeader.status::Released then
-                pContent := err002;
+        //if TransferHeader.get(TransferNo) then
+        //    if TransferHeader.Status <> TransferHeader.status::Released then
+        //        pContent := err002;
 
         if TransferHeader.get(TransferNo) then
             if TransferHeader.status = TransferHeader.status::Released then begin

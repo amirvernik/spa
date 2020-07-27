@@ -495,7 +495,7 @@ codeunit 60021 "Purch. UI Functions"
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         OrderNo: code[20];
         BatchNumber: code[20];
-        ScrapQty: Integer;
+        ScrapQty: Decimal;
         ItemJournalLine: Record "Item Journal Line";
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
 
