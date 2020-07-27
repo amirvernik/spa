@@ -547,8 +547,9 @@ codeunit 60021 "Purch. UI Functions"
                             end
                             else
                                 pContent := GetLastErrorText;
-                        end;
-
+                        end
+                        else
+                            pContent := 'error, Raw materials not consumed, please consume and run again';
                     end;
                 end
                 else
