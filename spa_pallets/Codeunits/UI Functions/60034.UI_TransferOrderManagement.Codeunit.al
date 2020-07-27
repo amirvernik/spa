@@ -82,7 +82,7 @@ codeunit 60034 "UI Transfer Order Management"
                 pContent := err002;
 
         if TransferHeader.get(TransferNo) then
-            if TransferHeader.status = TransferHeader.status::Released then begin
+            if TransferHeader.status = TransferHeader.status::Open then begin
                 ReleaseTransfer.Run(TransferHeader);
                 PostTransferShipment.run(TransferHeader);
                 pContent := 'Transfer Order ' + TransferNo + ' Shipped';
