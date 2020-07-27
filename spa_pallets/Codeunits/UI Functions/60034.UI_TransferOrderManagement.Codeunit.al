@@ -59,7 +59,7 @@ codeunit 60034 "UI Transfer Order Management"
         TransferNo: code[20];
         TransferHeader: Record "Transfer Header";
         Err001: Label 'Error : Transfer Order does not exist';
-        Err002: Label 'Error : Transfer Order is not released';
+        //Err002: Label 'Error : Transfer Order is not released';
         PostTransferShipment: Codeunit "TransferOrder-Post Shipment";
         ReleaseTransfer: Codeunit "Release Transfer Document";
 
@@ -77,17 +77,21 @@ codeunit 60034 "UI Transfer Order Management"
         if not TransferHeader.get(TransferNo) then
             pContent := err001;
 
-        if TransferHeader.get(TransferNo) then
-            if TransferHeader.Status <> TransferHeader.status::Released then
-                pContent := err002;
+        //if TransferHeader.get(TransferNo) then
+        //    if TransferHeader.Status <> TransferHeader.status::Released then
+        //        pContent := err002;
 
         if TransferHeader.get(TransferNo) then
-            if TransferHeader.status = TransferHeader.status::Open then begin
+            if TransferHeader.status = TransferHeader.status::Open then
                 ReleaseTransfer.Run(TransferHeader);
-                PostTransferShipment.run(TransferHeader);
-                pContent := 'Transfer Order ' + TransferNo + ' Shipped';
-            end;
+
+        PostTransferShipment.run(TransferHeader);
+        if GetLastErrorText <> '' then
+            pContent := 'Error : ' + GetLastErrorText
+        else
+            pContent := 'Transfer Order ' + TransferNo + ' Shipped';
     end;
+
 
     //Receive Transfer Order - ReceiveTransferOrder [9110]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
