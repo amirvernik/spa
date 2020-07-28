@@ -107,10 +107,10 @@ codeunit 60012 "UI Inventory Functions"
             PalletFunctions.ReOpenPallet(PalletHeader);
             if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::Open then
                 pContent := 'Succees - Pallet Opened' else
-                pcontent := 'Error'
+                pcontent := 'Error - Pallet is Not Closed'
         end
         else
-            pContent := 'Error';
+            pContent := 'Error - Pallet does not Exist';
     end;
 
     //Get All Locations - GetAllLocations [8502]

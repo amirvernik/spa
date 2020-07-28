@@ -85,11 +85,10 @@ codeunit 60034 "UI Transfer Order Management"
             if TransferHeader.status = TransferHeader.status::Open then
                 ReleaseTransfer.Run(TransferHeader);
 
-        PostTransferShipment.run(TransferHeader);
-        if GetLastErrorText <> '' then
-            pContent := 'Error : ' + GetLastErrorText
+        if PostTransferShipment.run(TransferHeader) then
+            pContent := 'Transfer Order ' + TransferNo + ' Shipped'
         else
-            pContent := 'Transfer Order ' + TransferNo + ' Shipped';
+            pcontent := 'Transfer Order post error : ' + GetLastErrorText;
     end;
 
 
@@ -125,8 +124,10 @@ codeunit 60034 "UI Transfer Order Management"
 
         if TransferHeader.get(TransferNo) then
             if TransferHeader.status = TransferHeader.status::Released then begin
-                PostTransferReceipt.run(TransferHeader);
-                pContent := 'Transfer Order ' + TransferNo + ' Received'
+                if PostTransferReceipt.run(TransferHeader) then
+                    pContent := 'Transfer Order ' + TransferNo + ' Received'
+                else
+                    pcontent := 'Transfer Order post error : ' + GetLastErrorText;
             end;
     end;
 

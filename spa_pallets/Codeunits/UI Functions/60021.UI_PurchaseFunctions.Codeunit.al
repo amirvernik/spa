@@ -543,14 +543,15 @@ codeunit 60021 "Purch. UI Functions"
                                 PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
                                 PurchaseHeader.modify;
                                 pContent := 'Success';
-
                             end
                             else
                                 pContent := GetLastErrorText;
                         end
                         else
                             pContent := 'error, Raw materials not consumed, please consume and run again';
-                    end;
+                    end
+                    else
+                        pContent := 'error,raw material was not consumed'
                 end
                 else
                     pcontent := 'error, raw material already been consumed';
