@@ -87,6 +87,7 @@ codeunit 60012 "UI Inventory Functions"
         PalletFunctions: Codeunit "Pallet Functions";
         JsonBuffer: Record "JSON Buffer" temporary;
         PalletID: code[20];
+        PackingMaterials: Record "Packing Material Line";
 
     begin
         IF pFunction <> 'OpenPallet' THEN
@@ -104,6 +105,15 @@ codeunit 60012 "UI Inventory Functions"
             until JsonBuffer.next = 0;
 
         if PalletHeader.GET(PalletID) then begin
+            //Mark All Packing Materials to return
+            PackingMaterials.reset;
+            PackingMaterials.setrange("Pallet ID", PalletHeader."Pallet ID");
+            if PackingMaterials.findset then
+                repeat
+                    PackingMaterials.Returned := true;
+                    PackingMaterials.modify;
+                until PackingMaterials.next = 0;
+
             PalletFunctions.ReOpenPallet(PalletHeader);
             if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::Open then
                 pContent := 'Succees - Pallet Opened' else

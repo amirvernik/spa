@@ -72,7 +72,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
-            //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line",RecGItemJournalLine);
+                //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
             until PackingMaterials.next = 0;
     end;
 
