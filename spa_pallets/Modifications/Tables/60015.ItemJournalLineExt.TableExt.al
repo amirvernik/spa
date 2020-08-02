@@ -10,10 +10,19 @@ tableextension 60015 ItemJournalLineExt extends "Item Journal Line"
         {
             DataClassification = ToBeClassified;
         }
-        field(60002;Disposal;Boolean)
+        field(60002; Disposal; Boolean)
+        {
+            DataClassification = ToBeClassified;
+        }
+        field(60003;"Packing Material UOM";code[10])
         {
             DataClassification=ToBeClassified;
         }
+        field(60004;"Packing Material Qty";Decimal)
+        {
+            DataClassification=ToBeClassified;
+        }        
+
     }
 
     var

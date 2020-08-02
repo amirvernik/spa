@@ -39,6 +39,8 @@ codeunit 60003 "Pallet Ledger Functions"
 
     //Positive Pallet Ledger Entry from a Pallet - Close Pallet
     procedure PosPalletLedger(var PalletHeader: Record "Pallet Header")
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
     begin
         PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
@@ -163,6 +165,8 @@ codeunit 60003 "Pallet Ledger Functions"
 
     //Pallet Ledger Entry Item Journal - Negative
     procedure NegPalletLedgerEntryItem(var ItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        PackingMaterialLine: Record "Packing Material Line";
     begin
         PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
@@ -181,8 +185,10 @@ codeunit 60003 "Pallet Ledger Functions"
             PalletLedgerEntry."Item Description" := item.Description;
         PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
         PalletLedgerEntry.validate("Location Code", ItemLedgerEntry."Location Code");
-        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
-        PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+        //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
+        //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
+        PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
         PalletLedgerEntry."User ID" := userid;
         PalletLedgerEntry.Insert();
     end;
@@ -204,8 +210,10 @@ codeunit 60003 "Pallet Ledger Functions"
             PalletLedgerEntry."Item Description" := item.Description;
         PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
         PalletLedgerEntry.validate("Location Code", ItemLedgerEntry."Location Code");
-        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
-        PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+        //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
+        //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
+        PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
         PalletLedgerEntry."User ID" := userid;
         PalletLedgerEntry.Insert();
     end;

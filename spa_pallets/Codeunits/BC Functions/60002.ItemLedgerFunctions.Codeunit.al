@@ -4,6 +4,8 @@ codeunit 60002 "Item Ledger Functions"
 
     //Negative Item Journal from a Pallet - Global Function
     procedure NegItemLedgerEntry(var pPalletHeader: Record "Pallet Header")
+    var
+        ItemUOM: Record "Item Unit of Measure";
     begin
         //Inserting Item Journal
         PalletSetup.get();
@@ -30,9 +32,19 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
-                RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                //RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                ItemUOM.reset;
+                ItemUOM.setrange("Item No.", PackingMaterials."Item No.");
+                itemuom.SetRange(code, PackingMaterials."Unit of Measure Code");
+                if ItemUOM.FindFirst() then
+                    RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity * ItemUOM."Qty. per Unit of Measure")
+                else
+                    RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
+                RecGItemJournalLine."Packing Material Qty" := PackingMaterials.Quantity;
+                RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
             until PackingMaterials.next = 0;
@@ -40,6 +52,8 @@ codeunit 60002 "Item Ledger Functions"
 
     //Positive item Journal from a Pallet - Global Function
     procedure PosItemLedgerEntry(var pPalletHeader: Record "Pallet Header")
+    var
+        ItemUOM: Record "Item Unit of Measure";
     begin
         //Inserting Item Journal
         PalletSetup.get();
@@ -67,12 +81,22 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
-                RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
+                //RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
+                ItemUOM.reset;
+                ItemUOM.setrange("Item No.", PackingMaterials."Item No.");
+                itemuom.SetRange(code, PackingMaterials."Unit of Measure Code");
+                if ItemUOM.FindFirst() then
+                    RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return" * ItemUOM."Qty. per Unit of Measure")
+                else
+                    RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
+
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
+                RecGItemJournalLine."Packing Material Qty" := PackingMaterials.Quantity;
+                RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
-                //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
+            //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
             until PackingMaterials.next = 0;
     end;
 
@@ -97,6 +121,8 @@ codeunit 60002 "Item Ledger Functions"
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Document No.";
         ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
+        ItemLedgerEntry."Packing Material Qty" := ItemJournalLine."Packing Material Qty";
+        ItemLedgerEntry."Packing Material UOM" := ItemJournalLine."Packing Material UOM";
         ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
         if ItemJournalLine."Journal Template Name" = 'ITEM' then begin

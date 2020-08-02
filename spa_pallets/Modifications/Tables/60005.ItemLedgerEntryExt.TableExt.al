@@ -11,11 +11,21 @@ tableextension 60005 ItemLedgerEntryExt extends "Item Ledger Entry"
         {
             DataClassification = ToBeClassified;
         }
-        field(60002;Disposal;Boolean)
+        field(60002; Disposal; Boolean)
         {
-            DataClassification=ToBeClassified;
-        }        
+            DataClassification = ToBeClassified;
+        }
+        field(60003; "Packing Material UOM"; code[10])
+        {
+            DataClassification = ToBeClassified;
+        }
+        field(60004; "Packing Material Qty"; Decimal)
+        {
+            DataClassification = ToBeClassified;
+        }
+
     }
+
 
     var
         myInt: Integer;
