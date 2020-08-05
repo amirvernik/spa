@@ -456,6 +456,97 @@ codeunit 60011 "UI Shipments Functions"
         exit(TotalQtyInvoiced);
     end;
 
+
+    //CreateItemsByPurchasePrice [9276]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure CreateItemsByPurchasePrice(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        ItemRec: Record Item;
+        JsonBuffer: Record "JSON Buffer" temporary;
+        PurchasePriceRec: Record "Purchase Price";
+        VendorNo: code[20];
+        VariantCode: Code[10];
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        boolExist: Boolean;
+    begin
+        IF pFunction <> 'CreateItemsByPurchasePrice' THEN
+            EXIT;
+
+        JsonBuffer.ReadFromText(pContent);
+        boolExist := false;
+
+        JSONBuffer.RESET;
+        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
+        IF JSONBuffer.FINDSET THEN
+            REPEAT
+                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN begin
+                    IF STRPOS(JSONBuffer.Path, 'vendorno') > 0 THEN
+                        VendorNo := JSONBuffer.Value;
+                    IF STRPOS(JSONBuffer.Path, 'variantcode') > 0 THEN
+                        VariantCode := JSONBuffer.Value;
+                end;
+            until JsonBuffer.next = 0;
+
+        Clear(JsonArr);
+        pContent := '';
+
+        PurchasePriceRec.Reset();
+        PurchasePriceRec.SetRange("Vendor No.", VendorNo);
+        PurchasePriceRec.SetRange("Variant Code", VariantCode);
+        if PurchasePriceRec.FindSet() then begin
+
+            repeat
+                if (PurchasePriceRec."Starting Date" <> 0D) and (PurchasePriceRec."Ending Date" <> 0D)
+                    and ((PurchasePriceRec."Starting Date" <= Today()) and (PurchasePriceRec."Ending Date" >= Today)) then
+                    if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
+                        boolExist := true;
+                        JsonArr.Add(PurchasePriceRec."Item No.");
+                    end;
+
+                if (PurchasePriceRec."Starting Date" <> 0D) and (PurchasePriceRec."Ending Date" = 0D)
+                    and (PurchasePriceRec."Starting Date" <= Today()) then
+                    if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
+                        boolExist := true;
+                        JsonArr.Add(PurchasePriceRec."Item No.");
+                    end;
+
+                if (PurchasePriceRec."Starting Date" = 0D) and (PurchasePriceRec."Ending Date" <> 0D)
+                    and (PurchasePriceRec."Ending Date" >= Today()) then
+                    if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
+                        boolExist := true;
+                        JsonArr.Add(PurchasePriceRec."Item No.");
+                    end;
+
+                if (PurchasePriceRec."Starting Date" = 0D) and (PurchasePriceRec."Ending Date" = 0D) then
+                    if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
+                        boolExist := true;
+                        JsonArr.Add(PurchasePriceRec."Item No.");
+                    end;
+
+            until PurchasePriceRec.Next() = 0;
+            if boolExist then begin
+                Clear(JsonObj);
+                JsonObj.add('Items', JsonArr);
+                JsonObj.WriteTo(pContent);
+            end else
+                pContent := 'Purchase Price does not found';
+        end else
+            pContent := 'Purchase Price does not exist';
+
+    end;
+
+    local procedure CheckItemPurchaseUnitofMeasure(ItemNo: code[20]; PurchasePriceUnitofMeasure: code[20]): Boolean;
+    var
+        ItemRec: Record Item;
+    begin
+        if ItemRec.Get(ItemNo) then begin
+            if ItemRec."Purch. Unit of Measure" = PurchasePriceUnitofMeasure then
+                exit(true);
+        end;
+        exit(false);
+    end;
+
 }
 
 
