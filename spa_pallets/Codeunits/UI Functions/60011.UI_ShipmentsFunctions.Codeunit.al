@@ -457,9 +457,9 @@ codeunit 60011 "UI Shipments Functions"
     end;
 
 
-    //CreateItemsByPurchasePrice [9276]
+    //Get Items By Purchase Price [9276]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
-    local procedure CreateItemsByPurchasePrice(VAR pFunction: Text[50]; VAR pContent: Text)
+    local procedure GetItemsByPurchasePrice(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         ItemRec: Record Item;
         JsonBuffer: Record "JSON Buffer" temporary;
@@ -470,7 +470,7 @@ codeunit 60011 "UI Shipments Functions"
         JsonArr: JsonArray;
         boolExist: Boolean;
     begin
-        IF pFunction <> 'CreateItemsByPurchasePrice' THEN
+        IF pFunction <> 'GetItemsByPurchasePrice' THEN
             EXIT;
 
         JsonBuffer.ReadFromText(pContent);
