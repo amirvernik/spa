@@ -30,8 +30,8 @@ codeunit 60035 "Sticker note functions"
         TempBlob.CreateOutStream(OutStr);
 
         PalletText := '';
-        if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::open then
-            Error(Err001);
+        //if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::open then
+        //    Error(Err001);
 
         StickerPrinter.reset;
         StickerPrinter.setrange("User Code", UserId);
@@ -40,7 +40,7 @@ codeunit 60035 "Sticker note functions"
         if StickerPrinter.findfirst then begin
             FirstLine := '%BTW% /AF="' +
                         StickerPrinter."Sticker Format Name(BTW)" +
-                        '" /D="%Trigger File Name%" /PRN="barcode_mechal"   /R=3 /P /C=' +
+                        '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
                         format(PalletProcessSetup."Pallet Label No. of Copies");
             SecondLine := '%END%';
             PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
@@ -177,7 +177,7 @@ codeunit 60035 "Sticker note functions"
                                 if StickerPrinter.findfirst then begin
                                     FirstLine := '%BTW% /AF="' +
                                                 StickerPrinter."Sticker Format Name(BTW)" +
-                                                '" /D="%Trigger File Name%" /PRN="barcode_mechal"   /R=3 /P /C=' +
+                                                '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
                                                 format(CustomerRec."Dispatch Format No. of Copies");
                                     SecondLine := '%END%';
                                     PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
@@ -330,7 +330,7 @@ codeunit 60035 "Sticker note functions"
                                     if StickerPrinter.findfirst then begin
                                         FirstLine := '%BTW% /AF="' +
                                                     StickerPrinter."Sticker Format Name(BTW)" +
-                                                    '" /D="%Trigger File Name%" /PRN="barcode_mechal"   /R=3 /P /C=' +
+                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
                                                     format(PalletProcessSetup."SSCC Label No. of Copies");
                                         SecondLine := '%END%';
                                         PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
@@ -462,7 +462,7 @@ codeunit 60035 "Sticker note functions"
                                 if StickerPrinter.findfirst then begin
                                     FirstLine := '%BTW% /AF="' +
                                                 StickerPrinter."Sticker Format Name(BTW)" +
-                                                '" /D="%Trigger File Name%" /PRN="barcode_mechal"   /R=3 /P /C=' +
+                                                '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
                                                 format(PalletLine."Item Label No. of Copies");
                                     SecondLine := '%END%';
                                     PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
