@@ -39,6 +39,7 @@ codeunit 60034 "UI Transfer Order Management"
 
         //Create the Transfer Order
         TransferHeader.init;
+        TransferHeader.SetHideValidationDialog(true);
         TransferHeader.insert(true);
         TransferHeader.validate("Transfer-from Code", FromLocation);
         TransferHeader.validate("Transfer-to Code", ToLocation);
@@ -81,10 +82,13 @@ codeunit 60034 "UI Transfer Order Management"
         //    if TransferHeader.Status <> TransferHeader.status::Released then
         //        pContent := err002;
 
-        if TransferHeader.get(TransferNo) then
+        if TransferHeader.get(TransferNo) then begin
+            TransferHeader.SetHideValidationDialog(true);
             if TransferHeader.status = TransferHeader.status::Open then
                 ReleaseTransfer.Run(TransferHeader);
+        end;
 
+        PostTransferShipment.SetHideValidationDialog(true);
         if PostTransferShipment.run(TransferHeader) then
             pContent := 'Transfer Order ' + TransferNo + ' Shipped'
         else
@@ -122,13 +126,15 @@ codeunit 60034 "UI Transfer Order Management"
         //    if TransferHeader.Status <> TransferHeader.status::Released then
         //        pContent := err002;
 
-        if TransferHeader.get(TransferNo) then
+        if TransferHeader.get(TransferNo) then begin
+            TransferHeader.SetHideValidationDialog(true);
             if TransferHeader.status = TransferHeader.status::Released then begin
                 if PostTransferReceipt.run(TransferHeader) then
                     pContent := 'Transfer Order ' + TransferNo + ' Received'
                 else
                     pcontent := 'Transfer Order post error : ' + GetLastErrorText;
             end;
+        end;
     end;
 
     //List of Transfer Orders - GetListOfTransferOrdersForPallet [9111]
