@@ -88,7 +88,7 @@ codeunit 60012 "UI Inventory Functions"
         JsonBuffer: Record "JSON Buffer" temporary;
         PalletID: code[20];
         PackingMaterials: Record "Packing Material Line";
-
+        PosInt: Integer;
     begin
         IF pFunction <> 'OpenPallet' THEN
             EXIT;
@@ -103,6 +103,12 @@ codeunit 60012 "UI Inventory Functions"
                     IF STRPOS(JSONBuffer.Path, 'palletid') > 0 THEN
                         PalletID := JSONBuffer.Value;
             until JsonBuffer.next = 0;
+
+        PosInt := StrPos(PalletID, '-');
+        if PosInt > 0 then begin
+            PalletID := CopyStr(PalletID, PosInt - 1);
+            PalletID := DelChr(PalletID, ' ');
+        end;
 
         if PalletHeader.GET(PalletID) then begin
             //Mark All Packing Materials to return

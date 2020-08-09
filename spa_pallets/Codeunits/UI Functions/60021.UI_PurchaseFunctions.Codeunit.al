@@ -561,7 +561,7 @@ codeunit 60021 "Purch. UI Functions"
         end
         else
             pContent := 'error,purchase order/batch cannot be found';
-    end;
+    end;//
 
     //Create Negative Adjustment
     Procedure CreateNegAdjustment(PalletLedgEntry: Record "Pallet Ledger Entry"; PurchaseOrderNo: code[20])
