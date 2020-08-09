@@ -60,7 +60,7 @@ codeunit 60036 "UI Sticker Note Functions"
 
     end;
 
-    //Print Sticker Note - Shipment Sticker Notes From UI
+    //9284 -Add a new function to print a label for a specific sticker From UI
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     procedure PrintShipmentSpecificSticker(VAR pFunction: Text[50]; VAR pContent: Text)
     var
@@ -95,6 +95,7 @@ codeunit 60036 "UI Sticker Note Functions"
                         pContent := 'SSCC Sticker sent to Printer';
                     end else
                         pContent := 'Error, cannot find Shipment';
+                    exit;
                 end;
             'Pallet':
                 begin
@@ -103,6 +104,7 @@ codeunit 60036 "UI Sticker Note Functions"
                         pContent := 'Pallet Sticker sent to Printer';
                     end else
                         pContent := 'Error, cannot find Pallet';
+                    exit;
                 end;
             'Dispatch':
                 begin
@@ -111,6 +113,7 @@ codeunit 60036 "UI Sticker Note Functions"
                         pContent := 'Dispatch Sticker sent to Printer';
                     end else
                         pContent := 'Error, cannot find Shipment';
+                    exit;
                 end;
             'Item':
                 begin
@@ -119,10 +122,10 @@ codeunit 60036 "UI Sticker Note Functions"
                         pContent := 'Item Sticker sent to Printer';
                     end else
                         pContent := 'Error, cannot find Shipment';
+                    exit;
                 end;
         end;
-
-
+        pContent := 'Error, cannot find Sticker';
     end;
 
 
