@@ -252,7 +252,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         JsonTkn: JsonToken;
         JsonArr: JsonArray;
         Searcher: Integer;
-
+        boolSuccess: Boolean;
     begin
         IF pFunction <> 'AddPalletToWhseShipment' THEN
             EXIT;
@@ -270,6 +270,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         JsonArr := JsonTkn.AsArray();
 
         Searcher := 0;
+
 
         while Searcher < JsonArr.Count do begin
             Palletcode := '';
@@ -296,6 +297,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                 PalletLine.setrange(PalletLine."Pallet ID", PalletHeaderTemp."Pallet ID");
                 if palletline.findset then
                     repeat
+                        boolSuccess := false;
                         QuantityToUpdateShip := PalletLine.Quantity;
                         while QuantityToUpdateShip > 0 do begin
                             WarehouseShipmentLine.reset;
@@ -306,6 +308,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                             WarehouseShipmentLine.setrange("Location Code", PalletLine."Location Code");
                             WarehouseShipmentLine.setfilter(WarehouseShipmentLine."Remaining Quantity", '>%1', 0);
                             if WarehouseShipmentLine.findfirst then begin
+                                boolSuccess := true;
                                 if WarehouseShipmentLine."Remaining Quantity" >= QuantityToUpdateShip then begin
                                     WarehousePallet.init;
                                     WarehousePallet."Whse Shipment No." := WarehouseShipmentLine."No.";
@@ -317,6 +320,17 @@ codeunit 60016 "UI Whse Shipments Functions"
                                     WarehousePallet."Lot No." := PalletLine."Lot Number";
                                     WarehousePallet.Quantity := QuantityToUpdateShip;
                                     if WarehousePallet.insert then begin
+                                        //Check Price List Availability
+                                        if not FctCheckSalesPriceAvailable(
+                                            WarehousePallet."Sales Order No.",
+                                            WarehousePallet."Sales Order Line No.",
+                                            WarehousePallet."Pallet ID"
+                                        ) then begin
+                                            pContent := 'Pallet/s does not have price list effective';
+                                            exit;
+                                        end;
+                                        //Check Price List Availability
+
                                         if PalletHeader.get(palletline."Pallet ID") then begin
                                             PalletHeader."Exist in warehouse shipment" := true;
                                             PalletHeader.modify;
@@ -335,6 +349,16 @@ codeunit 60016 "UI Whse Shipments Functions"
                                     WarehousePallet."Lot No." := PalletLine."Lot Number";
                                     WarehousePallet.Quantity := WarehouseShipmentLine."Remaining Quantity";
                                     if WarehousePallet.insert then begin
+                                        //Check Price List Availability
+                                        if not FctCheckSalesPriceAvailable(
+                                            WarehousePallet."Sales Order No.",
+                                            WarehousePallet."Sales Order Line No.",
+                                            WarehousePallet."Pallet ID"
+                                        ) then begin
+                                            pContent := 'Pallet/s does not have price list effective';
+                                            exit;
+                                        end;
+                                        //Check Price List Availability
                                         if PalletHeader.get(palletline."Pallet ID") then begin
                                             PalletHeader."Exist in warehouse shipment" := true;
                                             PalletHeader.modify;
@@ -343,12 +367,64 @@ codeunit 60016 "UI Whse Shipments Functions"
                                     QuantityToUpdateShip -= WarehouseShipmentLine."Remaining Quantity";
                                 end;
                             end;
+                            if not boolSuccess then begin
+                                pContent := StrSubstNo('Pallet Line does not exists. pallet id: %1 sales order no.: %2 sales order line no.: %3',
+                                                        WarehousePallet."Sales Order No.", WarehousePallet."Sales Order Line No.", WarehousePallet."Pallet ID");
+                                exit;
+                            end;
                         end;
-                    until palletline.next = 0;
+                    until palletline.next = 0
+                else begin
+                    pContent := 'Pallet line does not exists';
+                    exit;
+                end;
             until PalletHeaderTemp.next = 0;
         end;
         pContent := 'Pallets Added';
     end;
+
+    local procedure FctCheckSalesPriceAvailable(var pOrderNo: code[20]; var pOrderLine: integer; var pPalletID: code[20]): Boolean
+    var
+        SalesPrice: Record "Sales Price";
+        Salesline: Record "Sales Line";
+        SalesHeader: Record "Sales Header";
+        BoolAll: Boolean;
+        BoolOnlyOne: Boolean;
+
+    begin
+        SalesHeader.get(SalesHeader."Document Type"::Order, pOrderNo);
+        BoolAll := false;
+        BoolOnlyOne := false;
+        if salesline.get(Salesline."Document Type"::Order, pOrderNo, pOrderLine) then begin
+            SalesPrice.reset;
+            SalesPrice.setrange("Item No.", salesline."No.");
+            SalesPrice.setrange("Variant Code", Salesline."Variant Code");
+            SalesPrice.setrange("Ending Date", 0D);
+            SalesPrice.setfilter("Starting Date", '<=%1', today);
+            SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::"All Customers");
+            if SalesPrice.findfirst then
+                BoolAll := true;
+        end;
+        if not BoolAll then begin
+            if salesline.get(Salesline."Document Type"::Order, pOrderNo, pOrderLine) then begin
+                SalesPrice.reset;
+                SalesPrice.setrange("Item No.", salesline."No.");
+                SalesPrice.setrange("Variant Code", Salesline."Variant Code");
+                SalesPrice.setrange("Ending Date", 0D);
+                SalesPrice.setfilter("Starting Date", '<=%1', today);
+                SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::Customer);
+                SalesPrice.setrange(SalesPrice."Sales Code", SalesHeader."Sell-to Customer No.");
+                if SalesPrice.findfirst then
+                    BoolOnlyOne := true;
+            end;
+        end;
+        if ((BoolAll) or (BoolOnlyOne)) then
+            exit(true);
+        exit(false);
+
+    end;
+
+
 
     //Remove Pallet from Whse Shipment - RemovePalletFromWhseShip [8640]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
