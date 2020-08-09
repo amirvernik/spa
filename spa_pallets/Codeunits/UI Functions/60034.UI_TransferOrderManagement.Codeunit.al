@@ -82,11 +82,11 @@ codeunit 60034 "UI Transfer Order Management"
         //    if TransferHeader.Status <> TransferHeader.status::Released then
         //        pContent := err002;
 
-        if TransferHeader.get(TransferNo) then begin
+        /*if TransferHeader.get(TransferNo) then begin
             TransferHeader.SetHideValidationDialog(true);
             if TransferHeader.status = TransferHeader.status::Open then
                 ReleaseTransfer.Run(TransferHeader);
-        end;
+        end;*/
 
         PostTransferShipment.SetHideValidationDialog(true);
         if PostTransferShipment.run(TransferHeader) then
@@ -128,12 +128,12 @@ codeunit 60034 "UI Transfer Order Management"
 
         if TransferHeader.get(TransferNo) then begin
             TransferHeader.SetHideValidationDialog(true);
-            if TransferHeader.status = TransferHeader.status::Released then begin
-                if PostTransferReceipt.run(TransferHeader) then
-                    pContent := 'Transfer Order ' + TransferNo + ' Received'
-                else
-                    pcontent := 'Transfer Order post error : ' + GetLastErrorText;
-            end;
+            //if TransferHeader.status = TransferHeader.status::Released then begin
+            if PostTransferReceipt.run(TransferHeader) then
+                pContent := 'Transfer Order ' + TransferNo + ' Received'
+            else
+                pcontent := 'Transfer Order post error : ' + GetLastErrorText;
+            // end;
         end;
     end;
 
