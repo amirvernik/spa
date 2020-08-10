@@ -49,9 +49,9 @@ codeunit 60036 "UI Sticker Note Functions"
 
 
         if ShipmentHeader.get(ShipmentNumber) then begin
-            StickerNoteFunctions.CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
-            StickerNoteFunctions.CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
-            StickerNoteFunctions.CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+            StickerNoteFunctions.CreateSSCCStickernote(ShipmentHeader, '', false); //SSCC Label Sticker note
+            StickerNoteFunctions.CreateDispatchStickerNote(ShipmentHeader, '', false); //Dispatch Label Sticker note
+            StickerNoteFunctions.CreateItemLabelStickerNote(ShipmentHeader, '', false); //Item Label Sticker Note
             pContent := 'Warehouse Stickers sent to Printer';
         end
         else
@@ -102,7 +102,7 @@ codeunit 60036 "UI Sticker Note Functions"
                             if LSalesOrder.FindFirst() then begin
                                 LCustomer.Get(LSalesOrder."Sell-to Customer No.");
                                 if LCustomer."SSCC Sticker Note" then begin
-                                    StickerNoteFunctions.CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
+                                    StickerNoteFunctions.CreateSSCCStickernote(ShipmentHeader, PalletNumber, true); //SSCC Label Sticker note
                                     pContent := 'SSCC Sticker sent to Printer';
                                     exit;
                                 end;
@@ -113,7 +113,7 @@ codeunit 60036 "UI Sticker Note Functions"
                                 if LSalesOrderArchive.FindFirst() then begin
                                     LCustomer.Get(LSalesOrder."Sell-to Customer No.");
                                     if LCustomer."SSCC Sticker Note" then begin
-                                        StickerNoteFunctions.CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
+                                        StickerNoteFunctions.CreateSSCCStickernote(ShipmentHeader, PalletNumber, true); //SSCC Label Sticker note
                                         pContent := 'SSCC Sticker sent to Printer';
                                         exit;
                                     end else begin
@@ -144,7 +144,7 @@ codeunit 60036 "UI Sticker Note Functions"
             'Dispatch':
                 begin
                     if ShipmentHeader.get(ShipmentNumber) then begin
-                        StickerNoteFunctions.CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
+                        StickerNoteFunctions.CreateDispatchStickerNote(ShipmentHeader, PalletNumber, true); //Dispatch Label Sticker note
                         pContent := 'Dispatch Sticker sent to Printer';
                     end else
                         pContent := 'Error, cannot find Shipment';
@@ -153,7 +153,7 @@ codeunit 60036 "UI Sticker Note Functions"
             'Item':
                 begin
                     if ShipmentHeader.get(ShipmentNumber) then begin
-                        StickerNoteFunctions.CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+                        StickerNoteFunctions.CreateItemLabelStickerNote(ShipmentHeader, PalletNumber, true); //Item Label Sticker Note
                         pContent := 'Item Sticker sent to Printer';
                     end else
                         pContent := 'Error, cannot find Shipment';

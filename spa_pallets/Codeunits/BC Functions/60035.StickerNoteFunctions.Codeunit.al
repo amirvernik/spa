@@ -95,23 +95,23 @@ codeunit 60035 "Sticker note functions"
     begin
         Selection := STRMENU(TypeOfPO, 1, 'Please select the Desired format');
         if selection = 1 then begin
-            CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
-            CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
-            CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+            CreateSSCCStickernote(ShipmentHeader, '', false); //SSCC Label Sticker note
+            CreateDispatchStickerNote(ShipmentHeader, '', false); //Dispatch Label Sticker note
+            CreateItemLabelStickerNote(ShipmentHeader, '', false); //Item Label Sticker Note
             message('All Warehouse Shipment Sticker notes sent to Printer');
         end;
         if selection = 2 then begin
-            CreateSSCCStickernote(ShipmentHeader); //SSCC Label Sticker note
+            CreateSSCCStickernote(ShipmentHeader, '', false); //SSCC Label Sticker note
             message('SSCC Label Sticker note sent to Printer');
         end;
 
         if selection = 3 then begin
-            CreateDispatchStickerNote(ShipmentHeader); //Dispatch Label Sticker note
+            CreateDispatchStickerNote(ShipmentHeader, '', false); //Dispatch Label Sticker note
             message('Dispatch Label Sticker note sent to Printer');
         end;
 
         if selection = 4 then begin
-            CreateItemLabelStickerNote(ShipmentHeader); //Item Label Sticker Note
+            CreateItemLabelStickerNote(ShipmentHeader, '', false); //Item Label Sticker Note
             message('Item Label Sticker note sent to Printer');
         end;
 
@@ -119,7 +119,7 @@ codeunit 60035 "Sticker note functions"
     end;
 
     //Dispatch Label - Sticker note
-    procedure CreateDispatchStickerNote(pShipmentHeader: Record "Warehouse Shipment Header")
+    procedure CreateDispatchStickerNote(pShipmentHeader: Record "Warehouse Shipment Header"; PalletNumber: Code[20]; boolFilterPallet: Boolean)
     var
         PalletProcessSetup: Record "Pallet Process Setup";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
@@ -164,6 +164,8 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.reset;
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                if boolFilterPallet then
+                    WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
                     repeat
                         DispatchText := '';
@@ -270,7 +272,7 @@ codeunit 60035 "Sticker note functions"
     end;
 
     //SSCC Label Sticker note
-    procedure CreateSSCCStickerNote(pShipmentHeader: Record "Warehouse Shipment Header")
+    procedure CreateSSCCStickerNote(pShipmentHeader: Record "Warehouse Shipment Header"; PalletNumber: Code[20]; boolFilterPallet: Boolean)
     var
         CompanyInformation: Record "Company Information";
         ItemRec: Record Item;
@@ -317,6 +319,8 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.reset;
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                if boolFilterPallet then
+                    WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
                     repeat
                         SSCCText := '';
@@ -401,7 +405,7 @@ codeunit 60035 "Sticker note functions"
     end;
 
     //Item Label Sticker Note
-    procedure CreateItemLabelStickerNote(pShipmentHeader: Record "Warehouse Shipment Header")
+    procedure CreateItemLabelStickerNote(pShipmentHeader: Record "Warehouse Shipment Header"; PalletNumber: Code[20]; boolFilterPallet: Boolean)
     var
         PalletProcessSetup: Record "Pallet Process Setup";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
@@ -447,6 +451,8 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.reset;
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                if boolFilterPallet then
+                    WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
                     repeat
                         PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.");
