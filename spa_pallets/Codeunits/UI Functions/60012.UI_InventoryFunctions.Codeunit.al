@@ -107,7 +107,7 @@ codeunit 60012 "UI Inventory Functions"
         PosInt := StrPos(PalletID, '-');
         if PosInt > 0 then begin
             PalletID := CopyStr(PalletID, PosInt - 1);
-            PalletID := DelChr(PalletID, ' ');
+            PalletID := DelChr(PalletID, '=', ' ');
         end;
 
         if PalletHeader.GET(PalletID) then begin
