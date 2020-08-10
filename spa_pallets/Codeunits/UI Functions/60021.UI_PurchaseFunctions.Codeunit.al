@@ -781,7 +781,9 @@ codeunit 60021 "Purch. UI Functions"
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::"Partially consumed"
                     else
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
+
                     PalletHeader.modify;
+                    PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
                 until PalletHeaderTemp.next = 0;
         end;
 
