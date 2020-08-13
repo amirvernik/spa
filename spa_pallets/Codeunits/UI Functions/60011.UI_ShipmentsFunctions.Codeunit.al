@@ -271,6 +271,7 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Locaion Code', SalesHeader."SPA Location");
                         JsonObj.add('Customer', SalesHeader."Sell-to Customer No.");
                         JsonObj.add('Customer Name', SalesHeader."Sell-to Customer name");
+                        JsonObj.add('ShippingAgentCode', Salesheader."Shipping Agent Code");
                         JsonObj.add('Ship-to Address', SalesHeader."Ship-to Address");
                         JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
                         JsonObj.add('ExternalDocNum', Salesheader."External Document No.");

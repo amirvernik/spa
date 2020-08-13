@@ -126,7 +126,7 @@ codeunit 60012 "UI Inventory Functions"
                 pcontent := 'Error - Pallet is Not Closed'
         end
         else
-            pContent := 'Error - Pallet does not Exist';
+            pContent := 'Error : Pallet - ' + PalletID + ' - Dooes not Exist';
     end;
 
     //Get All Locations - GetAllLocations [8502]

@@ -135,10 +135,12 @@ codeunit 60020 "UI Sales Return Orders"
             until JsonBuffer.next = 0;
 
         NextSalesreturnOrder := NoSeriesMgmt.GetNextNo(SalesAndReceivablesSetup."Return Order Nos.", today, true);
+        PalletProccessSetup.get;
         ToSalesHeader.init;
         ToSalesHeader."No." := NextSalesreturnOrder;
         ToSalesHeader."Document Type" := ToSalesHeader."Document Type"::"Return Order";
         ToSalesHeader."No. Series" := SalesAndReceivablesSetup."Return Order Nos.";
+        ToSalesHeader."Reason Code" := PalletProccessSetup."Cancel Reason Code";
         ToSalesHeader.insert(true);
         ToSalesHeader.validate("Sell-to Customer No.", CustomerNo);
         ToSalesHeader.modify;
