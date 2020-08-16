@@ -195,6 +195,8 @@ codeunit 60003 "Pallet Ledger Functions"
 
     //Pallet Ledger Entry Item Journal - Negative
     procedure PosPalletLedgerEntryItem(var ItemLedgerEntry: Record "Item Ledger Entry")
+    var
+        ItemUOM: Record "Item Unit of Measure";
     begin
         PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
@@ -213,7 +215,14 @@ codeunit 60003 "Pallet Ledger Functions"
         //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
         //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
         PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
-        PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
+        ItemUOM.reset;
+        ItemUOM.setrange("Item No.", ItemLedgerEntry."Item No.");
+        ItemUOM.setrange(code, ItemLedgerEntry."Packing Material UOM");
+        if ItemUOM.findfirst then
+            //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
+            PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity * ItemUOM."Qty. per Unit of Measure")
+        else
+            PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
         PalletLedgerEntry."User ID" := userid;
         PalletLedgerEntry.Insert();
     end;

@@ -49,16 +49,16 @@ codeunit 60027 "UI Change Quality Functions"
         PalletLineChangeQuality.setrange("User ID", userid);
         if PalletLineChangeQuality.findfirst then begin
 
-            ChangeQualityMgmt.NegAdjChangeQuality(PalletLineChangeQuality); //Negative Change Quality  
-            ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+            ChangeQualityMgmt.NegAdjChangeQuality(PalletLineChangeQuality); //Negative Change Quality   ***
+            ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items      +++            
             ChangeQualityMgmt.ChangeQuantitiesOnPalletline(PalletLineChangeQuality); //Change Quantities on Pallet Line                    
             ChangeQualityMgmt.ChangePalletReservation(PalletLineChangeQuality); //Change Pallet Reservation Line                    
             ChangeQualityMgmt.PalletLedgerAdjustOld(PalletLineChangeQuality); //Adjust Pallet Ledger Entries - Old Items                   
             ChangeQualityMgmt.AddNewItemsToPallet(PalletLineChangeQuality); //Add New Lines                    
-            ChangeQualityMgmt.PosAdjNewItems(PalletLineChangeQuality); //Positive Adj to New Lines
-            ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
-            ChangeQualityMgmt.NegAdjToNewPacking(PalletLineChangeQuality); //Neg ADjustment to New Packing Materials
-            ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                                        
+            ChangeQualityMgmt.PosAdjNewItems(PalletLineChangeQuality); //Positive Adj to New Lines ***
+            ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items   +++                  
+            ChangeQualityMgmt.NegAdjToNewPacking(PalletLineChangeQuality); //Neg ADjustment to New Packing Materials ***
+            ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items     +++                                   
             ChangeQualityMgmt.AddPackingMaterialsToExisting(PalletLineChangeQuality); //Add Packing Materials to Existing Packing Materials
             if GetLastErrorText = '' then
                 pContent := 'Success' else

@@ -129,12 +129,11 @@ codeunit 60012 "UI Inventory Functions"
             PackingMaterials.reset;
             PackingMaterials.setrange("Pallet ID", PalletHeader."Pallet ID");
             PackingMaterials.SetRange("Item No.", PKitemId);
-            if PackingMaterials.findset then
-                repeat
-                    PackingMaterials.Returned := true;
-                    PackingMaterials."Qty to Return" := PKqty;
-                    PackingMaterials.modify;
-                until PackingMaterials.next = 0;
+            if PackingMaterials.FindFirst() then begin
+                PackingMaterials.Returned := true;
+                PackingMaterials."Qty to Return" := PKqty;
+                PackingMaterials.modify;
+            end;
             Searcher += 1;
         end;
 
