@@ -117,6 +117,7 @@ codeunit 60012 "UI Inventory Functions"
             if PackingMaterials.findset then
                 repeat
                     PackingMaterials.Returned := true;
+                    //PackingMaterials."Qty to Return"
                     PackingMaterials.modify;
                 until PackingMaterials.next = 0;
 
@@ -126,7 +127,7 @@ codeunit 60012 "UI Inventory Functions"
                 pcontent := 'Error - Pallet is Not Closed'
         end
         else
-            pContent := 'Error - Pallet does not Exist';
+            pContent := 'Error : Pallet - ' + PalletID + ' - Dooes not Exist';
     end;
 
     //Get All Locations - GetAllLocations [8502]

@@ -800,6 +800,7 @@ codeunit 60010 "UI Pallet Functions"
         ReserevationEntry: Record "Reservation Entry";
         QtyReserved: Decimal;
         VariantCode: Code[20];
+        PurchaseHeader: Record "Purchase Header";
 
     begin
         IF pFunction <> 'GetLotNumbersByItem' THEN
@@ -866,6 +867,13 @@ codeunit 60010 "UI Pallet Functions"
             if ItemTemp.findset then begin
                 repeat
                     JsonObj.add('Lot No', ItemTemp."No.");
+                    PurchaseHeader.reset;
+                    PurchaseHeader.setrange(PurchaseHeader."Document Type", PurchaseHeader."Document Type"::Order);
+                    PurchaseHeader.setrange("Batch Number", ItemTemp."No.");
+                    if PurchaseHeader.findfirst then
+                        JsonObj.add('VendorShipmentNo', PurchaseHeader."Vendor Shipment No.")
+                    else
+                        JsonObj.add('VendorShipmentNo', '');
                     JsonObj.add('Qty', format(ItemTemp."Price Unit Conversion"));
                     JsonObj.add('Reserved', format(ItemTemp."Budget Quantity"));
                     JsonArr.Add(JsonObj);
