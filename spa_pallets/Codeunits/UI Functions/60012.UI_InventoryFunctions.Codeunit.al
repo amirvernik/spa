@@ -117,6 +117,7 @@ codeunit 60012 "UI Inventory Functions"
             if PackingMaterials.findset then
                 repeat
                     PackingMaterials.Returned := true;
+                    //PackingMaterials."Qty to Return"
                     PackingMaterials.modify;
                 until PackingMaterials.next = 0;
 

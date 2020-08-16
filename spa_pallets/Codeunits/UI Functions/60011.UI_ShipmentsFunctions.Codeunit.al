@@ -262,6 +262,7 @@ codeunit 60011 "UI Shipments Functions"
                         WarehouseShipmentLine.setrange("Source Type", 37);
                         WarehouseShipmentLine.setrange("Source Document", WarehouseShipmentLine."Source Document"::"Sales Order");
                         WarehouseShipmentLine.setrange("Source No.", Salesheader."No.");
+                        WarehouseShipmentLine.Setrange("Source Line No.", SalesLine."Line No."); //Add filter by line
                         if WarehouseShipmentLine.findfirst then
                             BoolExistsInWhseShip := true
                         else
@@ -276,7 +277,7 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
                         JsonObj.add('ExternalDocNum', Salesheader."External Document No.");
                         JsonObj.add('ReqDeliveryDate', Salesheader."Requested Delivery Date");
-                        JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip);
+                        //JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved to Lines of json
                         SalesLine.reset;
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");
@@ -293,6 +294,7 @@ codeunit 60011 "UI Shipments Functions"
                                 JsonObjLines.add('Description', salesline.Description);
                                 JsonObjLines.add('Location', salesline."Location Code");
                                 JsonObjLines.add('Quantity', format(salesline.Quantity));
+                                JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
                                 JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
                                 JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
                                 JsonArrLines.Add(JsonObjLines);
