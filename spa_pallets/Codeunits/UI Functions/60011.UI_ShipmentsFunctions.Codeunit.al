@@ -294,7 +294,7 @@ codeunit 60011 "UI Shipments Functions"
                                 JsonObjLines.add('Description', salesline.Description);
                                 JsonObjLines.add('Location', salesline."Location Code");
                                 JsonObjLines.add('Quantity', format(salesline.Quantity));
-                                JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
+                                JsonObjLines.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
                                 JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
                                 JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
                                 JsonArrLines.Add(JsonObjLines);
