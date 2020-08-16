@@ -85,49 +85,63 @@ codeunit 60012 "UI Inventory Functions"
     VAR
         PalletHeader: Record "Pallet Header";
         PalletFunctions: Codeunit "Pallet Functions";
-        JsonBuffer: Record "JSON Buffer" temporary;
+        //JsonBuffer: Record "JSON Buffer" temporary;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        JsonArr: JsonArray;
         PalletID: code[20];
         PackingMaterials: Record "Packing Material Line";
         PosInt: Integer;
+        Searcher: Integer;
+        PKitemId: Code[20];
+        PKqty: Decimal;
     begin
         IF pFunction <> 'OpenPallet' THEN
             EXIT;
 
-        JsonBuffer.ReadFromText(pContent);
-
-        JSONBuffer.RESET;
-        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
-        IF JSONBuffer.FINDSET THEN
-            REPEAT
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
-                    IF STRPOS(JSONBuffer.Path, 'palletid') > 0 THEN
-                        PalletID := JSONBuffer.Value;
-            until JsonBuffer.next = 0;
-
-        PosInt := StrPos(PalletID, '-');
-        if PosInt > 0 then begin
-            PalletID := CopyStr(PalletID, PosInt - 1);
-            PalletID := DelChr(PalletID, '=', ' ');
+        JsonObj.ReadFrom(pContent);
+        JsonObj.SelectToken('palletid', JsonTkn);
+        PalletID := JsonTkn.AsValue().AsText();
+        if not PalletHeader.GET(PalletID) then begin
+            pContent := 'Error : Pallet - ' + PalletID + ' - Dooes not Exist';
+            exit;
         end;
 
-        if PalletHeader.GET(PalletID) then begin
+        JsonObj.SelectToken('packingMaterialsToAdjust', JsonTkn);
+        JsonArr := JsonTkn.AsArray();
+
+        Searcher := 0;
+
+        while Searcher < JsonArr.Count do begin
+            PKitemId := '';
+            PKqty := 0;
+            JsonArr.Get(Searcher, JsonTkn);
+            JsonObj := JsonTkn.AsObject();
+
+            JsonObj.SelectToken('itemId', JsonTkn);
+
+            PKitemId := JsonTkn.AsValue().AsText();
+            JsonObj.SelectToken('qty', JsonTkn);
+
+            PKqty := JsonTkn.AsValue().AsDecimal();
+
             //Mark All Packing Materials to return
             PackingMaterials.reset;
             PackingMaterials.setrange("Pallet ID", PalletHeader."Pallet ID");
+            PackingMaterials.SetRange("Item No.", PKitemId);
             if PackingMaterials.findset then
                 repeat
                     PackingMaterials.Returned := true;
-                    //PackingMaterials."Qty to Return"
+                    PackingMaterials."Qty to Return" := PKqty;
                     PackingMaterials.modify;
                 until PackingMaterials.next = 0;
+            Searcher += 1;
+        end;
 
-            PalletFunctions.ReOpenPallet(PalletHeader);
-            if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::Open then
-                pContent := 'Succees - Pallet Opened' else
-                pcontent := 'Error - Pallet is Not Closed'
-        end
-        else
-            pContent := 'Error : Pallet - ' + PalletID + ' - Dooes not Exist';
+        PalletFunctions.ReOpenPallet(PalletHeader);
+        if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::Open then
+            pContent := 'Succees - Pallet Opened' else
+            pcontent := 'Error - Pallet is Not Closed'
     end;
 
     //Get All Locations - GetAllLocations [8502]
