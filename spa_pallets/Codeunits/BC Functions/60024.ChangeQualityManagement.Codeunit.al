@@ -327,11 +327,14 @@ codeunit 60024 "Change Quality Management"
         BomComponent: Record "BOM Component";
         ItemJournalLine: Record "Item Journal Line";
         PalletSetup: Record "Pallet Process Setup";
+        PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         PalletHeader: Record "Pallet Header";
         LineNumber: Integer;
     begin
-        ItemJournalLine."Journal Template Name" := 'ITEM';
-        ItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+        PurchaseProcessSetup.get;
+        ItemJournalLine.reset;
+        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
         if ItemJournalLine.findlast then
             LineNumber := ItemJournalLine."Line No."
         else
@@ -349,7 +352,7 @@ codeunit 60024 "Change Quality Management"
                     repeat
                         ItemJournalLine.init;
                         ItemJournalLine."Journal Template Name" := 'ITEM';
-                        ItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+                        ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
                         ItemJournalLine."Line No." := LineNumber;
                         ItemJournalLine.insert;
                         ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
