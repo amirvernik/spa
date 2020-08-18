@@ -87,7 +87,7 @@ codeunit 60022 "Sales Orders Management"
     begin
         if SalesHeader."Document Type" = SalesHeader."Document Type"::Order then begin
             //Change Req. Delivery Date
-            if format(salesHeader."Shipping Time") <> '' then
+            if (format(salesHeader."Shipping Time") <> '') and (SalesHeader."Requested Delivery Date" <> 0D) then
                 salesheader."Dispatch Date" := calcdate('-' + format(salesHeader."Shipping Time"), SalesHeader."Requested Delivery Date")
             else
                 SalesHeader."Dispatch Date" := SalesHeader."Requested Delivery Date";
@@ -97,7 +97,10 @@ codeunit 60022 "Sales Orders Management"
             if Customer.get(SalesHeader."Sell-to Customer No.") then
                 if customer."Packing Days" = 0 then
                     SalesHeader."Pack-out Date" := SalesHeader."Requested Delivery Date";
-            salesheader."Pack-out Date" := calcdate('-' + format(SalesHeader."Packing Days") + 'D', SalesHeader."Requested Delivery Date");
+            if SalesHeader."Requested Delivery Date" <> 0D then
+                salesheader."Pack-out Date" := calcdate('-' + format(SalesHeader."Packing Days") + 'D', SalesHeader."Requested Delivery Date")
+            else
+                SalesHeader."Pack-out Date" := 0D;
 
             //Calculate Dispatch Date
             SalesLine.reset;

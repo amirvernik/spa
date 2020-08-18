@@ -142,6 +142,7 @@ codeunit 60023 "Pallet Disposal Management"
                 ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 ItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 ItemJournalLine.modify;
+
                 lineNumber += 10000;
             until pPackingSelect.next = 0;
     end;

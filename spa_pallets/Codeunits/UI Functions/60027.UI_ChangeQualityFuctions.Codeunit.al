@@ -3,7 +3,9 @@ codeunit 60027 "UI Change Quality Functions"
     //Change Item in Pallet - ChangeItemInPallet
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     procedure ChangeItemInPallet(VAR pFunction: Text[50]; VAR pContent: Text)
-
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        PurchaseProcessSetup: Record "SPA Purchase Process Setup";
     begin
         IF pFunction <> 'ChangeItemInPallet' THEN
             EXIT;
@@ -43,6 +45,13 @@ codeunit 60027 "UI Change Quality Functions"
         JsonObj.SelectToken('qtyToAdd', JsonTkn);
         qtyToAdd := JsonTkn.AsValue().AsDecimal();
 
+        PurchaseProcessSetup.Get();
+        ItemJournalLine.reset;
+        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+        if ItemJournalLine.FindSet() then
+            ItemJournalLine.DeleteAll();
+
         CalcChangeQuality(palletId);
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.setrange("Pallet ID", PalletID);
@@ -60,6 +69,10 @@ codeunit 60027 "UI Change Quality Functions"
             ChangeQualityMgmt.NegAdjToNewPacking(PalletLineChangeQuality); //Neg ADjustment to New Packing Materials ***
             ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items     +++                                   
             ChangeQualityMgmt.AddPackingMaterialsToExisting(PalletLineChangeQuality); //Add Packing Materials to Existing Packing Materials
+
+            if PalletLineChangeQuality.Quantity = 0 then
+                PalletLineChangeQuality.Delete(true);
+
             if GetLastErrorText = '' then
                 pContent := 'Success' else
                 pcontent := 'Error : ' + GetLastErrorText;

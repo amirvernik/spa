@@ -48,8 +48,6 @@ codeunit 60024 "Change Quality Management"
         if pPalletLineChg.findset then
             repeat
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
-
-
                     ItemJournalLine.init;
                     ItemJournalLine."Journal Template Name" := 'ITEM';
                     ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
