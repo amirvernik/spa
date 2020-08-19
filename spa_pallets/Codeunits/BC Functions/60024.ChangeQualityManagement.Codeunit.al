@@ -318,6 +318,48 @@ codeunit 60024 "Change Quality Management"
             CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
     end;
 
+    //Recreate Pallet reservations  
+    procedure RecreateReservations(pPalletID: code[20])
+    var
+        PalletHeader: Record "Pallet Header";
+        PalletLine: Record "Pallet Line";
+        PalletReservation: Record "Pallet reservation Entry";
+    begin
+        PalletReservation.reset;
+        PalletReservation.setrange("Pallet ID", pPalletID);
+        if PalletReservation.findset then
+            PalletReservation.DeleteAll();
+
+        PalletLine.reset;
+        PalletLine.setrange("Pallet ID", pPalletID);
+        if PalletLine.findset then
+            repeat
+                PalletLine."Remaining Qty" := PalletLine.Quantity;
+                PalletLine.modify;
+                if palletLine.Quantity <> 0 then begin
+                    PalletReservation.init;
+                    PalletReservation."Pallet ID" := PalletLine."Pallet ID";
+                    PalletReservation."Pallet Line" := PalletLine."Line No.";
+                    PalletReservation."Lot No." := PalletLine."Lot Number";
+                    PalletReservation.Quantity := PalletLine.Quantity;
+                    PalletReservation."Variant Code" := PalletLine."Variant Code";
+                    PalletReservation.Insert();
+                end;
+            until PalletLine.next = 0;
+
+        PalletLine.reset;
+        palletline.setfilter(PalletLine.Quantity, '=%1', 0);
+        if PalletLine.findset then
+            repeat
+                PalletReservation.reset;
+                PalletReservation.setrange("Pallet ID", PalletLine."Pallet ID");
+                PalletReservation.setrange("Pallet Line", PalletLine."Line No.");
+                if PalletReservation.findfirst then
+                    PalletReservation.delete;
+                PalletLine.delete;
+            until PalletLine.next = 0;
+    end;
+
     //Neg ADjustment to New Packing Materials
     procedure NegAdjToNewPacking(var pPalletLineChg: Record "Pallet Line Change Quality")
     var
@@ -334,7 +376,7 @@ codeunit 60024 "Change Quality Management"
         ItemJournalLine.setrange("Journal Template Name", 'ITEM');
         ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
         if ItemJournalLine.findlast then
-            LineNumber := ItemJournalLine."Line No."
+            LineNumber := ItemJournalLine."Line No." + 10000
         else
             LineNumber := 10000;
 
