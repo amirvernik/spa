@@ -1,4 +1,4 @@
-codeunit 60036 "UI Sticker Note Functions"
+codeunit 60037 "UI Sticker Note Functions"
 {
     //Print Sticker Note - Pallet Sticker Note From UI
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]

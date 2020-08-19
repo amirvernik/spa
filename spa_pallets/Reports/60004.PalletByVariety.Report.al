@@ -236,10 +236,10 @@ report 60004 "Pallet By Variety"
         }
         trigger OnQueryClosePage(CloseAction: Action): Boolean
         begin
-            IF CloseAction IN [ACTION::OK, ACTION::LookupOK] THEN BEGIN
+            //IF CloseAction IN [ACTION::OK, ACTION::LookupOK] THEN BEGIN
+            if CloseAction <> CloseAction::Cancel then
                 IF CustomerNum = '' THEN ERROR('לא נבחר לקוח');
-            END;
-        end;
+        END;
     }
 
     trigger OnInitReport()
