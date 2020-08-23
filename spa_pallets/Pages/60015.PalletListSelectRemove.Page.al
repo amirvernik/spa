@@ -52,6 +52,8 @@ page 60015 "Pallet List Select Remove"
 
     }
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        LSalesOrderLines: Record "Sales Line";
     begin
         //Page is closed with Cancel
         if CloseAction = CloseAction::Cancel then begin
@@ -80,7 +82,17 @@ page 60015 "Pallet List Select Remove"
                                 RecGReservationEntry.Delete();
                             if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
                                 WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
+                                WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
                                 WarehouseShipmentLine.modify;
+                                LSalesOrderLines.Reset();
+                                LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);
+                                LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                                LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                                if LSalesOrderLines.FindFirst() then begin
+                                    // LSalesOrderLines.validate("Qty. to Ship", WarehouseShipmentLine."Remaining Quantity");
+                                    LSalesOrderLines.Validate("Quantity Shipped", LSalesOrderLines.Quantity - WarehousePallet.quantity);
+                                    if not LSalesOrderLines.Modify() then;
+                                end;
                             end;
                             WarehousePallet.Delete();
                         until WarehousePallet.next = 0;

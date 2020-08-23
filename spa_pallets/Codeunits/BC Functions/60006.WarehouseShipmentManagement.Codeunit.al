@@ -6,6 +6,7 @@ codeunit 60006 "Warehouse Shipment Management"
     var
         WarehousePallet: Record "Warehouse Pallet";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        LSalesOrderLines: Record "Sales Line";
     begin
         if Confirm(Lbl005) then begin
             WarehousePallet.reset;
@@ -28,7 +29,22 @@ codeunit 60006 "Warehouse Shipment Management"
             WarehouseShipmentLine.reset;
             WarehouseShipmentLine.setrange("No.", WarehouseShipment."No.");
             if WarehouseShipmentLine.findset then
-                WarehouseShipmentLine.ModifyAll("Remaining Quantity", WarehouseShipmentLine.Quantity);
+                repeat
+
+                    LSalesOrderLines.Reset();
+                    LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);
+                    LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                    LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                    if LSalesOrderLines.FindFirst() then begin
+                        //LSalesOrderLines.validate("Qty. to Ship", LSalesOrderLines."Qty. to Ship" + WarehouseShipmentLine."Qty. Shipped");
+                        LSalesOrderLines.Validate("Quantity Shipped", LSalesOrderLines."Quantity Shipped" - WarehouseShipmentLine."Qty. Shipped");
+                        if not LSalesOrderLines.Modify() then;
+                    end;
+                    WarehouseShipmentLine."Remaining Quantity" := WarehouseShipmentLine.Quantity;
+                    WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine.Quantity;
+                    WarehouseShipmentLine."Qty. Shipped" := 0;
+                    WarehouseShipmentLine.modify;
+                until WarehouseShipmentLine.Next() = 0;
         end;
         message(Lbl006);
     end;
@@ -147,6 +163,17 @@ codeunit 60006 "Warehouse Shipment Management"
                 SalesLine.validate(SalesLine."Qty. to Ship", SalesLine."Qty. to Ship" - rec.Quantity);
             end;*/
             WarehouseShipmentLine."Remaining Quantity" -= rec.quantity;
+            WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine."Remaining Quantity";
+            WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
+            WarehouseShipmentLine.modify;
+            SalesLine.Reset();
+            SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+            SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+            SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+            if SalesLine.FindFirst() then begin
+                SalesLine."Quantity Shipped" += rec.quantity;
+                if not SalesLine.Modify() then;
+            end;
             WarehouseShipmentLine.modify;
 
             if ItemRec.get(WarehouseShipmentLine."Item No.") then
