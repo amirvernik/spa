@@ -257,6 +257,7 @@ codeunit 60011 "UI Shipments Functions"
                     salesline.setrange("Document Type", Salesheader."Document Type");
                     SalesLine.setrange("Document No.", Salesheader."No.");
                     SalesLine.setrange("Location Code", LocationCode);
+                    SalesLine.SetFilter("Quantity Shipped", '<%1', SalesLine.Quantity);
                     if SalesLine.findset then begin
                         WarehouseShipmentLine.reset;
                         WarehouseShipmentLine.setrange("Source Type", 37);
@@ -274,7 +275,7 @@ codeunit 60011 "UI Shipments Functions"
                         JsonObj.add('Customer Name', SalesHeader."Sell-to Customer name");
                         JsonObj.add('ShippingAgentCode', Salesheader."Shipping Agent Code");
                         JsonObj.add('Ship-to Address', SalesHeader."Ship-to Address");
-                        JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
+                        JsonObj.add('Dispatch Date', format(salesheader."Dispatch Date"));
                         JsonObj.add('ExternalDocNum', Salesheader."External Document No.");
                         JsonObj.add('ReqDeliveryDate', Salesheader."Requested Delivery Date");
                         //JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved to Lines of json

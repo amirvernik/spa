@@ -94,7 +94,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         LineOrderText: Text;
         LineOrder: Integer;
         ItemRec: Record Item;
-
+        ExtDocNo: Code[20];
     begin
         IF pFunction <> 'CreateWhseShipment' THEN
             EXIT;
@@ -124,6 +124,8 @@ codeunit 60016 "UI Whse Shipments Functions"
                             SalesOrderNumber := JsonBuffer.value;
                         if JsonBuffer.path = '[' + format(icount) + '].location' then
                             LocationCode := JsonBuffer.value;
+                        if JsonBuffer.Path = '[' + Format(icount) + '].externaldocno' then
+                            ExtDocNo := JsonBuffer.Value;
                     until jsonbuffer.next = 0;
 
                 if not SalesOrdersTempHeaders.get(SalesOrdersTempHeaders."Document Type"::Order,
@@ -174,6 +176,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         WarehouseShipmentHeader."Location Code" := LocationCode;
         WarehouseShipmentHeader."Posting Date" := today;
         WarehouseShipmentHeader."Shipment Date" := today;
+        WarehouseShipmentHeader."External Document No." := ExtDocNo;
         WarehouseShipmentHeader."Shipping No. Series" := WarehouseSetup."Posted Whse. Shipment Nos.";
         WarehouseShipmentHeader.insert;
 
@@ -253,6 +256,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         JsonArr: JsonArray;
         Searcher: Integer;
         boolSuccess: Boolean;
+        LSalesOrderLines: Record "Sales Line";
     begin
         IF pFunction <> 'AddPalletToWhseShipment' THEN
             EXIT;
@@ -365,6 +369,16 @@ codeunit 60016 "UI Whse Shipments Functions"
                                         end;
                                     end;
                                     QuantityToUpdateShip -= WarehouseShipmentLine."Remaining Quantity";
+                                    WarehouseShipmentLine.Validate("Qty. Shipped", QuantityToUpdateShip);
+                                    WarehouseShipmentLine.Modify();
+                                    LSalesOrderLines.Reset();
+                                    LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);
+                                    LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                                    LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                                    if LSalesOrderLines.FindFirst() then begin
+                                        LSalesOrderLines.Validate("Quantity Shipped", LSalesOrderLines."Quantity Shipped" + QuantityToUpdateShip);
+                                        if not LSalesOrderLines.Modify() then;
+                                    end;
                                 end;
                             end;
                             if not boolSuccess then begin
