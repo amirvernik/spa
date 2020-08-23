@@ -257,7 +257,7 @@ codeunit 60011 "UI Shipments Functions"
                     salesline.setrange("Document Type", Salesheader."Document Type");
                     SalesLine.setrange("Document No.", Salesheader."No.");
                     SalesLine.setrange("Location Code", LocationCode);
-                    SalesLine.SetFilter("Quantity Shipped", '<%1', SalesLine.Quantity);
+                    //SalesLine.SetFilter("Quantity Shipped", '<%1', SalesLine.Quantity);
                     if SalesLine.findset then begin
                         WarehouseShipmentLine.reset;
                         WarehouseShipmentLine.setrange("Source Type", 37);
@@ -283,23 +283,25 @@ codeunit 60011 "UI Shipments Functions"
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");
                         SalesLine.setrange("Location Code", LocationCode);
-                        SalesLine.SetFilter("Quantity Shipped", '<%1', SalesLine.Quantity);
+
                         if salesline.findset then
                             repeat
-                                Clear(JsonObjLines);
-                                JsonObjLines.add('Line No.', format(SalesLine."Line No."));
-                                JsonObjLines.add('Item No', SalesLine."No.");
-                                if VariantRec.get(SalesLine."No.", SalesLine."Variant Code") then
-                                    JsonObjLines.add('Variety', VariantRec.Description)
-                                else
-                                    JsonObjLines.add('Variety', '');
-                                JsonObjLines.add('Description', salesline.Description);
-                                JsonObjLines.add('Location', salesline."Location Code");
-                                JsonObjLines.add('Quantity', format(salesline.Quantity));
-                                JsonObjLines.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
-                                JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
-                                JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
-                                JsonArrLines.Add(JsonObjLines);
+                                if SalesLine."Quantity Shipped" < SalesLine.Quantity then begin
+                                    Clear(JsonObjLines);
+                                    JsonObjLines.add('Line No.', format(SalesLine."Line No."));
+                                    JsonObjLines.add('Item No', SalesLine."No.");
+                                    if VariantRec.get(SalesLine."No.", SalesLine."Variant Code") then
+                                        JsonObjLines.add('Variety', VariantRec.Description)
+                                    else
+                                        JsonObjLines.add('Variety', '');
+                                    JsonObjLines.add('Description', salesline.Description);
+                                    JsonObjLines.add('Location', salesline."Location Code");
+                                    JsonObjLines.add('Quantity', format(salesline.Quantity));
+                                    JsonObjLines.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
+                                    JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
+                                    JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
+                                    JsonArrLines.Add(JsonObjLines);
+                                end;
                             until SalesLine.next = 0;
                         if JsonArrLines.Count > 0 then
                             JsonObj.add('Item List', JsonArrLines);
