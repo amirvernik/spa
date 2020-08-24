@@ -4,7 +4,7 @@ codeunit 60022 "Sales Orders Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostSalesDoc', '', true, true)]
     local procedure OnBeforePostSalesDocument(var SalesHeader: Record "Sales Header")
     var
-        SalesDocPostMessage: Label 'Will you like to use the delivery date as the invoice date?';
+        SalesDocPostMessage: Label 'Would you like to use the delivery date as the invoice date?';
     begin
         if SalesHeader."Document Type" = SalesHeader."Document Type"::order then
             if SalesHeader.Invoice then begin
