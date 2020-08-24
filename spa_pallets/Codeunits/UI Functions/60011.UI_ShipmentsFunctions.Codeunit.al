@@ -300,20 +300,16 @@ codeunit 60011 "UI Shipments Functions"
                                     JsonObjLines.add('Location', salesline."Location Code");
                                     JsonObjLines.add('Quantity', format(salesline.Quantity));
                                     JsonObjLines.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
-                                    if BoolExistsInWhseShip then begin
-                                        LQuantity := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Qty. Shipped";
-                                        JsonObjLines.add('Qty. to Ship', format(LQuantity));
-                                        ItemUnitofMeasure.Reset();
-                                        ItemUnitofMeasure.SetRange("Item No.", SalesLine."No.");
-                                        ItemUnitofMeasure.SetRange("Default Unit Of Measure", true);
-                                        if ItemUnitofMeasure.FindFirst() then
-                                            if ItemUnitofMeasure.Code <> WarehouseShipmentLine."Unit of Measure Code" then
-                                                LQuantity *= ItemUnitofMeasure."Qty. per Unit of Measure";
-                                        JsonObjLines.add('Qty. to Ship (Base)', format(LQuantity));
-                                    end else begin
-                                        JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
-                                        JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
-                                    end;
+                                    LQuantity := SalesLine.Quantity - SalesLine."Quantity Shipped";
+                                    JsonObjLines.add('Qty. to Ship', format(LQuantity));
+                                    ItemUnitofMeasure.Reset();
+                                    ItemUnitofMeasure.SetRange("Item No.", SalesLine."No.");
+                                    ItemUnitofMeasure.SetRange("Default Unit Of Measure", true);
+                                    if ItemUnitofMeasure.FindFirst() then
+                                        if ItemUnitofMeasure.Code <> SalesLine."Unit of Measure Code" then
+                                            LQuantity *= ItemUnitofMeasure."Qty. per Unit of Measure";
+                                    JsonObjLines.add('Qty. to Ship (Base)', format(LQuantity));
+
                                     JsonArrLines.Add(JsonObjLines);
                                 end;
                             until SalesLine.next = 0;

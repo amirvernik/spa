@@ -6,7 +6,7 @@ codeunit 60006 "Warehouse Shipment Management"
     var
         WarehousePallet: Record "Warehouse Pallet";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
-        LSalesOrderLines: Record "Sales Line";
+        SalesLine: Record "Sales Line";
     begin
         if Confirm(Lbl005) then begin
             WarehousePallet.reset;
@@ -30,6 +30,14 @@ codeunit 60006 "Warehouse Shipment Management"
             WarehouseShipmentLine.setrange("No.", WarehouseShipment."No.");
             if WarehouseShipmentLine.findset then
                 repeat
+                    SalesLine.Reset();
+                    SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+                    SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                    SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                    if SalesLine.FindFirst() then begin
+                        SalesLine."Quantity Shipped" -= WarehouseShipmentLine."Qty. Shipped";
+                        SalesLine.Modify();
+                    end;
                     WarehouseShipmentLine."Remaining Quantity" := WarehouseShipmentLine.Quantity;
                     WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine.Quantity;
                     WarehouseShipmentLine."Qty. Shipped" := 0;
@@ -151,7 +159,14 @@ codeunit 60006 "Warehouse Shipment Management"
             WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine."Remaining Quantity";
             WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
             WarehouseShipmentLine.modify;
-
+            SalesLine.Reset();
+            SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+            SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+            SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+            if SalesLine.FindFirst() then begin
+                SalesLine."Quantity Shipped" += rec.quantity;
+                SalesLine.Modify();
+            end;
             if ItemRec.get(WarehouseShipmentLine."Item No.") then
                 if itemrec."Lot Nos." <> '' then begin
                     //Create Reservation Entry
