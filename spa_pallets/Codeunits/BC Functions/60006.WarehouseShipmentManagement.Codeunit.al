@@ -142,6 +142,7 @@ codeunit 60006 "Warehouse Shipment Management"
     begin
         WarehousePallet.reset;
         WarehousePallet.setrange("Whse Shipment No.", rec."No.");
+        WarehousePallet.SetRange("Whse Shipment Line No.", Rec."Line No.");
         if WarehousePallet.findfirst then
             error(Err001);
     end;
