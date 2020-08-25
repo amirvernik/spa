@@ -160,7 +160,6 @@ codeunit 60022 "Sales Orders Management"
             SalesHeader."SPA Location" := '';
             SalesHeader."Dispatch Date" := 0D;
             SalesHeader."Pack-out Date" := 0D;
-            SalesHeader."Packing Days" := 0;
             SalesHeader.modify;
         end;
     end;
