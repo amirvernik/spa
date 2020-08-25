@@ -44,7 +44,8 @@ codeunit 60036 "OneDrive Functions"
             Exit(APITokenLocal);
         end
         else
-            error('API Token Request failed');
+            error('API Token Request failed : ' + FORMAT(lResponse.Content.ReadAs(responseText)));
+
     end;
 
 
@@ -65,7 +66,7 @@ codeunit 60036 "OneDrive Functions"
         WebUrl: Text;
         PalletProcessSetup: Record "Pallet Process Setup";
         lOneDrive: Text;
-
+        responseText: Text;
     begin
         PalletProcessSetup.get;
         lOneDrive := PalletProcessSetup."OneDrive Drive ID";
@@ -96,7 +97,7 @@ codeunit 60036 "OneDrive Functions"
                 WebUrl := DelChr(WebUrl, '=', '"');
                 exit(WebUrl);
             end else
-                Error('Error');
+                Error('Error : ' + format(lResponse.Content.ReadAs(responseText)));
         end;
     end;
 
