@@ -94,7 +94,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         LineOrderText: Text;
         LineOrder: Integer;
         ItemRec: Record Item;
-
+        ExtDocNo: Code[20];
     begin
         IF pFunction <> 'CreateWhseShipment' THEN
             EXIT;
@@ -124,6 +124,8 @@ codeunit 60016 "UI Whse Shipments Functions"
                             SalesOrderNumber := JsonBuffer.value;
                         if JsonBuffer.path = '[' + format(icount) + '].location' then
                             LocationCode := JsonBuffer.value;
+                        if JsonBuffer.Path = '[' + Format(icount) + '].externaldocno' then
+                            ExtDocNo := JsonBuffer.Value;
                     until jsonbuffer.next = 0;
 
                 if not SalesOrdersTempHeaders.get(SalesOrdersTempHeaders."Document Type"::Order,
@@ -174,6 +176,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         WarehouseShipmentHeader."Location Code" := LocationCode;
         WarehouseShipmentHeader."Posting Date" := today;
         WarehouseShipmentHeader."Shipment Date" := today;
+        WarehouseShipmentHeader."External Document No." := ExtDocNo;
         WarehouseShipmentHeader."Shipping No. Series" := WarehouseSetup."Posted Whse. Shipment Nos.";
         WarehouseShipmentHeader.insert;
 
@@ -348,7 +351,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                                     WarehousePallet."Sales Order Line No." := WarehouseShipmentLine."Source Line No.";
                                     WarehousePallet."Lot No." := PalletLine."Lot Number";
                                     WarehousePallet.Quantity := WarehouseShipmentLine."Remaining Quantity";
-                                    if WarehousePallet.insert then begin
+                                    if WarehousePallet.insert(true) then begin
                                         //Check Price List Availability
                                         if not FctCheckSalesPriceAvailable(
                                             WarehousePallet."Sales Order No.",
@@ -439,7 +442,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         PalletHeader: Record "Pallet Header";
         RecGReservationEntry: Record "Reservation Entry";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
-
+        LSalesOrderLines: Record "Sales Line";
     begin
         IF pFunction <> 'RemovePalletFromWhseShip' THEN
             EXIT;
@@ -465,8 +468,19 @@ codeunit 60016 "UI Whse Shipments Functions"
                         RecGReservationEntry.Delete();
                     if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
                         WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
+                        WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
                         WarehouseShipmentLine.modify;
+                        LSalesOrderLines.Reset();
+                        LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);
+                        LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                        LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                        if LSalesOrderLines.FindFirst() then begin
+                            // LSalesOrderLines.validate("Qty. to Ship", LSalesOrderLines."Qty. to Ship" + WarehousePallet.quantity);
+                            LSalesOrderLines.Validate("Quantity Shipped", LSalesOrderLines."Quantity Shipped" - WarehousePallet.quantity);
+                            if not LSalesOrderLines.Modify() then;
+                        end;
                     end;
+
                     WarehousePallet.Delete();
                 until WarehousePallet.next = 0;
                 if PalletHeader.get(WarehousePallet."Pallet ID") then begin

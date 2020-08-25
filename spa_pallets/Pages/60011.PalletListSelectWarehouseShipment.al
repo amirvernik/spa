@@ -85,7 +85,7 @@ page 60011 "Pallet List Select Whse Ship"
                                             WarehousePallet."Sales Order Line No." := WarehouseShipmentLine."Source Line No.";
                                             WarehousePallet."Lot No." := PalletLine."Lot Number";
                                             WarehousePallet.Quantity := QuantityToUpdateShip;
-                                            if WarehousePallet.insert then begin
+                                            if WarehousePallet.insert(true) then begin
 
                                                 //Check Price List Availability
                                                 FctCheckSalesPriceAvailable(

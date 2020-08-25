@@ -6,6 +6,7 @@ codeunit 60006 "Warehouse Shipment Management"
     var
         WarehousePallet: Record "Warehouse Pallet";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        SalesLine: Record "Sales Line";
     begin
         if Confirm(Lbl005) then begin
             WarehousePallet.reset;
@@ -28,7 +29,20 @@ codeunit 60006 "Warehouse Shipment Management"
             WarehouseShipmentLine.reset;
             WarehouseShipmentLine.setrange("No.", WarehouseShipment."No.");
             if WarehouseShipmentLine.findset then
-                WarehouseShipmentLine.ModifyAll("Remaining Quantity", WarehouseShipmentLine.Quantity);
+                repeat
+                    SalesLine.Reset();
+                    SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+                    SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                    SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                    if SalesLine.FindFirst() then begin
+                        SalesLine."Quantity Shipped" -= WarehouseShipmentLine."Qty. Shipped";
+                        SalesLine.Modify();
+                    end;
+                    WarehouseShipmentLine."Remaining Quantity" := WarehouseShipmentLine.Quantity;
+                    WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine.Quantity;
+                    WarehouseShipmentLine."Qty. Shipped" := 0;
+                    WarehouseShipmentLine.modify;
+                until WarehouseShipmentLine.Next() = 0;
         end;
         message(Lbl006);
     end;
@@ -128,6 +142,7 @@ codeunit 60006 "Warehouse Shipment Management"
     begin
         WarehousePallet.reset;
         WarehousePallet.setrange("Whse Shipment No.", rec."No.");
+        WarehousePallet.SetRange("Whse Shipment Line No.", Rec."Line No.");
         if WarehousePallet.findfirst then
             error(Err001);
     end;
@@ -141,14 +156,18 @@ codeunit 60006 "Warehouse Shipment Management"
 
     begin
         if WarehouseShipmentLine.get(rec."Whse Shipment No.", rec."Whse Shipment line No.") then begin
-            //WarehouseShipmentLine."Qty. to Ship" += rec.Quantity;
-            //WarehouseShipmentLine."Qty. to Ship (Base)" += rec.Quantity;
-            /*if SalesLine.get(SalesLine."Document Type"::Order, rec."Sales Order No.", rec."Sales Order Line No.") then begin
-                SalesLine.validate(SalesLine."Qty. to Ship", SalesLine."Qty. to Ship" - rec.Quantity);
-            end;*/
             WarehouseShipmentLine."Remaining Quantity" -= rec.quantity;
+            WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine."Remaining Quantity";
+            WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
             WarehouseShipmentLine.modify;
-
+            SalesLine.Reset();
+            SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
+            SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+            SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+            if SalesLine.FindFirst() then begin
+                SalesLine."Quantity Shipped" += rec.quantity;
+                SalesLine.Modify();
+            end;
             if ItemRec.get(WarehouseShipmentLine."Item No.") then
                 if itemrec."Lot Nos." <> '' then begin
                     //Create Reservation Entry

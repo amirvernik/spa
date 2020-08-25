@@ -53,6 +53,9 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
 
                         WarehouseShipmentManagement.PalletSelection(rec);
                         currpage.close;
+
+
+                        CurrPage.Update(false);
                     end;
 
                 }
@@ -66,6 +69,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                     begin
                         WarehouseShipmentManagement.SelectPalletToRemove(rec);
                         currpage.close;
+                        CurrPage.Update(false);
                     end;
 
                 }
@@ -90,7 +94,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                     var
                         StickerNoteFunctions: Codeunit "Sticker note functions";
                     begin
-                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec);                                            
+                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec);
                     end;
                 }
             }

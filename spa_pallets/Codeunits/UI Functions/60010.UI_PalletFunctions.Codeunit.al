@@ -218,9 +218,20 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), today);
                 end;
                 PalletLine.validate("Location Code", LocationCode);
-                PalletLine."Unit of Measure" := UOM;
+
+                ItemUnitOfMeasure.reset;
+                ItemUnitOfMeasure.setrange("Item No.", ItemNo);
+                ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
+                if ItemUnitOfMeasure.findfirst then begin
+                    if ItemUnitOfMeasure.Code = UOM then begin
+                        PalletLine."Unit of Measure" := UOM;
+                        PalletLine.validate(Quantity, qty);
+                    end else begin
+                        PalletLine."Unit of Measure" := ItemUnitOfMeasure.Code;
+                        PalletLine.validate(Quantity, qty * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                    end;
+                end;
                 PalletLine."Lot Number" := LOTNO;
-                PalletLine.validate(Quantity, qty);
                 PalletLine.Insert();
             end;
         END;

@@ -216,8 +216,8 @@ codeunit 60011 "UI Shipments Functions"
         JsonObjLines: JsonObject;
         JsonArr: JsonArray;
         JsonArrLines: JsonArray;
-
-
+        ItemUnitofMeasure: Record "Item Unit of Measure";
+        LQuantity: Decimal;
     begin
         IF pFunction <> 'GetListOfSalesOrderLines' THEN
             EXIT;
@@ -257,24 +257,15 @@ codeunit 60011 "UI Shipments Functions"
                     salesline.setrange("Document Type", Salesheader."Document Type");
                     SalesLine.setrange("Document No.", Salesheader."No.");
                     SalesLine.setrange("Location Code", LocationCode);
+                    //SalesLine.SetFilter("Quantity Shipped", '<%1', SalesLine.Quantity);
                     if SalesLine.findset then begin
-                        WarehouseShipmentLine.reset;
-                        WarehouseShipmentLine.setrange("Source Type", 37);
-                        WarehouseShipmentLine.setrange("Source Document", WarehouseShipmentLine."Source Document"::"Sales Order");
-                        WarehouseShipmentLine.setrange("Source No.", Salesheader."No.");
-                        WarehouseShipmentLine.Setrange("Source Line No.", SalesLine."Line No."); //Add filter by line
-                        if WarehouseShipmentLine.findfirst then
-                            BoolExistsInWhseShip := true
-                        else
-                            BoolExistsInWhseShip := false;
-
                         JsonObj.add('Sales Order No', Salesheader."No.");
                         JsonObj.add('Locaion Code', SalesHeader."SPA Location");
                         JsonObj.add('Customer', SalesHeader."Sell-to Customer No.");
                         JsonObj.add('Customer Name', SalesHeader."Sell-to Customer name");
                         JsonObj.add('ShippingAgentCode', Salesheader."Shipping Agent Code");
                         JsonObj.add('Ship-to Address', SalesHeader."Ship-to Address");
-                        JsonObj.add('Order Date', format(salesheader."Dispatch Date"));
+                        JsonObj.add('Dispatch Date', format(salesheader."Dispatch Date"));
                         JsonObj.add('ExternalDocNum', Salesheader."External Document No.");
                         JsonObj.add('ReqDeliveryDate', Salesheader."Requested Delivery Date");
                         //JsonObj.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved to Lines of json
@@ -282,22 +273,45 @@ codeunit 60011 "UI Shipments Functions"
                         salesline.setrange("Document Type", Salesheader."Document Type");
                         SalesLine.setrange("Document No.", Salesheader."No.");
                         SalesLine.setrange("Location Code", LocationCode);
+
                         if salesline.findset then
                             repeat
-                                Clear(JsonObjLines);
-                                JsonObjLines.add('Line No.', format(SalesLine."Line No."));
-                                JsonObjLines.add('Item No', SalesLine."No.");
-                                if VariantRec.get(SalesLine."No.", SalesLine."Variant Code") then
-                                    JsonObjLines.add('Variety', VariantRec.Description)
+                                WarehouseShipmentLine.reset;
+                                WarehouseShipmentLine.setrange("Source Type", 37);
+                                WarehouseShipmentLine.setrange("Source Document", WarehouseShipmentLine."Source Document"::"Sales Order");
+                                WarehouseShipmentLine.setrange("Source No.", Salesheader."No.");
+                                WarehouseShipmentLine.Setrange("Source Line No.", SalesLine."Line No."); //Add filter by line
+                                if WarehouseShipmentLine.FindSet() then begin
+                                    BoolExistsInWhseShip := true;
+                                    WarehouseShipmentLine.CalcSums("Remaining Quantity");
+                                end
                                 else
-                                    JsonObjLines.add('Variety', '');
-                                JsonObjLines.add('Description', salesline.Description);
-                                JsonObjLines.add('Location', salesline."Location Code");
-                                JsonObjLines.add('Quantity', format(salesline.Quantity));
-                                JsonObjLines.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
-                                JsonObjLines.add('Qty. to Ship', format(SalesLine."Qty. to Ship"));
-                                JsonObjLines.add('Qty. to Ship (Base)', format(SalesLine."Qty. to Ship (base)"));
-                                JsonArrLines.Add(JsonObjLines);
+                                    BoolExistsInWhseShip := false;
+
+                                if SalesLine."Quantity Shipped" < SalesLine.Quantity then begin
+                                    Clear(JsonObjLines);
+                                    JsonObjLines.add('Line No.', format(SalesLine."Line No."));
+                                    JsonObjLines.add('Item No', SalesLine."No.");
+                                    if VariantRec.get(SalesLine."No.", SalesLine."Variant Code") then
+                                        JsonObjLines.add('Variety', VariantRec.Description)
+                                    else
+                                        JsonObjLines.add('Variety', '');
+                                    JsonObjLines.add('Description', salesline.Description);
+                                    JsonObjLines.add('Location', salesline."Location Code");
+                                    JsonObjLines.add('Quantity', format(salesline.Quantity));
+                                    JsonObjLines.add('ExistInWhseShip', BoolExistsInWhseShip); //Moved from header of json
+                                    LQuantity := SalesLine.Quantity - SalesLine."Quantity Shipped";
+                                    JsonObjLines.add('Qty. to Ship', format(LQuantity));
+                                    ItemUnitofMeasure.Reset();
+                                    ItemUnitofMeasure.SetRange("Item No.", SalesLine."No.");
+                                    ItemUnitofMeasure.SetRange("Default Unit Of Measure", true);
+                                    if ItemUnitofMeasure.FindFirst() then
+                                        if ItemUnitofMeasure.Code <> SalesLine."Unit of Measure Code" then
+                                            LQuantity *= ItemUnitofMeasure."Qty. per Unit of Measure";
+                                    JsonObjLines.add('Qty. to Ship (Base)', format(LQuantity));
+
+                                    JsonArrLines.Add(JsonObjLines);
+                                end;
                             until SalesLine.next = 0;
                         if JsonArrLines.Count > 0 then
                             JsonObj.add('Item List', JsonArrLines);
