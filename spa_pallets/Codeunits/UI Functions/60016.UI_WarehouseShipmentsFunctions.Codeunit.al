@@ -214,8 +214,8 @@ codeunit 60016 "UI Whse Shipments Functions"
                     WarehouseShipmentLine.validate("Variant Code", SalesLineCheck."Variant Code");
                     WarehouseShipmentLine.Description := SalesLineCheck.Description;
                     WarehouseShipmentLine.Quantity := SalesLineCheck.Quantity;
-                    WarehouseShipmentLine."Qty. to Ship" := SalesLineCheck.quantity;
-                    WarehouseShipmentLine."Qty. to Ship (Base)" := SalesLineCheck.quantity;
+                    //WarehouseShipmentLine."Qty. to Ship" := SalesLineCheck.quantity;
+                    //WarehouseShipmentLine."Qty. to Ship (Base)" := SalesLineCheck.quantity;
                     WarehouseShipmentLine."Qty. Outstanding" := SalesLineCheck.quantity;
                     WarehouseShipmentLine."Qty. Outstanding (Base)" := SalesLineCheck.quantity;
                     WarehouseShipmentLine."Remaining Quantity" := SalesLineCheck.quantity;
@@ -475,8 +475,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                         LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
                         LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
                         if LSalesOrderLines.FindFirst() then begin
-                            // LSalesOrderLines.validate("Qty. to Ship", LSalesOrderLines."Qty. to Ship" + WarehousePallet.quantity);
-                            LSalesOrderLines.Validate("Quantity Shipped", LSalesOrderLines."Quantity Shipped" - WarehousePallet.quantity);
+                            LSalesOrderLines."Qty. to Ship" -= WarehousePallet.quantity;
                             if not LSalesOrderLines.Modify() then;
                         end;
                     end;
