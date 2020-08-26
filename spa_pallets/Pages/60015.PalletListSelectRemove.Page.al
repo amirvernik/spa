@@ -86,12 +86,12 @@ page 60015 "Pallet List Select Remove"
                                 SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
                                 SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
                                 if SalesLine.FindFirst() then begin
-                                    SalesLine."Quantity Shipped" -= WarehousePallet.quantity;
+                                    SalesLine."Qty. to Ship" -= WarehousePallet.quantity;
                                     SalesLine.Modify();
                                 end;
 
                                 WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
-                                WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
+                                WarehouseShipmentLine."Qty. to Ship" -= WarehousePallet.quantity;
                                 WarehouseShipmentLine.modify;
                             end;
                             WarehousePallet.Delete();
