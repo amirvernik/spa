@@ -257,7 +257,6 @@ codeunit 60011 "UI Shipments Functions"
                     salesline.setrange("Document Type", Salesheader."Document Type");
                     SalesLine.setrange("Document No.", Salesheader."No.");
                     SalesLine.setrange("Location Code", LocationCode);
-                    //SalesLine.SetFilter("Quantity Shipped", '<%1', SalesLine.Quantity);
                     if SalesLine.findset then begin
                         JsonObj.add('Sales Order No', Salesheader."No.");
                         JsonObj.add('Locaion Code', SalesHeader."SPA Location");

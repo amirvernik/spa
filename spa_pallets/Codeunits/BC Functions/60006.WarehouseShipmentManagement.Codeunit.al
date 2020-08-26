@@ -35,12 +35,11 @@ codeunit 60006 "Warehouse Shipment Management"
                     SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
                     SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
                     if SalesLine.FindFirst() then begin
-                        SalesLine."Quantity Shipped" -= WarehouseShipmentLine."Qty. Shipped";
+                        SalesLine."Qty. to Ship" := 0;
                         SalesLine.Modify();
                     end;
-                    WarehouseShipmentLine."Remaining Quantity" := WarehouseShipmentLine.Quantity;
-                    WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine.Quantity;
-                    WarehouseShipmentLine."Qty. Shipped" := 0;
+                    WarehouseShipmentLine."Remaining Quantity" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Qty. Shipped";
+                    WarehouseShipmentLine."Qty. to Ship" := 0;
                     WarehouseShipmentLine.modify;
                 until WarehouseShipmentLine.Next() = 0;
         end;
@@ -156,16 +155,15 @@ codeunit 60006 "Warehouse Shipment Management"
 
     begin
         if WarehouseShipmentLine.get(rec."Whse Shipment No.", rec."Whse Shipment line No.") then begin
+            WarehouseShipmentLine."Qty. to Ship" += rec.quantity;
             WarehouseShipmentLine."Remaining Quantity" -= rec.quantity;
-            WarehouseShipmentLine."Qty. to Ship" := WarehouseShipmentLine."Remaining Quantity";
-            WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
             WarehouseShipmentLine.modify;
             SalesLine.Reset();
             SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
             SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
             SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
             if SalesLine.FindFirst() then begin
-                SalesLine."Quantity Shipped" += rec.quantity;
+                SalesLine."Qty. to Ship" += rec.quantity;
                 SalesLine.Modify();
             end;
             if ItemRec.get(WarehouseShipmentLine."Item No.") then
