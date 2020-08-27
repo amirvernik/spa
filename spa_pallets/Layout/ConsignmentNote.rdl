@@ -1140,41 +1140,6 @@
               </RightBorder>
             </Style>
           </Rectangle>
-          <Textbox Name="Textbox18">
-            <CanGrow>true</CanGrow>
-            <KeepTogether>true</KeepTogether>
-            <Paragraphs>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>GrowData Orchard Consignment Note</Value>
-                    <Style>
-                      <FontStyle>Italic</FontStyle>
-                      <FontFamily>Calibri</FontFamily>
-                      <FontSize>12pt</FontSize>
-                      <FontWeight>Bold</FontWeight>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-            </Paragraphs>
-            <rd:DefaultName>Textbox18</rd:DefaultName>
-            <Top>9.98833in</Top>
-            <Left>0.45014in</Left>
-            <Height>0.30208in</Height>
-            <Width>3.61458in</Width>
-            <ZIndex>27</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-          </Textbox>
           <Tablix Name="Tablix1">
             <TablixBody>
               <TablixColumns>
@@ -2372,7 +2337,7 @@
                           <Paragraph>
                             <TextRuns>
                               <TextRun>
-                                <Value>="No of Pallets:"&amp; " "&amp; Count(Fields!Palletid.Value)</Value>
+                                <Value>="No of Pallets:"&amp; " "&amp; CountDistinct(Fields!Palletid.Value)</Value>
                                 <Style>
                                   <FontWeight>Bold</FontWeight>
                                 </Style>
@@ -2411,7 +2376,7 @@
             <Left>0.36038in</Left>
             <Height>1.45834in</Height>
             <Width>6.83977in</Width>
-            <ZIndex>28</ZIndex>
+            <ZIndex>27</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -2439,7 +2404,7 @@
             <Left>5.77653in</Left>
             <Height>0.25in</Height>
             <Width>1in</Width>
-            <ZIndex>29</ZIndex>
+            <ZIndex>28</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -2853,7 +2818,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!QuantityLine.Value</Value>
+                                  <Value>=Sum(Fields!QuantityLine.Value,"Details")</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -2986,7 +2951,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!QuantityLine.Value)</Value>
+                                  <Value>=Sum(Fields!QuantityLine.Value,"Details")</Value>
                                   <Style>
                                     <FontWeight>Bold</FontWeight>
                                   </Style>
@@ -3012,6 +2977,7 @@
                             <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                         </Textbox>
+                        <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
                     <TablixCell>
@@ -3295,7 +3261,7 @@
             <Left>0.38824in</Left>
             <Height>1.09375in</Height>
             <Width>6.73777in</Width>
-            <ZIndex>30</ZIndex>
+            <ZIndex>29</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -3328,7 +3294,7 @@
             <Left>0.40153in</Left>
             <Height>0.29167in</Height>
             <Width>2.22917in</Width>
-            <ZIndex>31</ZIndex>
+            <ZIndex>30</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
