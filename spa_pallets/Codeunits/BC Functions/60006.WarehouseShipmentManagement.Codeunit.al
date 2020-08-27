@@ -183,6 +183,7 @@ codeunit 60006 "Warehouse Shipment Management"
                     RecGReservationEntry."Lot No." := PalletLine."Lot Number";
                     RecGReservationEntry.validate("Quantity (Base)", -1 * rec.Quantity);
                     RecGReservationEntry.validate(Quantity, -1 * rec.Quantity);
+                    RecGReservationEntry.validate("Qty. to Handle (Base)", -1 * rec.Quantity);
                     RecGReservationEntry.insert;
 
                     if PalletHeader.get(rec."Pallet ID") then

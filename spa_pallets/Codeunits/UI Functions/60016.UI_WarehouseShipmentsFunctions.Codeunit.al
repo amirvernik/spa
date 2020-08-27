@@ -10,6 +10,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         JsonArr: JsonArray;
         JsonObjLines: JsonObject;
         JsonArrLines: JsonArray;
+        SalesOrder: Record "Sales Header";
 
     begin
         IF pFunction <> 'GetListOfWhseShipmentLines' THEN
@@ -32,6 +33,8 @@ codeunit 60016 "UI Whse Shipments Functions"
                         JsonObjLines.add('Variety Code', WarehouseShipmentLine."Variant Code");
                         JsonObjLines.add('Line Number', format(WarehouseShipmentLine."Line No."));
                         JsonObjLines.add('Description', WarehouseShipmentLine.Description);
+                        if SalesOrder.get(SalesOrder."Document Type"::Order, WarehouseShipmentLine."Source No.") then
+                            JsonObjLines.add('Agent', SalesOrder."Shipping Agent Code");
                         JsonObjLines.add('Quantity', format(WarehouseShipmentLine.Quantity));
                         JsonObjLines.add('Qty. to Ship', format(WarehouseShipmentLine."Qty. to Ship"));
                         JsonObjLines.add('Remaining Qty', format(WarehouseShipmentLine."Remaining Quantity"));
