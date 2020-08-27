@@ -156,7 +156,7 @@ report 60003 "Consignment Note"
                 dataitem("Warehouse Pallet"; "Warehouse Pallet")
                 {
                     DataItemLink = "Whse Shipment No." = FIELD("No."),
-                               "Whse Shipment Line No." = FIELD("Line No.");
+                               "Sales Order No." = FIELD("Source No.");
                     DataItemTableView = sorting("Pallet Id");
                     column(Palletid; "Pallet ID")
                     {
@@ -169,7 +169,9 @@ report 60003 "Consignment Note"
                     dataitem("Pallet Line"; "Pallet Line")
                     {
 
-                        DataItemLink = "Pallet ID" = FIELD("Pallet ID");
+                        DataItemLink = "Pallet ID" = FIELD("Pallet ID")
+                                       , "Line No." = FIELD("Pallet Line No.")
+                                       , "Lot Number" = FIELD("Lot No.");
                         DataItemTableView = sorting("Pallet Id");
                         column(PalletidLine; "Pallet ID")
                         {
@@ -243,14 +245,18 @@ report 60003 "Consignment Note"
                         {
 
                         }
+
                         trigger OnAfterGetRecord() //PALLET LINE
                         var
-
                         begin
+
                             tempItemVariant.Reset();
                             tempItemVariant.Get("Warehouse Shipment Line"."Item No.", "Pallet Line"."Variant Code");
-                            TotalCustomerQty += Quantity;
-                            TotalContainerQty += Quantity;
+                            if "Pallet Line"."Item No." = "Warehouse Shipment Line"."Item No." then begin
+                                TotalCustomerQty += Quantity;
+                                TotalContainerQty += Quantity;
+                            end;
+
                             Container := GetItemItemAttributeA("Item No.", 'Packaging Description');
                             Grade := GetItemItemAttributeA("Item No.", 'Grade');
                             Size := GetItemItemAttributeA("Item No.", 'Size');
@@ -275,7 +281,11 @@ report 60003 "Consignment Note"
                         // // tempPallet := tempPalletLine."Pallet ID";
                         // //  end;                   
                         TotalContainerQty := 0;
-                        NumberOfPallet := NumberOfPallet + 1;
+                        if tempPallet <> "Pallet Line"."Pallet ID" then begin
+                            NumberOfPallet := NumberOfPallet + 1;
+                            tempPallet := "Pallet Line"."Pallet ID";
+                        end;
+
                     end;
                 } //end-warhouse pallet
 
@@ -375,22 +385,22 @@ report 60003 "Consignment Note"
                        TableRelation = Customer;
 
                    }*/
-                field("Num Order"; NumOrder)
-                {
-                    ApplicationArea = ALL;
-                    TableRelation = "Sales Header"."No.";
+                //field("Sales Order Number"; NumOrder)
+                //{
+                //  ApplicationArea = ALL;
+                //  TableRelation = "Sales Header"."No.";
 
 
 
-                    // CLEAR(myTabfrm);
-                    // myRec.RESET();
-                    // myTabfrm.SETTABLEVIEW(myRec) ;
-                    // myTabfrm.LOOKUPMODE(TRUE) ;
-                    // IF myTabfrm.RUNMODAL = ACTION::LookupOK THEN BEGIN
-                    // myTabfrm.GETRECORD(myRec);
-                    // SETFILTER(text,myRec.text);
-                    // END;
-                }
+                // CLEAR(myTabfrm);
+                // myRec.RESET();
+                // myTabfrm.SETTABLEVIEW(myRec) ;
+                // myTabfrm.LOOKUPMODE(TRUE) ;
+                // IF myTabfrm.RUNMODAL = ACTION::LookupOK THEN BEGIN
+                // myTabfrm.GETRECORD(myRec);
+                // SETFILTER(text,myRec.text);
+                // END;
+                //}
 
 
             }

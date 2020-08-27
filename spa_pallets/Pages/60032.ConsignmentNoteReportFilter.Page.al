@@ -37,7 +37,7 @@ page 60032 "Consignment Note Filetr"
                     TableRelation = Customer;
 
                 }
-                field("Num Order"; NumOrder)
+                field("Sales Order Number"; NumOrder)
                 {
                     ApplicationArea = ALL;
                     Lookup = true;
@@ -132,11 +132,12 @@ page 60032 "Consignment Note Filetr"
     var
         ConsignmentReport: Report "Consignment Note";
         SalesHeader: Record "Sales Header";
+        Lbl001: label 'You need to choose sales order';
     begin
 
         if CloseAction = Action::OK then begin
             if NumOrder = '' then
-                error('לא נבחרה הזמנה')
+                error(Lbl001)
             else begin
                 SalesHeader.Reset();
                 SalesHeader.SetRange("No.", NumOrder);

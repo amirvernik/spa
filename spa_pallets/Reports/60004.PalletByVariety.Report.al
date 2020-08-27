@@ -235,10 +235,12 @@ report 60004 "Pallet By Variety"
             }
         }
         trigger OnQueryClosePage(CloseAction: Action): Boolean
+        var
+            Lbl001: label 'You need to choose Customer';
         begin
             //IF CloseAction IN [ACTION::OK, ACTION::LookupOK] THEN BEGIN
             if CloseAction <> CloseAction::Cancel then
-                IF CustomerNum = '' THEN ERROR('לא נבחר לקוח');
+                IF CustomerNum = '' THEN ERROR(Lbl001);
         END;
     }
 
