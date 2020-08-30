@@ -11,169 +11,6 @@
       <rd:DataSourceID>1546c72c-13e1-4b32-baf3-cb1cf7886679</rd:DataSourceID>
     </DataSource>
   </DataSources>
-  <DataSets>
-    <DataSet Name="DataSet_Result">
-      <Query>
-        <DataSourceName>DataSource</DataSourceName>
-        <CommandText />
-      </Query>
-      <Fields>
-        <Field Name="TodayDate">
-          <DataField>TodayDate</DataField>
-        </Field>
-        <Field Name="CurrentTime">
-          <DataField>CurrentTime</DataField>
-        </Field>
-        <Field Name="CurrentTimeLbl">
-          <DataField>CurrentTimeLbl</DataField>
-        </Field>
-        <Field Name="CompanyInfoPicture">
-          <DataField>CompanyInfoPicture</DataField>
-        </Field>
-        <Field Name="CompanyInfoName">
-          <DataField>CompanyInfoName</DataField>
-        </Field>
-        <Field Name="CompanyInfoAddress">
-          <DataField>CompanyInfoAddress</DataField>
-        </Field>
-        <Field Name="CompanyInfoCity">
-          <DataField>CompanyInfoCity</DataField>
-        </Field>
-        <Field Name="CompanyInfoCountry">
-          <DataField>CompanyInfoCountry</DataField>
-        </Field>
-        <Field Name="CompanyInfoPostCode">
-          <DataField>CompanyInfoPostCode</DataField>
-        </Field>
-        <Field Name="CompanyInfoPhone">
-          <DataField>CompanyInfoPhone</DataField>
-        </Field>
-        <Field Name="CompanyInfoPhoneLbl">
-          <DataField>CompanyInfoPhoneLbl</DataField>
-        </Field>
-        <Field Name="CompanyInfoFax">
-          <DataField>CompanyInfoFax</DataField>
-        </Field>
-        <Field Name="CompanyInfoFaxLbl">
-          <DataField>CompanyInfoFaxLbl</DataField>
-        </Field>
-        <Field Name="ConNote">
-          <DataField>ConNote</DataField>
-        </Field>
-        <Field Name="numberLbl">
-          <DataField>numberLbl</DataField>
-        </Field>
-        <Field Name="CustName">
-          <DataField>CustName</DataField>
-        </Field>
-        <Field Name="CustNameLbl">
-          <DataField>CustNameLbl</DataField>
-        </Field>
-        <Field Name="CustomerAddress">
-          <DataField>CustomerAddress</DataField>
-        </Field>
-        <Field Name="PoNumber">
-          <DataField>PoNumber</DataField>
-        </Field>
-        <Field Name="PoNumberLbl">
-          <DataField>PoNumberLbl</DataField>
-        </Field>
-        <Field Name="DeliveyDate">
-          <DataField>DeliveyDate</DataField>
-        </Field>
-        <Field Name="DeliveyDateLbl">
-          <DataField>DeliveyDateLbl</DataField>
-        </Field>
-        <Field Name="WSL_No">
-          <DataField>WSL_No</DataField>
-        </Field>
-        <Field Name="LineNo">
-          <DataField>LineNo</DataField>
-        </Field>
-        <Field Name="ItemNo">
-          <DataField>ItemNo</DataField>
-        </Field>
-        <Field Name="Quantity">
-          <DataField>Quantity</DataField>
-        </Field>
-        <Field Name="QuantityFormat">
-          <DataField>QuantityFormat</DataField>
-        </Field>
-        <Field Name="QuantityLbl">
-          <DataField>QuantityLbl</DataField>
-        </Field>
-        <Field Name="ColumnName">
-          <DataField>ColumnName</DataField>
-        </Field>
-        <Field Name="Palletid">
-          <DataField>Palletid</DataField>
-        </Field>
-        <Field Name="No">
-          <DataField>No</DataField>
-        </Field>
-        <Field Name="PalletidLine">
-          <DataField>PalletidLine</DataField>
-        </Field>
-        <Field Name="PalletLineNo">
-          <DataField>PalletLineNo</DataField>
-        </Field>
-        <Field Name="LotNo">
-          <DataField>LotNo</DataField>
-        </Field>
-        <Field Name="LotNoLbl">
-          <DataField>LotNoLbl</DataField>
-        </Field>
-        <Field Name="QuantityLine">
-          <DataField>QuantityLine</DataField>
-        </Field>
-        <Field Name="QuantityLineFormat">
-          <DataField>QuantityLineFormat</DataField>
-        </Field>
-        <Field Name="QuantityLineLbl">
-          <DataField>QuantityLineLbl</DataField>
-        </Field>
-        <Field Name="VariantCode">
-          <DataField>VariantCode</DataField>
-        </Field>
-        <Field Name="VarientName">
-          <DataField>VarientName</DataField>
-        </Field>
-        <Field Name="VarientNameLbl">
-          <DataField>VarientNameLbl</DataField>
-        </Field>
-        <Field Name="TotalContainerQty">
-          <DataField>TotalContainerQty</DataField>
-        </Field>
-        <Field Name="TotalContainerQtyFormat">
-          <DataField>TotalContainerQtyFormat</DataField>
-        </Field>
-        <Field Name="TotalContainerQtyLbl">
-          <DataField>TotalContainerQtyLbl</DataField>
-        </Field>
-        <Field Name="Container">
-          <DataField>Container</DataField>
-        </Field>
-        <Field Name="ContainerLbl">
-          <DataField>ContainerLbl</DataField>
-        </Field>
-        <Field Name="Grade">
-          <DataField>Grade</DataField>
-        </Field>
-        <Field Name="GradeLbl">
-          <DataField>GradeLbl</DataField>
-        </Field>
-        <Field Name="Size">
-          <DataField>Size</DataField>
-        </Field>
-        <Field Name="SizeLbl">
-          <DataField>SizeLbl</DataField>
-        </Field>
-        <Field Name="TotalCustomerQtyLbl">
-          <DataField>TotalCustomerQtyLbl</DataField>
-        </Field>
-      </Fields>
-    </DataSet>
-  </DataSets>
   <ReportSections>
     <ReportSection>
       <Body>
@@ -4374,12 +4211,6 @@
       </Page>
     </ReportSection>
   </ReportSections>
-  <ReportParametersLayout>
-    <GridLayoutDefinition>
-      <NumberOfColumns>4</NumberOfColumns>
-      <NumberOfRows>2</NumberOfRows>
-    </GridLayoutDefinition>
-  </ReportParametersLayout>
   <Code>Public Function BlankZero(ByVal Value As Decimal)
     if Value = 0 then
         Return ""
@@ -4419,4 +4250,167 @@ End Function
   <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
   <rd:ReportUnitType>Inch</rd:ReportUnitType>
   <rd:ReportID>0eeb6585-38ae-40f1-885b-8d50088d51b4</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="TodayDate">
+          <DataField>TodayDate</DataField>
+        </Field>
+        <Field Name="CurrentTime">
+          <DataField>CurrentTime</DataField>
+        </Field>
+        <Field Name="CurrentTimeLbl">
+          <DataField>CurrentTimeLbl</DataField>
+        </Field>
+        <Field Name="CompanyInfoPicture">
+          <DataField>CompanyInfoPicture</DataField>
+        </Field>
+        <Field Name="CompanyInfoName">
+          <DataField>CompanyInfoName</DataField>
+        </Field>
+        <Field Name="CompanyInfoAddress">
+          <DataField>CompanyInfoAddress</DataField>
+        </Field>
+        <Field Name="CompanyInfoCity">
+          <DataField>CompanyInfoCity</DataField>
+        </Field>
+        <Field Name="CompanyInfoCountry">
+          <DataField>CompanyInfoCountry</DataField>
+        </Field>
+        <Field Name="CompanyInfoPostCode">
+          <DataField>CompanyInfoPostCode</DataField>
+        </Field>
+        <Field Name="CompanyInfoPhone">
+          <DataField>CompanyInfoPhone</DataField>
+        </Field>
+        <Field Name="CompanyInfoPhoneLbl">
+          <DataField>CompanyInfoPhoneLbl</DataField>
+        </Field>
+        <Field Name="CompanyInfoFax">
+          <DataField>CompanyInfoFax</DataField>
+        </Field>
+        <Field Name="CompanyInfoFaxLbl">
+          <DataField>CompanyInfoFaxLbl</DataField>
+        </Field>
+        <Field Name="ConNote">
+          <DataField>ConNote</DataField>
+        </Field>
+        <Field Name="numberLbl">
+          <DataField>numberLbl</DataField>
+        </Field>
+        <Field Name="CustName">
+          <DataField>CustName</DataField>
+        </Field>
+        <Field Name="CustNameLbl">
+          <DataField>CustNameLbl</DataField>
+        </Field>
+        <Field Name="CustomerAddress">
+          <DataField>CustomerAddress</DataField>
+        </Field>
+        <Field Name="PoNumber">
+          <DataField>PoNumber</DataField>
+        </Field>
+        <Field Name="PoNumberLbl">
+          <DataField>PoNumberLbl</DataField>
+        </Field>
+        <Field Name="DeliveyDate">
+          <DataField>DeliveyDate</DataField>
+        </Field>
+        <Field Name="DeliveyDateLbl">
+          <DataField>DeliveyDateLbl</DataField>
+        </Field>
+        <Field Name="WSL_No">
+          <DataField>WSL_No</DataField>
+        </Field>
+        <Field Name="LineNo">
+          <DataField>LineNo</DataField>
+        </Field>
+        <Field Name="ItemNo">
+          <DataField>ItemNo</DataField>
+        </Field>
+        <Field Name="Quantity">
+          <DataField>Quantity</DataField>
+        </Field>
+        <Field Name="QuantityFormat">
+          <DataField>QuantityFormat</DataField>
+        </Field>
+        <Field Name="QuantityLbl">
+          <DataField>QuantityLbl</DataField>
+        </Field>
+        <Field Name="ColumnName">
+          <DataField>ColumnName</DataField>
+        </Field>
+        <Field Name="Palletid">
+          <DataField>Palletid</DataField>
+        </Field>
+        <Field Name="No">
+          <DataField>No</DataField>
+        </Field>
+        <Field Name="PalletidLine">
+          <DataField>PalletidLine</DataField>
+        </Field>
+        <Field Name="PalletLineNo">
+          <DataField>PalletLineNo</DataField>
+        </Field>
+        <Field Name="LotNo">
+          <DataField>LotNo</DataField>
+        </Field>
+        <Field Name="LotNoLbl">
+          <DataField>LotNoLbl</DataField>
+        </Field>
+        <Field Name="QuantityLine">
+          <DataField>QuantityLine</DataField>
+        </Field>
+        <Field Name="QuantityLineFormat">
+          <DataField>QuantityLineFormat</DataField>
+        </Field>
+        <Field Name="QuantityLineLbl">
+          <DataField>QuantityLineLbl</DataField>
+        </Field>
+        <Field Name="VariantCode">
+          <DataField>VariantCode</DataField>
+        </Field>
+        <Field Name="VarientName">
+          <DataField>VarientName</DataField>
+        </Field>
+        <Field Name="VarientNameLbl">
+          <DataField>VarientNameLbl</DataField>
+        </Field>
+        <Field Name="TotalContainerQty">
+          <DataField>TotalContainerQty</DataField>
+        </Field>
+        <Field Name="TotalContainerQtyFormat">
+          <DataField>TotalContainerQtyFormat</DataField>
+        </Field>
+        <Field Name="TotalContainerQtyLbl">
+          <DataField>TotalContainerQtyLbl</DataField>
+        </Field>
+        <Field Name="Container">
+          <DataField>Container</DataField>
+        </Field>
+        <Field Name="ContainerLbl">
+          <DataField>ContainerLbl</DataField>
+        </Field>
+        <Field Name="Grade">
+          <DataField>Grade</DataField>
+        </Field>
+        <Field Name="GradeLbl">
+          <DataField>GradeLbl</DataField>
+        </Field>
+        <Field Name="Size">
+          <DataField>Size</DataField>
+        </Field>
+        <Field Name="SizeLbl">
+          <DataField>SizeLbl</DataField>
+        </Field>
+        <Field Name="TotalCustomerQtyLbl">
+          <DataField>TotalCustomerQtyLbl</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
 </Report>
