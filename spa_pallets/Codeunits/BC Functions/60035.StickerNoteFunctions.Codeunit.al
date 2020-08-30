@@ -263,6 +263,8 @@ codeunit 60035 "Sticker note functions"
 
                         DispatchText += CompanyText;
                         OutStr.WriteText(DispatchText);
+                        Outstr.WriteText();
+                        OutStr.WriteText(GetVendorShipmentNo(WarehousePallet));
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
@@ -552,6 +554,8 @@ codeunit 60035 "Sticker note functions"
                         ItemText += CompanyText;
 
                         OutStr.WriteText(ItemText);
+                        Outstr.WriteText();
+                        OutStr.WriteText(GetVendorShipmentNo(WarehousePallet));
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
@@ -653,5 +657,19 @@ codeunit 60035 "Sticker note functions"
 
         // Read the response content as XML. 
         WebResponse.Content().ReadAs(responseText);
+    end;
+
+    Procedure GetVendorShipmentNo(var pWarehousePallet: Record "Warehouse Pallet"): code[35]
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PalletLine: Record "Pallet Line";
+    begin
+        if PalletLine.get(pWarehousePallet."Pallet ID", pWarehousePallet."Pallet Line No.") then begin
+            PurchaseHeader.reset;
+            PurchaseHeader.setrange("Document Type", PurchaseHeader."Document Type"::Order);
+            PurchaseHeader.setrange("Batch Number", PalletLine."Lot Number");
+            if PurchaseHeader.findfirst then
+                exit(PurchaseHeader."Vendor Shipment No.");
+        end;
     end;
 }

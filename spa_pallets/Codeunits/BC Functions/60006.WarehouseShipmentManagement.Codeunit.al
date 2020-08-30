@@ -148,7 +148,8 @@ codeunit 60006 "Warehouse Shipment Management"
 
     begin
         if WarehouseShipmentLine.get(rec."Whse Shipment No.", rec."Whse Shipment line No.") then begin
-            WarehouseShipmentLine."Qty. to Ship" += rec.quantity;
+            //WarehouseShipmentLine."Qty. to Ship" += rec.quantity;
+            WarehouseShipmentLine.validate("Qty. to Ship", WarehouseShipmentLine."Qty. to Ship" + rec.quantity);
             WarehouseShipmentLine."Remaining Quantity" -= rec.quantity;
             WarehouseShipmentLine.modify;
             if ItemRec.get(WarehouseShipmentLine."Item No.") then

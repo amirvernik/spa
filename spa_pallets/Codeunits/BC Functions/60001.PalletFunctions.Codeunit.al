@@ -327,6 +327,22 @@ codeunit 60001 "Pallet Functions"
             exit(1);
     end;
 
+    //Get First Purchase Header
+    procedure GetFirstPO(var pPalletHeader: Record "Pallet Header"): Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        PalletLines.Reset();
+        PalletLines.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+        if PalletLines.findfirst then begin
+            PurchaseHeader.reset;
+            PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Order);
+            PurchaseHeader.setrange("Batch Number", PalletLines."Lot Number");
+            if PurchaseHeader.FindFirst() then
+                exit(PurchaseHeader."No.");
+        end;
+    end;
+
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         ItemLedgerFunctions: Codeunit "Item Ledger Functions";

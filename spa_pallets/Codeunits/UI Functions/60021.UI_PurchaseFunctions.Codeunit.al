@@ -794,4 +794,50 @@ codeunit 60021 "Purch. UI Functions"
         else
             pContent := 'Pallets Added Succesfully';
     end;
+
+    //Update Purchase Header -UpdatePurchaseHeader [9344]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    procedure UpdatePurchaseHeader(VAR pFunction: Text[50]; VAR pContent: Text)
+    var
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        PurchaseNumber: Code[20];
+        PurchaseType: Text;
+        RM_Bins: Integer;
+        HarvestDate_Json: Text;
+        HarvestDate_Eval: date;
+        PurchaseHeader: Record "Purchase Header";
+        ResultText: Text;
+        JsonObjResult: JsonObject;
+
+    begin
+        IF pFunction <> 'UpdatePurchaseHeader' THEN
+            EXIT;
+
+        JsonObj.ReadFrom(pContent);
+
+        JsonObj.SelectToken('PONumber', JsonTkn);
+        PurchaseNumber := JsonTkn.AsValue().AsText();
+
+        JsonObj.SelectToken('Type', JsonTkn);
+        PurchaseType := JsonTkn.AsValue().AsText();
+
+        JsonObj.SelectToken('Bins', JsonTkn);
+        RM_Bins := JsonTkn.AsValue().AsInteger();
+
+        JsonObj.SelectToken('HarvestDate', JsonTkn);
+        HarvestDate_Json := JsonTkn.AsValue().AsText();
+        Evaluate(HarvestDate_Eval, HarvestDate_json);
+
+        if PurchaseHeader.get(PurchaseHeader."Document Type"::Order, PurchaseNumber) then begin
+            PurchaseHeader."Number Of Raw Material Bins" := RM_Bins;
+            PurchaseHeader."Harvest Date" := HarvestDate_Eval;
+            IF PurchaseHeader.MODIFY then
+                ResultText := 'Success' else
+                ResultText := 'Error : ' + GetLastErrorText;
+        end;
+
+        JsonObjResult.add('Result', ResultText);
+        JsonObjResult.WriteTo(pContent);
+    end;
 }

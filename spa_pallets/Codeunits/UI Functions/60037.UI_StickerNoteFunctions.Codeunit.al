@@ -162,6 +162,4 @@ codeunit 60037 "UI Sticker Note Functions"
         end;
         pContent := 'Error, cannot find Sticker';
     end;
-
-
 }

@@ -406,6 +406,8 @@ codeunit 60010 "UI Pallet Functions"
                     else
                         DescText := TempItemFilteredFromAttributes.Description;
                     JsonObj.add('Item No.', TempItemFilteredFromAttributes."No.");
+                    if ItemRec.get(TempItemFilteredFromAttributes."No.") then
+                        JsonObj.add('ItemCategory', itemrec."Item Category Code");
                     JsonObj.add('Description', DescText);
                     JsonArr.Add(JsonObj);
                     clear(JsonObj);
