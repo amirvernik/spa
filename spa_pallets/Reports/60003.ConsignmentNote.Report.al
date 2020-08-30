@@ -201,7 +201,7 @@ report 60003 "Consignment Note"
                         {
 
                         }
-                        column(VarientName; tempItemVariant.Description)
+                        column(VarientName; ItemVarietyDescription)
                         {
 
                         }
@@ -250,13 +250,8 @@ report 60003 "Consignment Note"
                         var
                         begin
 
-                            tempItemVariant.Reset();
-                            tempItemVariant.Get("Warehouse Shipment Line"."Item No.", "Pallet Line"."Variant Code");
-                            if "Pallet Line"."Item No." = "Warehouse Shipment Line"."Item No." then begin
-                                TotalCustomerQty += Quantity;
-                                TotalContainerQty += Quantity;
-                            end;
-
+                            if ItemVariety.Get("Pallet Line"."Item No.", copystr("Pallet Line"."Variant Code", 1, 10)) then
+                                ItemVarietyDescription := ItemVariety.Description;
                             Container := GetItemItemAttributeA("Item No.", 'Packaging Description');
                             Grade := GetItemItemAttributeA("Item No.", 'Grade');
                             Size := GetItemItemAttributeA("Item No.", 'Size');
@@ -267,19 +262,6 @@ report 60003 "Consignment Note"
                     var
 
                     begin
-                        // tempPalletLine.Reset();
-                        // tempPalletLine.Get("Pallet ID", "Pallet Line No.");
-                        // if (tempPalletLine.FindFirst()) then begin
-                        //     tempItemVariant.Reset();
-                        //     tempItemVariant.Get(tempPalletLine."Item No.", tempPalletLine."Variant Code")
-                        // end;
-                        // // if (!tempPallet) then
-                        // //     tempPallet :=  tempPalletLine."Pallet ID";
-                        // // if (tempPallet != tempPalletLine."Pallet ID") then 
-                        // // begin
-                        // //       TotalContainerQty := 0;
-                        // // tempPallet := tempPalletLine."Pallet ID";
-                        // //  end;                   
                         TotalContainerQty := 0;
                         if tempPallet <> "Pallet Line"."Pallet ID" then begin
                             NumberOfPallet := NumberOfPallet + 1;
@@ -290,20 +272,6 @@ report 60003 "Consignment Note"
                 } //end-warhouse pallet
 
             } //end-line
-
-            // dataitem(Totals; "Integer")
-            // {
-            //     DataItemTableView = SORTING(Number) WHERE(Number = CONST(1));
-            //     column(TotalCustomerQty; TotalCustomerQty)
-            //     {
-
-            //     }
-            //     column(TotalCustomerQtyLbl; TotalCustomerLbl)
-            //     {
-
-            //     }
-
-            // } //end-total
 
             trigger OnPreDataItem()
             var
@@ -326,22 +294,6 @@ report 60003 "Consignment Note"
                 tempCustomer.Get("Sell-to Customer No.");
                 TotalCustomerQty := 0;
                 NumberOfPallet := 0;
-                // tempWSL.Reset();
-                // tempWSL.SetRange("No.", "Warehouse Shipment Header"."No.");
-                // tempWSL.SetRange("Source Document", tempWSL."Source Document"::"Sales Order");
-
-                // if tempWSL.FindFirst() then begin
-
-                //     tempSalesHeader.reset();
-                //     tempSalesHeader.SetRange("No.", tempWSL."Source No.");
-                //     if (tempSalesHeader.FindFirst()) then
-                //         // if tempSalesHeader.Get(tempWSL."Source No.") then
-                //         tempCustomer.Get(tempSalesHeader."Sell-to Customer No.");
-                //     TotalCustomerQty := 0;
-
-
-                // end;
-
             end;
 
         } //end-header         
@@ -437,32 +389,26 @@ report 60003 "Consignment Note"
 
     var
         myInt: Integer;
-        tempWSL: Record "Warehouse Shipment Line";
+        ItemVarietyDescription: Text;
+        ItemVariety: Record "Item Variant";
+
         tempCustomer: Record Customer;
-        tempSalesHeader: Record "Sales Header";
-        tempPalletHeader: record "Pallet Header";
-        tempPalletLine: record "Pallet Line";
-        tempWarhousePallet: record "Warehouse Pallet";
-        tempItemVariant: record "Item Variant";
+
         tempItem: Record "Item";
-        tempItemAt: Record "Item Attribute";
-        tempItemAtVal: record "Item Attribute Value";
-        temp: record "Item Attribute Value Mapping";
-        tempAttendee: Record Attendee;
+
         TotalCustomerQty: Decimal;
         TotalContainerQty: Decimal;
         NumberOfPallet: Integer;
         tempPallet: Code[20];
         CompanyInfo: Record "Company Information";
-        Fulladdres: Char;
+
         TodayDate: text;
         CurrentTime: text;
         Container: text;
         Grade: text;
         Size: text;
-        FromDate: Date;
-        ToDate: Date;
-        CustomerNum: Code[20];
+
+
         NumOrder: Code[20];
         PhoneLbl: Label 'Phone:';
         FaxLbl: Label 'Fax:';
@@ -471,8 +417,7 @@ report 60003 "Consignment Note"
         AgentCustomerLbl: Label 'Agent/Customer';
         DeliveryDateLbl: Label 'Delivery Date: ';
         DeliveryTimeLbl: Label 'Delivery Time:';
-        TransportLbl: Label 'Transport:';
-        CarrierSignaturelLbl: Label 'Carrier Signature:';
+
         RefLbl: Label 'Ref #';
         BatchLbl: label 'BatchCode';
         VarietyLbl: Label 'Variety';
@@ -482,8 +427,6 @@ report 60003 "Consignment Note"
         QuantityLbl: Label 'No';
         TotalContainerLbl: Label 'Container Total:';
         TotalCustomerLbl: Label 'Customer Total:';
-        temp1: record "Item Category";
-
 
     procedure GetItemItemAttribute(var pItemNo: Code[20]; pItemAttributeName: Text): Text
     var
