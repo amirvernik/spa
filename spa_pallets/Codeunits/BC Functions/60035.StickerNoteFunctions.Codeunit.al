@@ -3,6 +3,7 @@ codeunit 60035 "Sticker note functions"
     //Pallet Label - Sticker Note
     procedure CreatePalletStickerNoteFromPallet(var PalletHeader: Record "Pallet Header")
     var
+        PalletFunctions: Codeunit "Pallet Functions";
         PalletLine: Record "Pallet Line";
         Err001: label 'You cannot print a sticker note for an open pallet';
         PalletProcessSetup: Record "Pallet Process Setup";
@@ -79,10 +80,14 @@ codeunit 60035 "Sticker note functions"
                                     format(PalletLine."QTY Consumed") + Splitter +
                                     format(PalletLine."Remaining Qty") + Splitter +
                                     format(PalletLine."Expiration Date") + Splitter;
+
             //OutStr.WriteText(PalletLineText);
             until PalletLine.next = 0;
 
         OutStr.WriteText(PalletText);
+        outstr.WriteText();
+        OutStr.WriteText(PalletFunctions.GetFirstPO(PalletHeader));
+
         TempBlob.CreateInStream(InStr);
         BearerToken := OneDriveFunctions.GetBearerToken();
         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
@@ -259,7 +264,8 @@ codeunit 60035 "Sticker note functions"
                                         format(SalesHeader."Promised Delivery Date") + Splitter +
                                         format(SalesHeader."due Date") + Splitter +
                                         format(SalesHeader."order Date") + Splitter +
-                                        format(SalesHeader."Work Description") + Splitter;
+                                        format(SalesHeader."Work Description") + Splitter +
+                                        salesheader."External Document No." + splitter;
 
                         DispatchText += CompanyText;
                         OutStr.WriteText(DispatchText);
@@ -437,7 +443,7 @@ codeunit 60035 "Sticker note functions"
         OneDriveFunctions: Codeunit "OneDrive Functions";
         FirstLine: Text;
         SecondLine: Text;
-
+        ItemCrossRef: Record "Item Cross Reference";
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -556,6 +562,20 @@ codeunit 60035 "Sticker note functions"
                         OutStr.WriteText(ItemText);
                         Outstr.WriteText();
                         OutStr.WriteText(GetVendorShipmentNo(WarehousePallet));
+                        Outstr.WriteText();
+                        //CrossRef
+
+                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
+                            ItemCrossRef.reset;
+                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                            ItemCrossRef.SetRange("Cross-Reference type No.", SalesHeader."Sell-to Customer Name");
+                            if ItemCrossRef.findfirst then
+                                Outstr.WriteText(ItemCrossRef."Cross-Reference No.");
+                        end;
+
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
