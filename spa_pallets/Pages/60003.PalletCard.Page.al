@@ -157,8 +157,11 @@ page 60003 "Pallet Card"
                     PromotedCategory = Process;
                     Enabled = ShowDisposed;
                     trigger OnAction()
+                    var
+                        PalletDisposalConf: Label 'Are you sure you want to dispose the pallet?';
                     begin
-                        PalletDisposalMgmt.DisposePallet(rec);
+                        if confirm(PalletDisposalConf) then
+                            PalletDisposalMgmt.DisposePallet(rec);
                     end;
                 }
 
