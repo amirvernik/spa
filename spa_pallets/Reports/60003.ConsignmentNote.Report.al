@@ -156,7 +156,9 @@ report 60003 "Consignment Note"
                 dataitem("Warehouse Pallet"; "Warehouse Pallet")
                 {
                     DataItemLink = "Whse Shipment No." = FIELD("No."),
-                               "Sales Order No." = FIELD("Source No.");
+                                   "Whse Shipment Line No." = FIELD("Line No."),
+                               "Sales Order No." = FIELD("Source No."),
+                               "Sales Order Line No." = field("Source Line No.");
                     DataItemTableView = sorting("Pallet Id");
                     column(Palletid; "Pallet ID")
                     {
