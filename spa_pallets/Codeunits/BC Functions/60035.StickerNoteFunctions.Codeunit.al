@@ -362,15 +362,20 @@ codeunit 60035 "Sticker note functions"
                                     SSCCText += CompanyInformation.Name + Splitter + CompanyInformation.Address + Splitter;
 
                                     if ItemRec.get(WarehouseShipmentLine."Item No.") then
-                                        GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN;
+                                        //GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN; removed by Braden
+                                        GTIN_Text := ItemRec.GTIN;
 
                                     SSCCText += GTIN_Text;
                                     GTINText_Line2 := GTIN_Text;
 
-                                    NumberOfCrates_Line3 := '99'; //Line 3
+                                    //NumberOfCrates_Line3 := '99'; //Line 3
+                                    //no of crates changed to quantity on the pallet line
+                                    if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
+                                        NumberOfCrates_Line3 := format(PalletLine.Quantity);
                                     SSCCText += NumberOfCrates_Line3;
 
-                                    PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
+                                    //Removed by ask of braden
+                                    /*PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
 
                                     if SalesHeader."Posting Date" < PackDate_Line5 then
                                         PackDate_Line5 := SalesHeader."Posting Date";
@@ -379,12 +384,20 @@ codeunit 60035 "Sticker note functions"
                                     if SalesHeader."Document Date" < PackDate_Line5 then
                                         PackDate_Line5 := SalesHeader."Document Date";
                                     if SalesHeader."Dispatch Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Dispatch Date";
+                                        PackDate_Line5 := SalesHeader."Dispatch Date";*/
 
-                                    Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
+                                    PackDate_Line5 := SalesHeader."Pack-out Date";
+
+                                    /*Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
                                                     PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 2));
-                                    SSCCText += format(PackDate_Line5) + Splitter;
+                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 2));*/
+                                    Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                                    format(Date2DMY(PackDate_Line5, 3) - 2000);
+
+                                    //SSCCText += format(PackDate_Line5) + Splitter;
+                                    SSCCText += format(Packdate_Text) + Splitter;
+
 
                                     SSCC_Text_Line6 := GenerateSSCC();
                                     SSCCText += SSCC_Text_Line6 + splitter;
