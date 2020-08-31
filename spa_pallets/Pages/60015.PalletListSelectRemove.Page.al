@@ -81,15 +81,6 @@ page 60015 "Pallet List Select Remove"
                             if RecGReservationEntry.get(WarehousePallet."Reserve. Entry No.") then
                                 RecGReservationEntry.Delete();
                             if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
-                                SalesLine.Reset();
-                                SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
-                                SalesLine.SetRange("Document No.", WarehouseShipmentLine."Source No.");
-                                SalesLine.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
-                                if SalesLine.FindFirst() then begin
-                                    SalesLine."Qty. to Ship" -= WarehousePallet.quantity;
-                                    SalesLine.Modify();
-                                end;
-
                                 WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
                                 WarehouseShipmentLine."Qty. to Ship" -= WarehousePallet.quantity;
                                 WarehouseShipmentLine.modify;

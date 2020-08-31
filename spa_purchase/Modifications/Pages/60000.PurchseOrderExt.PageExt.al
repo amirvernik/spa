@@ -41,9 +41,8 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             }
             field("Scrap QTY (KG)"; "Scrap QTY (KG)")
             {
-                Caption = 'Waste QTY (KG)';
+                Caption = 'Prepack Waste QTY (KG)';
                 ApplicationArea = all;
-                Visible = ScrapVisible;
             }
         }
         addlast(content)
@@ -124,6 +123,7 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             ScrapVisible := true
         else
             ScrapVisible := false;
+        CurrPage.update;
     end;
 
     var

@@ -2,6 +2,7 @@ pageextension 60008 TransferOrderSubPageExt extends "Transfer Order Subform"
 {
     layout
     {
+
         modify("Variant Code")
         {
             Visible = true;

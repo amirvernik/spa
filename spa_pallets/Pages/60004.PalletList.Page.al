@@ -34,6 +34,22 @@ page 60004 "Pallet List"
                 {
                     ApplicationArea = All;
                 }
+                field(PurchaseOrder; PalletFunctions.GetFirstPO(Rec))
+                {
+                    Caption = ' Purchase Order';
+                    ApplicationArea = all;
+                    ToolTip = 'Show Purchase Order no. of First line on Pallet';
+                    trigger OnDrillDown()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader.reset;
+                        PurchaseHeader.setrange("Document Type", PurchaseHeader."Document Type"::Order);
+                        PurchaseHeader.setrange("No.", PalletFunctions.GetFirstPO(Rec));
+                        if PurchaseHeader.findfirst then
+                            page.run(page::"Purchase Order", PurchaseHeader);
+                    end;
+                }
                 field("Total Qty"; "Total Qty")
                 {
                     ApplicationArea = All;

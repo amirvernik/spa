@@ -6,10 +6,10 @@ codeunit 60000 "SPA Purchase Functions"
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header")
     begin
         //PrePack Waste on Value Add - Addition
-        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
+        /*if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
             if PurchaseHeader."Microwave Process PO" then
                 if PurchaseHeader."Scrap QTY (KG)" = 0 then
-                    Error(Err005);
+                    Error(Err005);*/
 
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
             if PurchaseHeader."Grading Result PO" then
@@ -57,9 +57,9 @@ codeunit 60000 "SPA Purchase Functions"
 
     begin
         //PrePack Waste on Value Add - Addition
-        if pPurchaseHeader."Microwave Process PO" then
+        /*if pPurchaseHeader."Microwave Process PO" then
             if pPurchaseHeader."Scrap QTY (KG)" = 0 then
-                error(Err005);
+                error(Err005);*/
 
         if pPurchaseHeader."Grading Result PO" then
             if ((pPurchaseHeader."Number Of Raw Material Bins" = 0) or (pPurchaseHeader."Harvest Date" = 0D))

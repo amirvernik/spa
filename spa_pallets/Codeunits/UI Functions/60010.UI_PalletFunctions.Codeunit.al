@@ -219,15 +219,19 @@ codeunit 60010 "UI Pallet Functions"
                 end;
                 PalletLine.validate("Location Code", LocationCode);
 
+                ItemRec.get(ItemNo);
+
                 ItemUnitOfMeasure.reset;
                 ItemUnitOfMeasure.setrange("Item No.", ItemNo);
                 ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
                 if ItemUnitOfMeasure.findfirst then begin
-                    if ItemUnitOfMeasure.Code = UOM then begin
+                    //if ItemUnitOfMeasure.Code = UOM then begin //AV-27/08/2020
+                    if ItemRec."Base Unit of Measure" = UOM then begin
                         PalletLine."Unit of Measure" := UOM;
                         PalletLine.validate(Quantity, qty);
                     end else begin
-                        PalletLine."Unit of Measure" := ItemUnitOfMeasure.Code;
+                        //AV-27/08/2020
+                        PalletLine."Unit of Measure" := ItemRec."Base Unit of Measure";  //ItemUnitOfMeasure.Code;
                         PalletLine.validate(Quantity, qty * ItemUnitOfMeasure."Qty. per Unit of Measure");
                     end;
                 end;
@@ -402,6 +406,8 @@ codeunit 60010 "UI Pallet Functions"
                     else
                         DescText := TempItemFilteredFromAttributes.Description;
                     JsonObj.add('Item No.', TempItemFilteredFromAttributes."No.");
+                    if ItemRec.get(TempItemFilteredFromAttributes."No.") then
+                        JsonObj.add('ItemCategory', itemrec."Item Category Code");
                     JsonObj.add('Description', DescText);
                     JsonArr.Add(JsonObj);
                     clear(JsonObj);

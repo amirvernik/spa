@@ -3,6 +3,7 @@ codeunit 60035 "Sticker note functions"
     //Pallet Label - Sticker Note
     procedure CreatePalletStickerNoteFromPallet(var PalletHeader: Record "Pallet Header")
     var
+        PalletFunctions: Codeunit "Pallet Functions";
         PalletLine: Record "Pallet Line";
         Err001: label 'You cannot print a sticker note for an open pallet';
         PalletProcessSetup: Record "Pallet Process Setup";
@@ -62,6 +63,7 @@ codeunit 60035 "Sticker note functions"
                             format(PalletHeader."Raw Material Pallet") + Splitter +
                             PalletHeader."Pallet Type" + Splitter +
                             format(PalletHeader."Disposal Status") + Splitter;
+
         //OutStr.WriteText(PalletHeaderText);
         //OutStr.WriteText();
 
@@ -78,10 +80,11 @@ codeunit 60035 "Sticker note functions"
                                     format(PalletLine.Quantity) + Splitter +
                                     format(PalletLine."QTY Consumed") + Splitter +
                                     format(PalletLine."Remaining Qty") + Splitter +
-                                    format(PalletLine."Expiration Date") + Splitter;
+                                    format(PalletLine."Expiration Date") + Splitter +
+                                    PalletFunctions.GetFirstPO(PalletHeader) + splitter +
+                                    PalletFunctions.GetVendorShipmentNoFromPalletLine(PalletLine) + splitter;
             //OutStr.WriteText(PalletLineText);
             until PalletLine.next = 0;
-
         OutStr.WriteText(PalletText);
         TempBlob.CreateInStream(InStr);
         BearerToken := OneDriveFunctions.GetBearerToken();
@@ -259,7 +262,9 @@ codeunit 60035 "Sticker note functions"
                                         format(SalesHeader."Promised Delivery Date") + Splitter +
                                         format(SalesHeader."due Date") + Splitter +
                                         format(SalesHeader."order Date") + Splitter +
-                                        format(SalesHeader."Work Description") + Splitter;
+                                        format(SalesHeader."Work Description") + Splitter +
+                                        salesheader."External Document No." + splitter +
+                                        GetVendorShipmentNo(WarehousePallet) + splitter;
 
                         DispatchText += CompanyText;
                         OutStr.WriteText(DispatchText);
@@ -307,6 +312,8 @@ codeunit 60035 "Sticker note functions"
         SSCCText: Text;
         FirstLine: Text;
         SecondLine: Text;
+        PalletLine: Record "Pallet Line";
+        PalletHeader: Record "Pallet Header";
 
     begin
         PalletProcessSetup.get;
@@ -392,6 +399,14 @@ codeunit 60035 "Sticker note functions"
                                     SSCCText += Barcode_Line2 + splitter;
                                     SSCCText += Barcode_Line21 + splitter;
 
+                                    //PalletLineText
+                                    if palletline.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
+                                        PalletHeader.get(PalletLine."Pallet ID");
+                                        SSCCText += PalletLine."Item No." + splitter +
+                                                    PalletLine."Variant Code" + Splitter +
+                                                    format(PalletHeader."Creation Date") + splitter +
+                                                    format(PalletLine.Quantity) + splitter;
+                                    end;
                                     OutStr.WriteText(SSCCTExt);
 
                                     TempBlob.CreateInStream(InStr);
@@ -435,7 +450,7 @@ codeunit 60035 "Sticker note functions"
         OneDriveFunctions: Codeunit "OneDrive Functions";
         FirstLine: Text;
         SecondLine: Text;
-
+        ItemCrossRef: Record "Item Cross Reference";
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -544,13 +559,28 @@ codeunit 60035 "Sticker note functions"
                                         format(SalesHeader."Requested Delivery Date") + Splitter +
                                         format(SalesHeader."document Date") + Splitter +
                                         format(SalesHeader."Pack-out Date") + Splitter +
+                                        format(calcdate('+14D', SalesHeader."Pack-out Date")) + Splitter +
                                         format(SalesHeader."Dispatch Date") + Splitter +
                                         format(SalesHeader."Promised Delivery Date") + Splitter +
                                         format(SalesHeader."due Date") + Splitter +
                                         format(SalesHeader."order Date") + Splitter +
-                                        format(SalesHeader."Work Description");
-                        ItemText += CompanyText;
+                                        format(SalesHeader."Work Description") + splitter;
 
+                        ItemText += GetVendorShipmentNo(WarehousePallet) + splitter;
+
+                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
+                            ItemCrossRef.reset;
+                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                            ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
+                            if ItemCrossRef.findfirst then
+                                ItemText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
+                        end;
+
+                        outstr.WriteText();
+                        ItemText += CompanyText;
                         OutStr.WriteText(ItemText);
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
@@ -654,4 +684,20 @@ codeunit 60035 "Sticker note functions"
         // Read the response content as XML. 
         WebResponse.Content().ReadAs(responseText);
     end;
+
+    Procedure GetVendorShipmentNo(var pWarehousePallet: Record "Warehouse Pallet"): code[35]
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PalletLine: Record "Pallet Line";
+    begin
+        if PalletLine.get(pWarehousePallet."Pallet ID", pWarehousePallet."Pallet Line No.") then begin
+            PurchaseHeader.reset;
+            PurchaseHeader.setrange("Document Type", PurchaseHeader."Document Type"::Order);
+            PurchaseHeader.setrange("Batch Number", PalletLine."Lot Number");
+            if PurchaseHeader.findfirst then
+                exit(PurchaseHeader."Vendor Shipment No.");
+        end;
+    end;
+
+
 }

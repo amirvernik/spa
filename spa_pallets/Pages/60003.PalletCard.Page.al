@@ -22,6 +22,23 @@ page 60003 "Pallet Card"
                     MultiLine = true;
                     Editable = ShowClose;
                 }
+                field(PurchaseOrder; PalletFunctions.GetFirstPO(Rec))
+                {
+                    Caption = ' Purchase Order';
+                    ApplicationArea = all;
+                    ToolTip = 'Show Purchase Order no. of First line on Pallet';
+                    trigger OnDrillDown()
+                    var
+                        PurchaseHeader: Record "Purchase Header";
+                    begin
+                        PurchaseHeader.reset;
+                        PurchaseHeader.setrange("Document Type", PurchaseHeader."Document Type"::Order);
+                        PurchaseHeader.setrange("No.", PalletFunctions.GetFirstPO(Rec));
+                        if PurchaseHeader.findfirst then
+                            page.run(page::"Purchase Order", PurchaseHeader);
+                    end;
+
+                }
                 field("Pallet Status"; "Pallet Status")
                 {
                     ApplicationArea = All;
@@ -140,8 +157,11 @@ page 60003 "Pallet Card"
                     PromotedCategory = Process;
                     Enabled = ShowDisposed;
                     trigger OnAction()
+                    var
+                        PalletDisposalConf: Label 'Are you sure you want to dispose the pallet?';
                     begin
-                        PalletDisposalMgmt.DisposePallet(rec);
+                        if confirm(PalletDisposalConf) then
+                            PalletDisposalMgmt.DisposePallet(rec);
                     end;
                 }
 
@@ -217,6 +237,8 @@ page 60003 "Pallet Card"
                     trigger OnAction()
                     begin
                         ConsumeablesMgmt.ConsumeItems(rec);
+                        rec."Pallet Type" := 'mw';
+                        rec.modify;
                     end;
                 }
                 action("Unmark Value Add Pallet")
@@ -227,6 +249,8 @@ page 60003 "Pallet Card"
                     trigger OnAction()
                     begin
                         ConsumeablesMgmt.UnConsumeItems(rec);
+                        rec."Pallet Type" := '';
+                        rec.modify;
                     end;
                 }
 
@@ -386,7 +410,6 @@ page 60003 "Pallet Card"
         PalletFunctions: Codeunit "Pallet Functions";
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         PalletDisposalMgmt: Codeunit "Pallet Disposal Management";
-
         DisposePalletWorkflow: Codeunit "Dispose Pallet Workflow";
         varinat: Variant;
         ShowClose: Boolean;
