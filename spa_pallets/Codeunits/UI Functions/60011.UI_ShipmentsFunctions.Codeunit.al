@@ -248,7 +248,7 @@ codeunit 60011 "UI Shipments Functions"
             Salesheader.reset;
             salesheader.SetRange(Salesheader."Document Type", Salesheader."Document Type"::order);
             Salesheader.setfilter("SPA Location", '%1|%2', 'MIX', LocationCode);
-            Salesheader.setrange(Salesheader."Order Date", FromDate, ToDate);
+            Salesheader.setrange(Salesheader."Dispatch Date", FromDate, ToDate);
             Salesheader.SetRange(Salesheader.Status, Salesheader.Status::Released);
 
             if Salesheader.findset then begin

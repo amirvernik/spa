@@ -1,6 +1,6 @@
 codeunit 60006 "Warehouse Shipment Management"
 {
-
+ 
     //Remove All Pallets - Global function
     procedure RemoveAllPallets(var WarehouseShipment: Record "Warehouse Shipment Header")
     var

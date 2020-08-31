@@ -471,7 +471,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                         RecGReservationEntry.Delete();
                     if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
                         WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
-                        WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
+                        //WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
                         WarehouseShipmentLine.modify;
                         LSalesOrderLines.Reset();
                         LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);

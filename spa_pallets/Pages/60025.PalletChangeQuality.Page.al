@@ -115,6 +115,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                                        
                     ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials
+                    CurrPage.Close();
                 end;
             }
         }
