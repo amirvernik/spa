@@ -343,6 +343,18 @@ codeunit 60001 "Pallet Functions"
         end;
     end;
 
+    //Get Vendor Shipment No.
+    procedure GetVendorShipmentNoFromPalletLine(var pPalletLine: Record "pallet line"): code[35]
+    var
+        PurchaseHeader: Record "Purchase Header";
+    begin
+        PurchaseHeader.reset;
+        PurchaseHeader.setrange("Document Type", PurchaseHeader."Document Type"::Order);
+        PurchaseHeader.setrange("Batch Number", pPalletLine."Lot Number");
+        if PurchaseHeader.findfirst then
+            exit(PurchaseHeader."Vendor Shipment No.");
+    end;
+
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         ItemLedgerFunctions: Codeunit "Item Ledger Functions";
