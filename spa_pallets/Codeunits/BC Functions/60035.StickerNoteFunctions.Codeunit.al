@@ -57,7 +57,7 @@ codeunit 60035 "Sticker note functions"
         PalletText := PalletHeader."Pallet ID" + Splitter +
                             format(PalletHeader."Pallet Status") + Splitter +
                             PalletHeader."Location Code" + Splitter +
-                            format(PalletHeader."Creation Date", 0, 9) + Splitter +
+                            format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                             PalletHeader."User Created" + Splitter +
                             format(PalletHeader."Exist in warehouse shipment") + Splitter +
                             format(PalletHeader."Raw Material Pallet") + Splitter +
@@ -80,7 +80,7 @@ codeunit 60035 "Sticker note functions"
                                     format(PalletLine.Quantity) + Splitter +
                                     format(PalletLine."QTY Consumed") + Splitter +
                                     format(PalletLine."Remaining Qty") + Splitter +
-                                    format(PalletLine."Expiration Date", 0, 9) + Splitter +
+                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                     PalletFunctions.GetFirstPO(PalletHeader) + splitter +
                                     PalletFunctions.GetVendorShipmentNoFromPalletLine(PalletLine) + splitter;
             //OutStr.WriteText(PalletLineText);
@@ -205,7 +205,7 @@ codeunit 60035 "Sticker note functions"
                                 DispatchText += PalletHeader."Pallet ID" + Splitter +
                                                     format(PalletHeader."Pallet Status") + Splitter +
                                                     PalletHeader."Location Code" + Splitter +
-                                                    format(PalletHeader."Creation Date", 0, 9) + Splitter +
+                                                    format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                                     PalletHeader."User Created" + Splitter +
                                                     format(PalletHeader."Exist in warehouse shipment") + Splitter +
                                                     format(PalletHeader."Raw Material Pallet") + Splitter +
@@ -226,7 +226,7 @@ codeunit 60035 "Sticker note functions"
                                                     format(PalletLine.Quantity) + Splitter +
                                                     format(PalletLine."QTY Consumed") + Splitter +
                                                     format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date", 0, 9) + Splitter;
+                                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter;
                                 if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
                                     PalletLine."Purchase Order No.") then begin
                                     DispatchText += PurchaseHeader."Buy-from Vendor No." + splitter +
@@ -255,13 +255,13 @@ codeunit 60035 "Sticker note functions"
                         DispatchText += SalesHeader."Sell-to Customer No." + Splitter +
                                         SalesHeader."Sell-to Customer Name" + Splitter +
                                         SalesHeader."No." + Splitter +
-                                        format(SalesHeader."Requested Delivery Date", 0, 9) + Splitter +
-                                        format(SalesHeader."document Date", 0, 9) + Splitter +
-                                        format(SalesHeader."Pack-out Date", 0, 9) + Splitter +
-                                        format(SalesHeader."Dispatch Date", 0, 9) + Splitter +
-                                        format(SalesHeader."Promised Delivery Date", 0, 9) + Splitter +
-                                        format(SalesHeader."due Date", 0, 9) + Splitter +
-                                        format(SalesHeader."order Date", 0, 9) + Splitter +
+                                        format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."order Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."Work Description") + Splitter +
                                         salesheader."External Document No." + splitter +
                                         GetVendorShipmentNo(WarehousePallet) + splitter;
@@ -404,7 +404,7 @@ codeunit 60035 "Sticker note functions"
                                         PalletHeader.get(PalletLine."Pallet ID");
                                         SSCCText += PalletLine."Item No." + splitter +
                                                     PalletLine."Variant Code" + Splitter +
-                                                    format(PalletHeader."Creation Date", 0, 9) + splitter +
+                                                    format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter +
                                                     format(PalletLine.Quantity) + splitter;
                                     end;
                                     OutStr.WriteText(SSCCTExt);
@@ -506,7 +506,7 @@ codeunit 60035 "Sticker note functions"
                                 ItemText += PalletHeader."Pallet ID" + Splitter +
                                                     format(PalletHeader."Pallet Status") + Splitter +
                                                     PalletHeader."Location Code" + Splitter +
-                                                    format(PalletHeader."Creation Date", 0, 9) + Splitter +
+                                                    format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                                     PalletHeader."User Created" + Splitter +
                                                     format(PalletHeader."Exist in warehouse shipment") + Splitter +
                                                     format(PalletHeader."Raw Material Pallet") + Splitter +
@@ -527,7 +527,7 @@ codeunit 60035 "Sticker note functions"
                                                     format(PalletLine.Quantity) + Splitter +
                                                     format(PalletLine."QTY Consumed") + Splitter +
                                                     format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date", 0, 9) + splitter;
+                                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
                                 if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
                                     PalletLine."Purchase Order No.") then begin
                                     ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
@@ -556,14 +556,14 @@ codeunit 60035 "Sticker note functions"
                         ItemText += SalesHeader."Sell-to Customer No." + Splitter +
                                         SalesHeader."Sell-to Customer Name" + Splitter +
                                         SalesHeader."No." + Splitter +
-                                        format(SalesHeader."Requested Delivery Date", 0, 9) + Splitter +
-                                        format(SalesHeader."document Date", 0, 9) + Splitter +
-                                        format(SalesHeader."Pack-out Date", 0, 9) + Splitter +
-                                        format(calcdate('+14D', SalesHeader."Pack-out Date"), 0, 9) + Splitter +
-                                        format(SalesHeader."Dispatch Date", 0, 9) + Splitter +
-                                        format(SalesHeader."Promised Delivery Date", 0, 9) + Splitter +
-                                        format(SalesHeader."due Date", 0, 9) + Splitter +
-                                        format(SalesHeader."order Date", 0, 9) + Splitter +
+                                        format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(calcdate('+14D', SalesHeader."Pack-out Date"), 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."order Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."Work Description") + splitter;
 
                         ItemText += GetVendorShipmentNo(WarehousePallet) + splitter;
