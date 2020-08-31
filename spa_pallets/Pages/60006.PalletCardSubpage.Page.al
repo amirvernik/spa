@@ -104,6 +104,10 @@ page 60006 "Pallet Card Subpage"
                     Editable = false;
                     ApplicationArea = all;
                 }
+                field(Replaced; Replaced)
+                {
+                    ApplicationArea = All;
+                }
                 field("Item Label No. of Copies"; "Item Label No. of Copies")
                 {
                     Editable = false;

@@ -24,7 +24,7 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Negative Adjustment to The Items
-    procedure NegAdjChangeQuality(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure NegAdjChangeQuality(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         ItemJournalLine: Record "Item Journal Line";
@@ -33,6 +33,7 @@ codeunit 60024 "Change Quality Management"
         RecGReservationEntry: Record "Reservation Entry";
         RecGReservationEntry2: Record "Reservation Entry";
         MaxEntry: Integer;
+        PalletID: Code[20];
     begin
         PurchaseProcessSetup.get();
         ItemJournalLine.reset;
@@ -43,8 +44,10 @@ codeunit 60024 "Change Quality Management"
         else
             LineNumber := 10000;
 
+        PalletID := pPalletLineChg."Pallet ID";
         pPalletLineChg.reset;
         pPalletLineChg.SetRange("User ID", UserId);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         if pPalletLineChg.findset then
             repeat
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
@@ -99,7 +102,7 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Positive Adjustment to New Lines
-    procedure PosAdjNewItems(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure PosAdjNewItems(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         ItemJournalLine: Record "Item Journal Line";
@@ -109,6 +112,7 @@ codeunit 60024 "Change Quality Management"
         RecGReservationEntry2: Record "Reservation Entry";
         MaxEntry: Integer;
         PalletChangeQuality: Record "Pallet Change Quality";
+        PalletID: Code[20];
     begin
         PurchaseProcessSetup.get();
         ItemJournalLine.reset;
@@ -119,8 +123,10 @@ codeunit 60024 "Change Quality Management"
         else
             LineNumber := 10000;
 
+        PalletID := pPalletLineChg."Pallet ID";
         pPalletLineChg.reset;
-        pPalletLineChg.setrange("User ID", UserId);
+        pPalletLineChg.SetRange("User ID", UserId);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         if pPalletLineChg.findset then
             repeat
                 PalletChangeQuality.reset;
@@ -177,12 +183,15 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Adjust Pallet Line Quantities
-    procedure ChangeQuantitiesOnPalletline(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure ChangeQuantitiesOnPalletline(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PalletLine: Record "Pallet Line";
+        PalletID: Code[20];
     begin
+        PalletID := pPalletLineChg."Pallet ID";
         pPalletLineChg.reset;
         pPalletLineChg.setrange("User ID", UserId);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         if pPalletLineChg.findset then
             repeat
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
@@ -194,11 +203,14 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Adjust Pallet Reservation
-    procedure ChangePalletReservation(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure ChangePalletReservation(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PalletReservationEntry: Record "Pallet reservation Entry";
+        PalletID: Code[20];
     begin
+        PalletID := pPalletLineChg."Pallet ID";
         pPalletLineChg.reset;
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         pPalletLineChg.setrange("User ID", UserId);
         if pPalletLineChg.findset then
             repeat
@@ -213,14 +225,17 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Adjust Pallet LedgerEntries - Old Items
-    procedure PalletLedgerAdjustOld(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure PalletLedgerAdjustOld(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         LineNumber: Integer;
+        PalletID: Code[20];
     begin
         //LineNumber := GetLastEntry();
+        PalletID := pPalletLineChg."Pallet ID";
         pPalletLineChg.reset;
         pPalletLineChg.setrange("User ID", UserId);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         if pPalletLineChg.findset then
             repeat
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
@@ -246,16 +261,19 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Add The new items to the Pallet
-    procedure AddNewItemsToPallet(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure AddNewItemsToPallet(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         PalletLine: Record "Pallet Line";
         PalletItemChgLine: Record "Pallet Change Quality";
         LineNumber: integer;
         ItemRec: Record Item;
         PalletLedgerEntry: Record "Pallet Ledger Entry";
+        PalletID: Code[20];
     begin
+        PalletID := pPalletLineChg."Pallet ID";
         pPalletLineChg.reset;
         pPalletLineChg.setrange("User ID", userid);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         if pPalletLineChg.findset then
             repeat
                 PalletItemChgLine.reset;
@@ -273,7 +291,9 @@ codeunit 60024 "Change Quality Management"
                         PalletLine.Quantity := PalletItemChgLine."New Quantity";
                         PalletLine."Unit of Measure" := PalletItemChgLine."Unit of Measure";
                         PalletLine.validate("Variant Code", PalletItemChgLine."New Variant Code");
-
+                        PalletLine."Purchase Order No." := pPalletLineChg."Purchase Order No.";
+                        PalletLine."Purchase Order Line No." := pPalletLineChg."Purchase Order Line No.";
+                        PalletLine.Replaced := true;
                         if ItemRec.get(PalletItemChgLine."New Item No.") then begin
                             if format(ItemRec."Expiration Calculation") = '' then
                                 PalletLine."Expiration Date" := today
@@ -361,7 +381,7 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Neg ADjustment to New Packing Materials
-    procedure NegAdjToNewPacking(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure NegAdjToNewPacking(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         QualityChangeLine: Record "Pallet Change Quality";
         BomComponent: Record "BOM Component";
@@ -411,15 +431,17 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Add Packing Materials to Existing Packing Materials
-    procedure AddPackingMaterialsToExisting(var pPalletLineChg: Record "Pallet Line Change Quality")
+    procedure AddPackingMaterialsToExisting(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         QualityChangeLine: Record "Pallet Change Quality";
         PalletHeader: Record "Pallet Header";
         PackingMaterials: Record "Packing Material Line";
         PalletFunctions: Codeunit "Pallet Functions";
+        PalletID: Code[20];
     begin
         pPalletLineChg.reset;
         pPalletLineChg.setrange("User ID", UserId);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
         if pPalletLineChg.findfirst then begin
             if PalletHeader.get(pPalletLineChg."Pallet ID") then begin
                 //Delete Existing Packing Materials

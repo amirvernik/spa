@@ -89,10 +89,15 @@ table 60003 "Pallet Line"
             DataClassification = ToBeClassified;
 
         }
-        field(14;"Item Label No. of Copies";Integer)
+        field(14; "Item Label No. of Copies"; Integer)
         {
             Caption = 'Item Label No. of Copies';
-            DataClassification = ToBeClassified;            
+            DataClassification = ToBeClassified;
+        }
+        field(15; "Replaced"; Boolean)
+        {
+            Caption = 'Replaced';
+            DataClassification = ToBeClassified;
         }
         field(60019; "Reusable item"; Boolean)
         {
@@ -127,7 +132,7 @@ table 60003 "Pallet Line"
         {
             caption = 'Remaining Qty';
             DataClassification = ToBeClassified;
-        }        
+        }
     }
 
     keys
