@@ -365,14 +365,14 @@ codeunit 60035 "Sticker note functions"
                                         //GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN; removed by Braden
                                         GTIN_Text := ItemRec.GTIN;
 
-                                    SSCCText += GTIN_Text;
+                                    SSCCText += GTIN_Text + Splitter;
                                     GTINText_Line2 := GTIN_Text;
 
                                     //NumberOfCrates_Line3 := '99'; //Line 3
                                     //no of crates changed to quantity on the pallet line
                                     if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
                                         NumberOfCrates_Line3 := format(PalletLine.Quantity);
-                                    SSCCText += NumberOfCrates_Line3;
+                                    SSCCText += NumberOfCrates_Line3 + splitter;
 
                                     //Removed by ask of braden
                                     /*PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
@@ -391,7 +391,7 @@ codeunit 60035 "Sticker note functions"
                                     /*Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
                                                     PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
                                                     PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 2));*/
-                                    Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                    Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
                                                     PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
                                                     format(Date2DMY(PackDate_Line5, 3) - 2000);
 
