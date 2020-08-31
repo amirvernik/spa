@@ -11,6 +11,7 @@ codeunit 60019 "UI Pallet Availability"
         ShipmentNumnber: code[20];
         WhsePostShipment: Codeunit "Whse.-Post Shipment";
         LastError: Text;
+        UI_WhseShipFunctions: Codeunit "UI Whse Shipments Functions";
 
     begin
         IF pFunction <> 'PostWarehouseShipment' THEN
@@ -34,6 +35,10 @@ codeunit 60019 "UI Pallet Availability"
                     if not WhsePostShipment.run(WareHpouseShipmentLine) then
                         LastError := GetLastErrorText;
                 until WareHpouseShipmentLine.next = 0;
+
+                if LastError = '' then
+                    UI_WhseShipFunctions.DeleteWhseShipmentAfterPost(WarehouseShipmentHeader);
+
                 if LastError <> '' then
                     pContent := LastError else
                     pContent := 'Success';

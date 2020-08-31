@@ -1,5 +1,46 @@
 codeunit 60016 "UI Whse Shipments Functions"
 {
+    //Delete Whse Shipment - Temporary [GOLIVE-Temp]
+    Procedure DeleteWhseShipmentAfterPost(var pWarehouseShipmentHeader: Record "Warehouse Shipment Header")
+    var
+        PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+        PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header";
+
+        WhseShipmentLine: Record "Warehouse Shipment Line";
+        WhseShipmentHeader: Record "Warehouse Shipment Header";
+
+        ReleaseWhseShptDoc: Codeunit "Whse.-Shipment Release";
+
+        WhseShipmentNumber_Before: code[20];
+        WhseShipmentNumber_Posted: code[20];
+    begin
+        WhseShipmentNumber_Before := pWarehouseShipmentHeader."No.";
+
+        PostedWhseShipmentHeader.reset;
+        PostedWhseShipmentHeader.setrange("Whse. Shipment No.", WhseShipmentNumber_Before);
+        if PostedWhseShipmentHeader.findfirst then
+            WhseShipmentNumber_Posted := PostedWhseShipmentHeader."No.";
+
+        PostedWhseShipmentLine.reset;
+        PostedWhseShipmentLine.setrange("No.", WhseShipmentNumber_Posted);
+        if PostedWhseShipmentLine.findset then
+            repeat
+                WhseShipmentLine.reset;
+                WhseShipmentLine.setrange("No.", WhseShipmentNumber_Before);
+                WhseShipmentLine.setrange("Line No.", PostedWhseShipmentLine."Line No.");
+                if WhseShipmentLine.findfirst then begin
+                    WhseShipmentHeader.get(WhseShipmentNumber_Before);
+                    IF WhseShipmentHeader.Status = WhseShipmentHeader.Status::Released THEN
+                        ReleaseWhseShptDoc.Reopen(WhseShipmentHeader);
+                    WhseShipmentLine.Validate("Qty. Shipped", PostedWhseShipmentLine.Quantity);
+                    WhseShipmentLine.modify;
+                end;
+            until PostedWhseShipmentLine.next = 0;
+
+        if WhseShipmentHeader.get(WhseShipmentNumber_Before) then
+            WhseShipmentHeader.delete(true);
+    end;
+
     //Get List of Shipment Lines - GetListOfWhseShipmentLines [8797]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure GetListOfWhseShipmentLines(VAR pFunction: Text[50]; VAR pContent: Text)
