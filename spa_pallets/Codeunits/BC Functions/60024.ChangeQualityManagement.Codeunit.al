@@ -34,6 +34,7 @@ codeunit 60024 "Change Quality Management"
         RecGReservationEntry2: Record "Reservation Entry";
         MaxEntry: Integer;
         PalletID: Code[20];
+        LPalletLine: Record "Pallet Line";
     begin
         PurchaseProcessSetup.get();
         ItemJournalLine.reset;
@@ -51,6 +52,15 @@ codeunit 60024 "Change Quality Management"
         if pPalletLineChg.findset then
             repeat
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
+                    LPalletLine.Reset();
+                    LPalletLine.SetRange("Pallet ID", PalletID);
+                    LPalletLine.SetRange("Line No.", pPalletLineChg."Line No.");
+                    if LPalletLine.FindFirst() then begin
+                        LPalletLine."Remaining Qty" -= pPalletLineChg."Replaced Qty";
+                        if LPalletLine."Remaining Qty" < 0 then
+                            LPalletLine."Remaining Qty" := 0;
+                        LPalletLine.Modify();
+                    end;
                     ItemJournalLine.init;
                     ItemJournalLine."Journal Template Name" := 'ITEM';
                     ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
@@ -289,6 +299,7 @@ codeunit 60024 "Change Quality Management"
                         PalletLine."Location Code" := pPalletLineChg."Location Code";
                         PalletLine."Lot Number" := pPalletLineChg."Lot Number";
                         PalletLine.Quantity := PalletItemChgLine."New Quantity";
+                        PalletLine."Remaining Qty" := PalletItemChgLine."New Quantity";
                         PalletLine."Unit of Measure" := PalletItemChgLine."Unit of Measure";
                         PalletLine.validate("Variant Code", PalletItemChgLine."New Variant Code");
                         PalletLine."Purchase Order No." := pPalletLineChg."Purchase Order No.";
@@ -354,8 +365,10 @@ codeunit 60024 "Change Quality Management"
         PalletLine.setrange("Pallet ID", pPalletID);
         if PalletLine.findset then
             repeat
-                PalletLine."Remaining Qty" := PalletLine.Quantity;
-                PalletLine.modify;
+                if (PalletLine.Replaced) then begin
+                    PalletLine."Remaining Qty" := PalletLine.Quantity;
+                    PalletLine.modify;
+                end;
                 if palletLine.Quantity <> 0 then begin
                     PalletReservation.init;
                     PalletReservation."Pallet ID" := PalletLine."Pallet ID";

@@ -119,10 +119,7 @@ codeunit 60027 "UI Change Quality Functions"
                 PalletLineChange."New Quantity" := qtyToAdd;
                 PalletLineChange."User Created" := userid;
                 PalletLineChange.insert;
-
-
             until palletline.next = 0;
-
 
     end;
 
