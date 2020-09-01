@@ -100,7 +100,7 @@ page 60009 "Pallet List Select Transfer"
                             RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
                         RecGReservationEntry.validate("Quantity (Base)", -1 * TransferLine.Quantity);
                         RecGReservationEntry.validate(Quantity, -1 * TransferLine.Quantity);
-                        RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                        // RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                         RecGReservationEntry."Packing Date" := PalletHeader."Creation Date";
                         RecGReservationEntry.Positive := false;
                         RecGReservationEntry.insert;
@@ -133,7 +133,7 @@ page 60009 "Pallet List Select Transfer"
                             RecGReservationEntry.validate("Variant Code", TransferLine."Variant Code");
                         RecGReservationEntry.validate("Quantity (Base)", TransferLine.Quantity);
                         RecGReservationEntry.validate(Quantity, TransferLine.Quantity);
-                        RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                        // RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                         RecGReservationEntry."Packing Date" := PalletHeader."Creation Date";
                         RecGReservationEntry.Positive := true;
                         RecGReservationEntry.insert;

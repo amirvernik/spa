@@ -46,7 +46,7 @@ codeunit 60014 "Tracking Line Functions"
                             RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
                             RecGReservationEntry."Lot No." := PurchaseHeader."Batch Number";
                             RecGReservationEntry."Packing Date" := pPalletHeader."Creation Date";
-                            RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                            // RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                             RecGReservationEntry.validate("Item No.", PurchaseLine."No.");
                             if purchaseline."Variant code" <> '' then
                                 RecGReservationEntry.Validate("Variant code", purchaseline."Variant code");

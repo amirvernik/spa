@@ -1,6 +1,6 @@
 codeunit 60006 "Warehouse Shipment Management"
 {
- 
+
     //Remove All Pallets - Global function
     procedure RemoveAllPallets(var WarehouseShipment: Record "Warehouse Shipment Header")
     var
@@ -189,8 +189,8 @@ codeunit 60006 "Warehouse Shipment Management"
 
                     if PalletHeader.get(rec."Pallet ID") then
                         RecGReservationEntry."Packing Date" := Palletheader."Creation Date";
-                    if PalletLine.get(rec."Pallet ID", rec."Pallet Line No.") then
-                        RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                    // if PalletLine.get(rec."Pallet ID", rec."Pallet Line No.") then
+                    //     RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                     RecGReservationEntry.modify;
 
                     Rec."Reserve. Entry No." := MaxEntry;

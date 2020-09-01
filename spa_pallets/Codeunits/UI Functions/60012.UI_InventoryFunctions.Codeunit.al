@@ -324,10 +324,10 @@ codeunit 60012 "UI Inventory Functions"
                             RecGReservationEntry.validate(Quantity, purchaseline.Quantity);
                             RecGReservationEntry."Qty. per Unit of Measure" := PurchaseLine."Qty. per Unit of Measure";
                             RecGReservationEntry."Packing Date" := today;
-                            if format(ItemRec."Expiration Calculation") <> '' then
-                                RecGReservationEntry."Expiration Date" := calcdate('+' + format(ItemRec."Expiration Calculation"), today)
-                            else
-                                RecGReservationEntry."Expiration Date" := today;
+                            // if format(ItemRec."Expiration Calculation") <> '' then
+                            //     RecGReservationEntry."Expiration Date" := calcdate('+' + format(ItemRec."Expiration Calculation"), today)
+                            // else
+                            //     RecGReservationEntry."Expiration Date" := today;
                             RecGReservationEntry.insert;
                         end
                         else

@@ -105,7 +105,7 @@ codeunit 60015 "UI Transfer Functions"
                             RecGReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
                             RecGReservationEntry.validate(Quantity, -1 * palletline.Quantity);
                             RecGReservationEntry."Packing Date" := Today;
-                            RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                            // RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                             RecGReservationEntry."New Expiration Date" := PalletLine."Expiration Date";
                             RecGReservationEntry.Description := Palletline.Description;
                             RecGReservationEntry.Positive := false;

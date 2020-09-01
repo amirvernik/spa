@@ -104,7 +104,7 @@ page 60010 "Pallet List Select Reclass"
                                     RecGReservationEntry.validate("Variant Code", PalletLine."Variant Code");
                                 RecGReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
                                 RecGReservationEntry.validate(Quantity, -1 * palletline.Quantity);
-                                RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                                // RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                                 RecGReservationEntry."Packing Date" := Today;
                                 RecGReservationEntry.Positive := false;
                                 RecGReservationEntry.insert;
