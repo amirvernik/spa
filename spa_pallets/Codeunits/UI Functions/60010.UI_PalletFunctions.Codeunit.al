@@ -87,7 +87,7 @@ codeunit 60010 "UI Pallet Functions"
         iCount: integer;
         ItemNo: code[20];
         UOM: code[20];
-        Qty: integer;
+        Qty: Decimal;
         LOTNO: code[20];
         LocationCode: Code[20];
         PalletID: code[20];
