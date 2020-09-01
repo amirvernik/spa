@@ -20,7 +20,20 @@
         {
             "type": "al",
             "request": "launch",
-            "name": "Microsoft cloud SPA_Sandbox",
+            "name": "Microsoft cloud Sandbox-010920",
+            "sandboxName": "Sandbox-010920",
+            "startupObjectId": 22,
+            "startupObjectType": "Page",
+            "breakOnError": true,
+            "launchBrowser": true,
+            "schemaUpdateMode": "ForceSync",
+            "enableLongRunningSqlStatements": true,
+            "enableSqlInformationDebugger": true
+        },    
+        {
+            "type": "al",
+            "request": "launch",
+            "name": "Microsoft cloud SPA Sandbox",
             "sandboxName": "SPA_Sandbox",
             "startupObjectId": 22,
             "startupObjectType": "Page",
@@ -29,6 +42,6 @@
             "schemaUpdateMode": "ForceSync",
             "enableLongRunningSqlStatements": true,
             "enableSqlInformationDebugger": true
-        }
+        }            
     ]
 }

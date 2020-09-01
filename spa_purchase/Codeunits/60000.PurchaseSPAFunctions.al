@@ -120,10 +120,10 @@ codeunit 60000 "SPA Purchase Functions"
                                 RecGReservationEntry.validate("Quantity (Base)", purchaseline."Qty. (Base) SPA");
                                 RecGReservationEntry.validate(Quantity, purchaseline.Quantity);
                                 RecGReservationEntry."Packing Date" := today;
-                                if format(ItemRec."Expiration Calculation") <> '' then
+                                /*if format(ItemRec."Expiration Calculation") <> '' then
                                     RecGReservationEntry."Expiration Date" := calcdate('+' + format(ItemRec."Expiration Calculation"), today)
                                 else
-                                    RecGReservationEntry."Expiration Date" := today;
+                                    RecGReservationEntry."Expiration Date" := today;*/
                                 RecGReservationEntry.insert;
                             end;
                         end;
