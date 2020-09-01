@@ -20,7 +20,7 @@
         {
             "type": "al",
             "request": "launch",
-            "name": "Microsoft cloud sandbox",
+            "name": "Microsoft cloud SPA_Sandbox",
             "sandboxName": "SPA_Sandbox",
             "startupObjectId": 22,
             "startupObjectType": "Page",

@@ -9,7 +9,7 @@ pageextension 60015 TransferOrderExt extends "Transfer Order"
     {
         addafter("P&osting")
         {
-            action("Tasnfer Pallet")
+            action("Transfer Pallet")
             {
                 Image = ImportCodes;
                 Promoted = true;

@@ -49,7 +49,7 @@ page 60034 "Reservation Entries SPA"
                 field("Expiration Date"; "Expiration Date")
                 {
                     ApplicationArea = ItemTracking;
-                    Editable = true;
+                    Editable = false;
                     Visible = true;
                 }
                 field("Lot No."; "Lot No.")

@@ -44,7 +44,7 @@ pageextension 60022 OrderProcessorRoleExt extends "Order Processor Role Center"
                     action("Reservation Entries")
                     {
                         RunObject = page "Reservation Entries SPA";
-                        Caption = 'Reservation entries';
+                        Caption = 'Reservation Entries';
                         ApplicationArea = all;
                     }
                 }
