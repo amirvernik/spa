@@ -40,10 +40,10 @@ codeunit 60023 "Pallet Disposal Management"
         if ptype = 'BC' then begin
             if pPalletHeader."Pallet Status" <> pPalletHeader."Pallet Status"::Closed then
                 Error(PalletDisposeError);
-            if confirm(PalletDisposeConf) then begin
-                pPalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Disposed;
-                pPalletHeader.modify;
-            end;
+            //if confirm(PalletDisposeConf) then begin
+            pPalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Disposed;
+            pPalletHeader.modify;
+            //end;
         end;
         if pType = 'WEBUI' then begin
             pPalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Disposed;
@@ -93,7 +93,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.insert;
                 RecGItemJournalLine."Entry Type" := RecGItemJournalLine."Entry Type"::"Positive Adjmt.";
                 RecGItemJournalLine."External Document No." := pPalletHeader."Pallet ID";
-                RecGItemJournalLine."Posting Date" := Today;
+                RecGItemJournalLine.Validate("Posting Date", Today);
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.Description := PMSelect."PM Item Description";
                 RecGItemJournalLine.validate("Item No.", PMSelect."PM Item No.");
@@ -182,7 +182,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.insert;
                 RecGItemJournalLine."Entry Type" := RecGItemJournalLine."Entry Type"::"Negative Adjmt.";
                 RecGItemJournalLine."External Document No." := pPalletHeader."Pallet ID";
-                RecGItemJournalLine."Posting Date" := Today;
+                RecGItemJournalLine.validate("Posting Date", Today);
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.Description := PalletLine.Description;
                 RecGItemJournalLine.validate("Item No.", PalletLine."Item No.");
