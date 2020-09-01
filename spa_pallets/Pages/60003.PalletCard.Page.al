@@ -132,7 +132,7 @@ page 60003 "Pallet Card"
 
                     trigger OnAction()
                     begin
-                        PalletFunctions.ClosePallet(rec);
+                        PalletFunctions.ClosePallet(rec,'BC');
                     end;
                 }
                 action("ReOpen Pallet")

@@ -7,7 +7,7 @@ codeunit 60001 "Pallet Functions"
     end;
 
     //Close Pallet - Global Function
-    procedure ClosePallet(var pPalletHeader: Record "Pallet Header")
+    procedure ClosePallet(var pPalletHeader: Record "Pallet Header"; pType: text[2])
     begin
 
         //No Lines - Dont close
@@ -43,7 +43,8 @@ codeunit 60001 "Pallet Functions"
         ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
         ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
         //AddPoLines(pPalletHeader); //Add PO Lines
-        TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO        
+        if pType = 'BC' then
+            TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO        
     end;
 
     //Reopen Pallet - Global Function

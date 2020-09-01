@@ -87,7 +87,7 @@ page 60004 "Pallet List"
 
                 trigger OnAction()
                 begin
-                    PalletFunctions.ClosePallet(rec);
+                    PalletFunctions.ClosePallet(rec,'BC');
                 end;
             }
             action("Dispose Pallet")

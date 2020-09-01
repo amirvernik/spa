@@ -14,7 +14,7 @@ codeunit 60012 "UI Inventory Functions"
         PurchaseLineCheck: Record "Purchase Line";
         PalletLines: Record "Pallet Line";
         PurchaseFunctions: Codeunit "SPA Purchase Functions";
-
+        TrackingLineFunctions: Codeunit "Tracking Line Functions";
 
     begin
         IF pFunction <> 'ClosePallet' THEN
@@ -32,7 +32,8 @@ codeunit 60012 "UI Inventory Functions"
             until JsonBuffer.next = 0;
 
         if PalletHeader.GET(PalletID) then begin
-            PalletFunctions.ClosePallet(PalletHeader);
+
+            TrackingLineFunctions.AddTrackingLineToPO(PalletHeader); //Add Tracking Line to PO
 
             //Create Purchase Receipt
             PalletLines.reset;
@@ -71,9 +72,11 @@ codeunit 60012 "UI Inventory Functions"
                     end;
                 until PurchaseHeaderTemp.next = 0;
 
+            PalletFunctions.ClosePallet(PalletHeader, 'UI');
+
             if PalletHeader."Pallet Status" = PalletHeader."Pallet Status"::Closed then
                 pContent := 'Success - Pallet closed' else
-                pContent := 'Error1'
+                pContent := 'Error : ' + GetLastErrorText;
         end
         else
             pContent := 'Pallet does not exist : ' + PalletID;
