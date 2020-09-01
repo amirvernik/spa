@@ -388,12 +388,12 @@ codeunit 60035 "Sticker note functions"
 
                                     PackDate_Line5 := SalesHeader."Pack-out Date";
 
-                                    /*Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
+                                    Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
                                                     PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 2));*/
-                                    Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
+                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1));
+                                    /*Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
                                                     PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    format(Date2DMY(PackDate_Line5, 3) - 2000);
+                                                    format(Date2DMY(PackDate_Line5, 3) - 2000);*/
 
                                     //SSCCText += format(PackDate_Line5) + Splitter;
                                     SSCCText += format(Packdate_Text) + Splitter;
@@ -402,8 +402,8 @@ codeunit 60035 "Sticker note functions"
                                     SSCC_Text_Line6 := GenerateSSCC();
                                     SSCCText += SSCC_Text_Line6 + splitter;
 
-                                    Barcode_Line1 := '02' + GTINText_Line2 + '15' + Packdate_Text + '37' + format(NumberOfCrates_Line3);
-                                    Barcode_Line11 := '(02)' + GTINText_Line2 + '(15)' + Packdate_Text + '(37)' + format(NumberOfCrates_Line3);
+                                    Barcode_Line1 := '02' + GTINText_Line2 + '13' + Packdate_Text + '37' + format(NumberOfCrates_Line3);
+                                    Barcode_Line11 := '(02)' + GTINText_Line2 + '(13)' + Packdate_Text + '(37)' + format(NumberOfCrates_Line3);
                                     SSCCText += Barcode_Line1 + splitter;
                                     SSCCText += Barcode_Line11 + splitter;
 

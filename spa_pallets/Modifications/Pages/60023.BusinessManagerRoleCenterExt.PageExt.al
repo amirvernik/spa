@@ -41,6 +41,12 @@ pageextension 60023 BusinessManagerRoleExt extends "Business Manager Role Center
                         caption = 'SPA General Setup';
                         ApplicationArea = All;
                     }
+                    action("Reservation Entries")
+                    {
+                        RunObject = page "Reservation Entries SPA";
+                        Caption = 'Reservation entries';
+                        ApplicationArea = all;
+                    }
 
                 }
                 group("SPA Reports")

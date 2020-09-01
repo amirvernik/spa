@@ -607,7 +607,7 @@ codeunit 60010 "UI Pallet Functions"
         iCount: Integer;
         ItemNo: Code[20];
         UOM: code[20];
-        Qty: Integer;
+        Qty: Decimal;
         LOTNO: code[20];
         PalletLineCheck: Record "Pallet Line";
         PalletLineNumber: Integer;
@@ -692,7 +692,7 @@ codeunit 60010 "UI Pallet Functions"
                         end;
                         PalletLine."Location Code" := PalletHeader."Location Code";
                         PalletLine."Lot Number" := LOTNO;
-                        PalletLine.Quantity := qty;
+                        PalletLine.Quantity := Qty;
                         PalletLine.Insert();
 
                         //Create Purchase Line - From Pallet
