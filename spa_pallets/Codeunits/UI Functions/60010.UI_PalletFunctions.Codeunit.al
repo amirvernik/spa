@@ -886,7 +886,7 @@ codeunit 60010 "UI Pallet Functions"
                         pContent := ItemLedgerEntry."Lot No.";
                         ItemTemp.init;
                         ItemTemp."No." := ItemLedgerEntry."Lot No.";
-                        ItemTemp."Price Unit Conversion" := ItemLedgerEntry.Quantity;
+                        ItemTemp."Scrap %" := ItemLedgerEntry.Quantity;
 
                         ReserevationEntry.reset;
                         ReserevationEntry.setrange("Lot No.", ItemLedgerEntry."Lot No.");
@@ -913,7 +913,7 @@ codeunit 60010 "UI Pallet Functions"
                         JsonObj.add('VendorShipmentNo', PurchaseHeader."Vendor Shipment No.")
                     else
                         JsonObj.add('VendorShipmentNo', '');
-                    JsonObj.add('Qty', format(ItemTemp."Price Unit Conversion"));
+                    JsonObj.add('Qty', format(ItemTemp."Scrap %"));
                     JsonObj.add('Reserved', format(ItemTemp."Budget Quantity"));
                     JsonArr.Add(JsonObj);
                     clear(JsonObj);
