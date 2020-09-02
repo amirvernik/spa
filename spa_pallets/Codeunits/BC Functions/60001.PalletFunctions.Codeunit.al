@@ -2,6 +2,7 @@ codeunit 60001 "Pallet Functions"
 {
     Permissions = TableData 32 = rimd;
     trigger OnRun()
+    var
     begin
 
     end;

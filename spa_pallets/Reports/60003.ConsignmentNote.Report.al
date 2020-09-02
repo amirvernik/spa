@@ -32,6 +32,10 @@ report 60003 "Consignment Note"
             {
 
             }
+            column(CompanyInfoABN; CompanyInfo.ABN)
+            {
+
+            }
             column(CompanyInfoName; CompanyInfo.Name)
             {
 
@@ -321,6 +325,7 @@ report 60003 "Consignment Note"
 
                 field(NumOrder; NumOrder)
                 {
+                    Caption = 'Order Number';
                     ApplicationArea = All;
                     trigger OnLookup(var Text: Text): Boolean
                     var

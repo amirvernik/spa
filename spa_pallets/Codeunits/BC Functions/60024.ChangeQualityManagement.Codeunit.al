@@ -23,6 +23,26 @@ codeunit 60024 "Change Quality Management"
             error(ErrReplacedQty, format(rec."Replaced Qty"), format(rec.Quantity));
     end;
 
+    //Check to See if all lines needs to be adjusted
+    procedure CheckChangeItem(pPalletLineChg: Record "Pallet Line Change Quality")
+    var
+        PalletID: Code[20];
+        BadCount: Boolean;
+        ErrorToChange:Label 'Cannot change, please update replaced Qty to be different than Qty';
+    begin
+        BadCount := false;
+        PalletID := pPalletLineChg."Pallet ID";
+        pPalletLineChg.reset;
+        pPalletLineChg.SetRange("User ID", UserId);
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
+        if pPalletLineChg.findset then
+            repeat
+                if pPalletLineChg.Quantity = pPalletLineChg."Replaced Qty" then
+                    BadCount := true;
+            until pPalletLineChg.next = 0;
+        if BadCount then Error(ErrorToChange);
+    end;
+
     //Negative Adjustment to The Items
     procedure NegAdjChangeQuality(pPalletLineChg: Record "Pallet Line Change Quality")
     var
