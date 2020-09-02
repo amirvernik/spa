@@ -102,6 +102,7 @@ codeunit 60027 "UI Change Quality Functions"
                 PalletLineChangeQuality.init;
                 PalletLineChangeQuality.TransferFields(PalletLine);
                 PalletLineChangeQuality."User ID" := UserId;
+                PalletLineChangeQuality.Quantity := PalletLine.Quantity - PalletLine."QTY Consumed";
                 PalletLineChangeQuality."Replaced Qty" := PalletLineChangeQuality.Quantity - qtyToRemove;
                 PalletLineChangeQuality.insert;
 

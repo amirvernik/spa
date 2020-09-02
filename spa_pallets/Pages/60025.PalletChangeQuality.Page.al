@@ -67,7 +67,8 @@ page 60025 "Pallet Change Quality"
                 }
                 field("Replaced Qty"; "Replaced Qty")
                 {
-                    editable = true;
+                    Caption = 'New Quantity';
+                    Editable = true;
                     ApplicationArea = all;
                 }
                 field("Expiration Date"; "Expiration Date")
@@ -103,7 +104,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                 begin
                     //Check if needs to do
-                    ChangeQualityMgmt.CheckChangeItem(Rec); 
+                    ChangeQualityMgmt.CheckChangeItem(Rec);
                     //Pallet Line Change Quantities
                     ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
                     ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
@@ -185,6 +186,7 @@ page 60025 "Pallet Change Quality"
                 PalletLineChangeQuality.init;
                 PalletLineChangeQuality.TransferFields(PalletLine);
                 PalletLineChangeQuality."User ID" := UserId;
+                PalletLineChangeQuality.Quantity := PalletLine.Quantity - PalletLine."QTY Consumed";
                 PalletLineChangeQuality."Replaced Qty" := PalletLine.Quantity;
                 PalletLineChangeQuality.insert;
             until palletline.next = 0;

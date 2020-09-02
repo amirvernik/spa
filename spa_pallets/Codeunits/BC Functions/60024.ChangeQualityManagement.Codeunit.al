@@ -28,7 +28,7 @@ codeunit 60024 "Change Quality Management"
     var
         PalletID: Code[20];
         BadCount: Boolean;
-        ErrorToChange:Label 'Cannot change, please update replaced Qty to be different than Qty';
+        ErrorToChange: Label 'Cannot change, please update replaced Qty to be different than Qty';
     begin
         BadCount := false;
         PalletID := pPalletLineChg."Pallet ID";
@@ -227,6 +227,7 @@ codeunit 60024 "Change Quality Management"
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
                     if PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.") then begin
                         PalletLine.Quantity := pPalletLineChg."Replaced Qty";
+                        PalletLine."Remaining Qty" := pPalletLineChg."Replaced Qty";
                         PalletLine.modify;
                     end;
             until pPalletLineChg.next = 0;

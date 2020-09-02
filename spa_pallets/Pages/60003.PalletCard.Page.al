@@ -132,7 +132,7 @@ page 60003 "Pallet Card"
 
                     trigger OnAction()
                     begin
-                        PalletFunctions.ClosePallet(rec,'BC');
+                        PalletFunctions.ClosePallet(rec, 'BC');
                     end;
                 }
                 action("ReOpen Pallet")
@@ -173,9 +173,10 @@ page 60003 "Pallet Card"
                     trigger OnAction()
                     var
                         ChangeQualityPage: page "Pallet Change Quality";
-                        MsgCannotChange: Label 'Change item quality in the pallet is available only for closed status pallets';
+                        MsgCannotChange: Label 'Change quality is available only for closed pallets and pallets that were not allocated to a dispatch process (Shipment)';
                     begin
-                        if "Pallet Status" = "Pallet Status"::Closed then begin
+                        if (("Pallet Status" = "Pallet Status"::Closed) and
+                                ("Exist in warehouse shipment" = false)) then begin
                             ChangeQualityPage.SetPalletID(rec."Pallet ID");
                             ChangeQualityPage.CalcChangeQuality(rec."Pallet ID");
                             ChangeQualityPage.run;

@@ -6,7 +6,7 @@ report 60003 "Consignment Note"
     DefaultLayout = RDLC;
     WordLayout = './Layout/ConsignmentNote.docx';
     RDLCLayout = './Layout/ConsignmentNote.rdl';
-    Caption = 'consigment Note';
+    Caption = 'Consigment Note';
 
     dataset
     {
