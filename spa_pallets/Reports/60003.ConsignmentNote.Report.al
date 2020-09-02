@@ -10,11 +10,11 @@ report 60003 "Consignment Note"
 
     dataset
     {
-        dataitem("Sales Header"; "Sales Header")
+
+        dataitem("Posted Whse. Shipment Line"; "Posted Whse. Shipment Line")
         {
-            DataItemTableView = sorting("No.");
-            // RequestFilterFields = "Sell-to Customer No.", "Dispatch Date";
-            //RequestFilterFields = "No.", "Sell-to Customer No.";
+            DataItemTableView = WHERE("Source Document" = CONST(1));
+            // RequestFilterFields = "Source No.";
             RequestFilterHeading = 'header filter';
             column(TodayDate; TodayDate)
             {
@@ -103,7 +103,7 @@ report 60003 "Consignment Note"
 
             // }
 
-            column(PoNumber; "External Document No.")
+            column(PoNumber; ExtDocNo)
             {
 
             }
@@ -111,11 +111,7 @@ report 60003 "Consignment Note"
             {
 
             }
-            // column(DeliveyDate; Format("Shipment Date"))
-            // {
-
-            // }
-            column(DeliveyDate; Format("Requested Delivery Date"))
+            column(DeliveyDate; Format(RD))
             {
 
             }
@@ -123,177 +119,186 @@ report 60003 "Consignment Note"
             {
 
             }
-            dataitem("Warehouse Shipment Line"; "Warehouse Shipment Line")
+            column("WSL_No"; "No.")
             {
-                DataItemLink = "Source No." = FIELD("No.");
-                DataItemLinkReference = "Sales Header";
-                DataItemTableView = SORTING("Item No.") WHERE("Source Document" = CONST(1));
-                column("WSL_No"; "No.")
-                {
 
-                }
-                column("LineNo"; "Line No.")
-                {
+            }
+            column("LineNo"; "Line No.")
+            {
 
-                }
-                column(ItemNo; "Item No.")
-                {
+            }
+            column(ItemNo; "Item No.")
+            {
 
-                }
+            }
 
-                column(Quantity; Quantity)
-                {
+            column(Quantity; Quantity)
+            {
 
-                }
-                column(QuantityLbl; QuantityLbl)
-                {
+            }
+            column(QuantityLbl; QuantityLbl)
+            {
 
-                }
-                column(ColumnName; tempItem."Variant Filter")
-                {
+            }
+            column(ColumnName; tempItem."Variant Filter")
+            {
 
-                }
-                dataitem("Warehouse Pallet"; "Warehouse Pallet")
-                {
-                    DataItemLink = "Whse Shipment No." = FIELD("No."),
+            }
+            dataitem("Posted Warehouse Pallet"; "Posted Warehouse Pallet")
+            {
+                DataItemLink = "Whse Shipment No." = FIELD("No."),
                                    "Whse Shipment Line No." = FIELD("Line No."),
                                "Sales Order No." = FIELD("Source No."),
                                "Sales Order Line No." = field("Source Line No.");
-                    DataItemTableView = sorting("Pallet Id");
-                    column(Palletid; "Pallet ID")
-                    {
+                DataItemTableView = sorting("Pallet Id");
+                column(Palletid; "Pallet ID")
+                {
 
-                    }
-                    column("No"; "Whse Shipment No.")
-                    {
+                }
+                column("No"; "Whse Shipment No.")
+                {
 
-                    }
-                    dataitem("Pallet Line"; "Pallet Line")
-                    {
+                }
+                dataitem("Pallet Line"; "Pallet Line")
+                {
 
-                        DataItemLink = "Pallet ID" = FIELD("Pallet ID")
+                    DataItemLink = "Pallet ID" = FIELD("Pallet ID")
                                        , "Line No." = FIELD("Pallet Line No.")
                                        , "Lot Number" = FIELD("Lot No.");
-                        DataItemTableView = sorting("Pallet Id");
-                        column(PalletidLine; "Pallet ID")
-                        {
+                    DataItemTableView = sorting("Pallet Id");
+                    column(PalletidLine; "Pallet ID")
+                    {
 
-                        }
-                        column(PalletLineNo; "Line No.")
-                        {
+                    }
+                    column(PalletLineNo; "Line No.")
+                    {
 
-                        }
-                        column(LotNo; "Lot Number")
-                        {
+                    }
+                    column(LotNo; "Lot Number")
+                    {
 
-                        }
-                        column(LotNoLbl; BatchLbl)
-                        {
+                    }
+                    column(LotNoLbl; BatchLbl)
+                    {
 
-                        }
-                        column(QuantityLine; "Quantity")
-                        {
+                    }
+                    column(QuantityLine; "Quantity")
+                    {
 
-                        }
-                        column(QuantityLineLbl; QuantityLbl)
-                        {
+                    }
+                    column(QuantityLineLbl; QuantityLbl)
+                    {
 
-                        }
-                        column(VariantCode; "Variant Code")
-                        {
+                    }
+                    column(VariantCode; "Variant Code")
+                    {
 
-                        }
-                        column(VarientName; ItemVarietyDescription)
-                        {
+                    }
+                    column(VarientName; ItemVarietyDescription)
+                    {
 
-                        }
-                        column(VarientNameLbl; VarietyLbl)
-                        {
+                    }
+                    column(VarientNameLbl; VarietyLbl)
+                    {
 
-                        }
-                        column(TotalContainerQty; TotalContainerQty)
-                        {
+                    }
+                    column(TotalContainerQty; TotalContainerQty)
+                    {
 
-                        }
-                        column(TotalContainerQtyLbl; TotalContainerLbl)
-                        {
+                    }
+                    column(TotalContainerQtyLbl; TotalContainerLbl)
+                    {
 
-                        }
-                        column(Container; Container)
-                        {
+                    }
+                    column(Container; Container)
+                    {
 
-                        }
-                        column(ContainerLbl; ContainerLbl)
-                        {
+                    }
+                    column(ContainerLbl; ContainerLbl)
+                    {
 
-                        }
-                        column(Grade; Grade)
-                        {
+                    }
+                    column(Grade; Grade)
+                    {
 
-                        }
-                        column(GradeLbl; GradeLbl)
-                        {
+                    }
+                    column(GradeLbl; GradeLbl)
+                    {
 
-                        }
-                        column(Size; Size)
-                        {
+                    }
+                    column(Size; Size)
+                    {
 
-                        }
-                        column(SizeLbl; SizeLbl)
-                        {
+                    }
+                    column(SizeLbl; SizeLbl)
+                    {
 
-                        }
-                        column(TotalCustomerQtyLbl; TotalCustomerLbl)
-                        {
+                    }
+                    column(TotalCustomerQtyLbl; TotalCustomerLbl)
+                    {
 
-                        }
+                    }
 
-                        trigger OnAfterGetRecord() //PALLET LINE
-                        var
-                        begin
-
-                            if ItemVariety.Get("Pallet Line"."Item No.", copystr("Pallet Line"."Variant Code", 1, 10)) then
-                                ItemVarietyDescription := ItemVariety.Description;
-                            Container := GetItemItemAttributeA("Item No.", 'Packaging Description');
-                            Grade := GetItemItemAttributeA("Item No.", 'Grade');
-                            Size := GetItemItemAttributeA("Item No.", 'Size');
-                        end;
-
-                    } //end - pallet LIne
-                    trigger OnAfterGetRecord() //WARHOUSE PALLET
+                    trigger OnAfterGetRecord() //PALLET LINE
                     var
-
                     begin
-                        TotalContainerQty := 0;
-                        if tempPallet <> "Pallet Line"."Pallet ID" then begin
-                            NumberOfPallet := NumberOfPallet + 1;
-                            tempPallet := "Pallet Line"."Pallet ID";
-                        end;
 
+                        if ItemVariety.Get("Pallet Line"."Item No.", copystr("Pallet Line"."Variant Code", 1, 10)) then
+                            ItemVarietyDescription := ItemVariety.Description;
+                        Container := GetItemItemAttributeA("Item No.", 'Packaging Description');
+                        Grade := GetItemItemAttributeA("Item No.", 'Grade');
+                        Size := GetItemItemAttributeA("Item No.", 'Size');
                     end;
-                } //end-warhouse pallet
 
-            } //end-line
+                } //end - pallet LIne
+                trigger OnAfterGetRecord() //WARHOUSE PALLET
+                var
+
+                begin
+                    TotalContainerQty := 0;
+                    if tempPallet <> "Pallet Line"."Pallet ID" then begin
+                        NumberOfPallet := NumberOfPallet + 1;
+                        tempPallet := "Pallet Line"."Pallet ID";
+                    end;
+
+                end;
+            } //end-warhouse pallet
+
 
             trigger OnPreDataItem()
             var
                 myInt: Integer;
+
             begin
                 // If (FromDate > 0D) and (ToDate > 0D) then
                 //     "Sales Header".SetFilter("Dispatch Date", '%1..%2', FromDate, ToDate);
                 // if (CustomerNum <> '') then
                 //     "Sales Header".SetRange("Sell-to Customer No.", CustomerNum);
                 if (NumOrder <> '') then
-                    "Sales Header".SetRange("No.", NumOrder);
+                    "Posted Whse. Shipment Line".SetRange("Source No.", NumOrder);
                 //"Sales Header".SetRange("Dispatch Date", FromDate, ToDate);
 
             end;
 
             trigger OnAfterGetRecord()
             var
-
+                LSalesHeader: Record "Sales Header";
+                LArchiveSalesHeader: Record "Sales Header Archive";
             begin
-                tempCustomer.Get("Sell-to Customer No.");
+                ExtDocNo := '';
+                RD := 0D;
+                if LSalesHeader.get(LSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
+                    tempCustomer.Get(LSalesHeader."Sell-to Customer No.");
+                    ExtDocNo := LSalesHeader."External Document No.";
+                    RD := LSalesHeader."Requested Delivery Date";
+                end else begin
+                    if LArchiveSalesHeader.get(LArchiveSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
+                        tempCustomer.Get(LArchiveSalesHeader."Sell-to Customer No.");
+                        ExtDocNo := LArchiveSalesHeader."External Document No.";
+                        RD := LArchiveSalesHeader."Requested Delivery Date";
+                    end;
+                end;
+
                 TotalCustomerQty := 0;
                 NumberOfPallet := 0;
             end;
@@ -313,6 +318,26 @@ report 60003 "Consignment Note"
             area(Content)
 
             {
+
+                field(NumOrder; NumOrder)
+                {
+                    ApplicationArea = All;
+                    trigger OnLookup(var Text: Text): Boolean
+                    var
+                        LPostedWHShipmentLinePage: Page "Posted Whse. Shipment Lines";
+                        LPostedWhShipmentLine: Record "Posted Whse. Shipment Line";
+                    begin
+                        CLEAR(LPostedWHShipmentLinePage);
+                        LPostedWhShipmentLine.Reset();
+                        LPostedWHShipmentLinePage.SETRECORD(LPostedWhShipmentLine);
+                        LPostedWHShipmentLinePage.SETTABLEVIEW(LPostedWhShipmentLine);
+                        LPostedWHShipmentLinePage.LOOKUPMODE(TRUE);
+                        IF LPostedWHShipmentLinePage.RUNMODAL = ACTION::LookupOK THEN BEGIN
+                            LPostedWHShipmentLinePage.GETRECORD(LPostedWhShipmentLine);
+                            NumOrder := LPostedWhShipmentLine."Source No.";
+                        end;
+                    end;
+                }
 
                 /*   field("From Date"; FromDate)
 
@@ -390,6 +415,8 @@ report 60003 "Consignment Note"
     // end;
 
     var
+        ExtDocNo: Code[20];
+        RD: Date;
         myInt: Integer;
         ItemVarietyDescription: Text;
         ItemVariety: Record "Item Variant";

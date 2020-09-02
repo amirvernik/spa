@@ -64,7 +64,7 @@ pageextension 60022 OrderProcessorRoleExt extends "Order Processor Role Center"
                     }
                     action("Consignment Report")
                     {
-                        RunObject = page "Consignment Note Filetr";
+                        RunObject = report "Consignment Note";
                         ApplicationArea = All;
                     }
                     action("Pallet By Variety")

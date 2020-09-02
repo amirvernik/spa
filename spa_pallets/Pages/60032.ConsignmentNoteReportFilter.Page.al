@@ -3,7 +3,6 @@ page 60032 "Consignment Note Filetr"
     PageType = StandardDialog;
     // PageType = Card;
     Editable = true;
-    ApplicationArea = All;
     UsageCategory = Administration;
     // SourceTable = TableName;
 
@@ -13,7 +12,7 @@ page 60032 "Consignment Note Filetr"
         {
             group(GroupName)
             {
-                field("From Date"; FromDate)
+                /*field("From Date"; FromDate)
 
                 {
                     ApplicationArea = All;
@@ -36,51 +35,69 @@ page 60032 "Consignment Note Filetr"
                     ApplicationArea = ALL;
                     TableRelation = Customer;
 
-                }
+                }*/
                 field("Sales Order Number"; NumOrder)
                 {
                     ApplicationArea = ALL;
                     Lookup = true;
-                    TableRelation = "Sales Header"."No." where("Document Type" = filter('Order'));
                     Editable = true;
 
                     trigger OnLookup(VAR Text: Text): Boolean
                     var
-                        SalesHedwer: Record "Sales Header";
-                        SalesHedwerS: page "Sales Order List";
+                        //SalesHedwer: Record "Sales Header";
+                        //ArchiveSalesHeader: Record "Sales Header Archive";
+                        //SalesHedwerS: page "Sales Order List";
+                        LPostedWhShipmentLine: Record "Posted Whse. Shipment Line";
+                        LPostedWHShipmentLinePage: page "Posted Whse. Shipment List";
                     begin
+                        /*LPostedWhShipmentLine.Reset();
+                        LPostedWhShipmentLine.SetCurrentKey("Source No.");
                         SalesHedwer.Reset();
                         IF CustomerNum <> '' THEN
                             SalesHedwer.SetRange("Sell-to Customer No.", CustomerNum);
-                        IF FromDate > 0D THEN
+                        IF (FromDate > 0D) and (ToDate <> 0D) THEN
                             SalesHedwer.SetFilter("Dispatch Date", '>=%1', FromDate);
-                        IF ToDate > 0D THEN
+                        IF (ToDate > 0D) and (FromDate <> 0D) THEN
                             SalesHedwer.SetFilter("Dispatch Date", '<=%1', ToDate);
                         IF (FromDate > 0D) AND (ToDate > 0D) THEN
                             SalesHedwer.SetRange("Dispatch Date", FromDate, ToDate);
+                        if SalesHedwer.FindSet() then
+                            repeat
+                                LPostedWhShipmentLine.SetRange("Source No.", SalesHedwer."No.");
+                                if LPostedWhShipmentLine.FindFirst() then
+                                    LPostedWhShipmentLine.Mark(true);
+                            until SalesHedwer.Next() = 0;
 
-
-                        CLEAR(SalesHedwerS);
-                        SalesHedwerS.SETRECORD(SalesHedwer);
-                        SalesHedwerS.SETTABLEVIEW(SalesHedwer);
-                        SalesHedwerS.LOOKUPMODE(TRUE);
-                        IF SalesHedwerS.RUNMODAL = ACTION::LookupOK THEN BEGIN
-                            SalesHedwerS.GETRECORD(SalesHedwer);
-                            Text := SalesHedwer."No.";
-                            NumOrder := SalesHedwer."No.";
+                        ArchiveSalesHeader.Reset();
+                        IF CustomerNum <> '' THEN
+                            ArchiveSalesHeader.SetRange("Sell-to Customer No.", CustomerNum);
+                        IF (FromDate > 0D) and (ToDate <> 0D) THEN
+                            ArchiveSalesHeader.SetFilter("Dispatch Date", '>=%1', FromDate);
+                        IF (ToDate > 0D) and (FromDate <> 0D) THEN
+                            ArchiveSalesHeader.SetFilter("Dispatch Date", '<=%1', ToDate);
+                        IF (FromDate > 0D) AND (ToDate > 0D) THEN
+                            ArchiveSalesHeader.SetRange("Dispatch Date", FromDate, ToDate);
+                        if ArchiveSalesHeader.FindSet() then
+                            repeat
+                                LPostedWhShipmentLine.SetRange("Source No.", ArchiveSalesHeader."No.");
+                                if LPostedWhShipmentLine.FindFirst() then
+                                    LPostedWhShipmentLine.Mark(true);
+                            until ArchiveSalesHeader.Next() = 0;
+*/
+                        CLEAR(LPostedWHShipmentLinePage);
+                        LPostedWhShipmentLine.Reset();
+                        LPostedWHShipmentLinePage.SETRECORD(LPostedWhShipmentLine);
+                        LPostedWHShipmentLinePage.SETTABLEVIEW(LPostedWhShipmentLine);
+                        LPostedWHShipmentLinePage.LOOKUPMODE(TRUE);
+                        IF LPostedWHShipmentLinePage.RUNMODAL = ACTION::LookupOK THEN BEGIN
+                            LPostedWHShipmentLinePage.GETRECORD(LPostedWhShipmentLine);
+                            Text := LPostedWhShipmentLine."Source No.";
+                            NumOrder := LPostedWhShipmentLine."Source No.";
                         END ELSE BEGIN
                             Text := 'RESOURCE NOT FOUND';
                         END;
                     end;
 
-                    // CLEAR(myTabfrm);
-                    // myRec.RESET();
-                    // myTabfrm.SETTABLEVIEW(myRec) ;
-                    // myTabfrm.LOOKUPMODE(TRUE) ;
-                    // IF myTabfrm.RUNMODAL = ACTION::LookupOK THEN BEGIN
-                    // myTabfrm.GETRECORD(myRec);
-                    // SETFILTER(text,myRec.text);
-                    // END;
                 }
             }
 

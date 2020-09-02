@@ -119,7 +119,7 @@ codeunit 60002 "Item Ledger Functions"
         PalletSetup: Record "Pallet Process Setup";
     begin
         PalletSetup.get;
-        ItemLedgerEntry."Pallet ID" := ItemJournalLine."Document No.";
+        ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
         ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
         ItemLedgerEntry."Packing Material Qty" := ItemJournalLine."Packing Material Qty";
         ItemLedgerEntry."Packing Material UOM" := ItemJournalLine."Packing Material UOM";

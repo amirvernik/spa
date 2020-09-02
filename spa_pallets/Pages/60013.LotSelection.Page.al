@@ -18,18 +18,18 @@ page 60013 "Lot Selection"
                     Caption = 'Lot No.';
                     Editable = false;
                 }
-                field("Item No.";"Item No.")
+                field("Item No."; "Item No.")
                 {
                     ApplicationArea = All;
                     Caption = 'Item No.';
                     Editable = false;
                 }
-                field("Variant code";"Variant code")
+                field("Variant code"; "Variant code")
                 {
                     ApplicationArea = All;
                     Caption = 'Variant Code';
                     Editable = false;
-                }                
+                }
                 field("Expiration Date"; "Expiration Date")
                 {
                     ApplicationArea = All;
@@ -53,6 +53,16 @@ page 60013 "Lot Selection"
                 {
                     ApplicationArea = All;
                     Caption = 'Available Quantity';
+                    Editable = false;
+                }
+                field("Purchase Order"; "Purchase Order")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                }
+                field("Purchase Order Line"; "Purchase Order Line")
+                {
+                    ApplicationArea = All;
                     Editable = false;
                 }
 
@@ -103,6 +113,8 @@ page 60013 "Lot Selection"
                 //palletLine.validate(Quantity, rec.Quantity);
                 palletLine.validate(Quantity, rec."Qty. to Reserve");
                 palletLine.validate("Lot Number", REC.Lot);
+                palletLine."Purchase Order No." := Rec."Purchase Order";
+                palletLine."Purchase Order Line No." := Rec."Purchase Order Line";
                 palletLine.modify;
             end;
         commit;

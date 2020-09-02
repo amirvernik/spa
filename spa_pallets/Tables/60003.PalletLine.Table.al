@@ -98,6 +98,7 @@ table 60003 "Pallet Line"
         {
             Caption = 'Replaced';
             DataClassification = ToBeClassified;
+            Editable = false;
         }
         field(60019; "Reusable item"; Boolean)
         {

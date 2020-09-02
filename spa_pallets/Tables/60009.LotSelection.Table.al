@@ -38,7 +38,17 @@ table 60009 "Lot Selection"
         }
         field(9; "Variant code"; Code[10])
         {
-            caption='Variety';
+            caption = 'Variety';
+            DataClassification = ToBeClassified;
+        }
+        field(10; "Purchase Order"; Code[20])
+        {
+            Caption = 'Purchase Order';
+            DataClassification = ToBeClassified;
+        }
+        field(11; "Purchase Order Line"; Integer)
+        {
+            Caption = 'Purchase Order Line';
             DataClassification = ToBeClassified;
         }
 

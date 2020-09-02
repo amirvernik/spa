@@ -97,7 +97,7 @@ codeunit 60036 "OneDrive Functions"
                 WebUrl := DelChr(WebUrl, '=', '"');
                 exit(WebUrl);
             end else
-                Error('Error : ' + format(lResponse.Content.ReadAs(responseText)));
+                Error('Error : ' + format(lResponse.ReasonPhrase));
         end;
     end;
 

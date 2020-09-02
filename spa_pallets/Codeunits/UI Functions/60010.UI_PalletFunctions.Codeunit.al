@@ -388,7 +388,7 @@ codeunit 60010 "UI Pallet Functions"
                     IF STRPOS(JSONBuffer.Path, 'packagedescription') > 0 THEN begin
                         Attr_PackageDescription := JSONBuffer.Value;
                         TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'Package Description';
+                        TempFilterItemAttributesBuffer.Attribute := 'Packaging Description';
                         TempFilterItemAttributesBuffer.Value := Attr_PackageDescription;
                         TempFilterItemAttributesBuffer.insert;
                     end;
@@ -612,7 +612,8 @@ codeunit 60010 "UI Pallet Functions"
         PalletLineCheck: Record "Pallet Line";
         PalletLineNumber: Integer;
         VariantCode: code[20];
-
+        DocmentStatusMgmt: Codeunit "Release Purchase Document";
+        Released: Boolean;
     begin
         IF pFunction <> 'AddItemToPallet' THEN
             EXIT;
@@ -710,6 +711,12 @@ codeunit 60010 "UI Pallet Functions"
                             else
                                 LineNumber := 10000;
 
+                            if PurchaseHeader.Status = PurchaseHeader.status::Released then begin
+                                DocmentStatusMgmt.PerformManualReopen(PurchaseHeader);
+                                Released := true;
+                            end else
+                                Released := false;
+
                             PurchaseLine.init;
                             PurchaseLine."Document No." := PurchaseHeader."No.";
                             purchaseline."Document Type" := PurchaseHeader."Document Type";
@@ -720,6 +727,8 @@ codeunit 60010 "UI Pallet Functions"
                             PurchaseLine.VALIDATE("Variant Code", PalletLine."Variant Code");
                             purchaseline.validate("Location Code", PalletLine."Location Code");
                             PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
+                            PurchaseLine.Validate(Quantity);
+
                             PurchaseLine.validate("Qty. to Receive", PurchaseLine.Quantity);
                             PurchaseLine.validate("qty. to invoice", PurchaseLine.Quantity);
                             PurchaseLine.modify;
@@ -728,6 +737,10 @@ codeunit 60010 "UI Pallet Functions"
                             PalletLine."Purchase Order No." := PurchaseOrderNo;
                             PalletLine."Purchase Order Line No." := LineNumber;
                             palletline.modify;
+
+                            if Released then
+                                DocmentStatusMgmt.PerformManualRelease(PurchaseHeader);
+
                         end;
 
                     end;

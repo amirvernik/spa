@@ -65,7 +65,7 @@ pageextension 60023 BusinessManagerRoleExt extends "Business Manager Role Center
                     }
                     action("Consignment Report")
                     {
-                        RunObject = page "Consignment Note Filetr";
+                        RunObject = report "Consignment Note";
                         ApplicationArea = All;
                     }
                     action("Pallet By Variety")

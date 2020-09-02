@@ -138,7 +138,7 @@ page 60006 "Pallet Card Subpage"
                         ItemLedgerEntry: Record "Item Ledger Entry";
                         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
                         Err001: Label 'There are no Lot to Select for Item %1, Location %2';
-
+                        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
                     begin
                         if LotSelection.findset then
                             LotSelection.deleteall;
@@ -152,7 +152,7 @@ page 60006 "Pallet Card Subpage"
                         ItemLedgerEntry.SETRANGE(Open, TRUE);
                         ItemLedgerEntry.SETRANGE("Location Code", rec."Location Code");
                         ItemLedgerEntry.SetFilter("Lot No.", '<>%1', '');
-
+                        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
                         if ItemLedgerEntry.findset then
                             repeat
                                 if not LotSelection.get(rec."Pallet ID",
@@ -169,6 +169,13 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection."Quantity Available" := ItemLedgerEntry.Quantity -
                                         PalletReservationFunctions.FctGetLotQtyReservered(ItemLedgerEntry."Lot No.");
                                     LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
+                                    PurchaseReceiptLine.Reset();
+                                    PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");
+                                    PurchaseReceiptLine.SetRange("Line No.", ItemLedgerEntry."Document Line No.");
+                                    if PurchaseReceiptLine.FindFirst() then begin
+                                        LotSelection."Purchase Order" := PurchaseReceiptLine."Order No.";
+                                        LotSelection."Purchase Order Line" := PurchaseReceiptLine."Order Line No.";
+                                    end;
                                     LotSelection.insert;
                                 end;
                             until ItemLedgerEntry.next = 0;
@@ -192,10 +199,11 @@ page 60006 "Pallet Card Subpage"
                         if LotSelection.findset then begin
                             if page.RUNMODAL(60013, LotSelection) = ACTION::LookupOK THEN begin
                                 PageLotSelection.GETRECORD(LotSelection);
+
                             end;
                         end;
 
-                        CurrPage.update;
+                        CurrPage.update(false);
                     end;
                 }
                 action("Delete Tracking")
@@ -212,6 +220,8 @@ page 60006 "Pallet Card Subpage"
                         if Confirm(Conf001) then begin
                             rec.Validate(Quantity, 0);
                             rec.Validate("Lot Number", '');
+                            rec."Purchase Order No." := '';
+                            rec."Purchase Order Line No." := 0;
                             rec.modify;
                         end;
                     end;

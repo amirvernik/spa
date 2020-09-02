@@ -162,6 +162,7 @@ codeunit 60034 "UI Transfer Order Management"
                         JsonObj.add('ToLocation', TransferHeader."Transfer-to Code");
                         TransferLine.reset;
                         TransferLine.setrange("Document No.", TransferHeader."No.");
+                        TransferLine.SetRange("Transfer-from Code", TransferHeader."Transfer-from Code");
                         if TransferLine.findset then begin
                             repeat
                                 Clear(JsonObjLines);

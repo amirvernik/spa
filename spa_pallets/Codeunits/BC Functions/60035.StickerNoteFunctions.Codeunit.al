@@ -46,7 +46,8 @@ codeunit 60035 "Sticker note functions"
             SecondLine := '%END%';
             PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
             LabelFormat := StickerPrinter."Sticker Note type";
-        end;
+        end else
+            Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
         FileName := 'Pallet_Label_' + PalletHeader."Pallet ID" + '.txt';
         OutStr.WriteText(Firstline);
@@ -83,7 +84,7 @@ codeunit 60035 "Sticker note functions"
                                     format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                     PalletFunctions.GetFirstPO(PalletHeader) + splitter +
                                     PalletFunctions.GetVendorShipmentNoFromPalletLine(PalletLine) + splitter;
-            //OutStr.WriteText(PalletLineText);
+
             until PalletLine.next = 0;
         OutStr.WriteText(PalletText);
         TempBlob.CreateInStream(InStr);
@@ -152,6 +153,9 @@ codeunit 60035 "Sticker note functions"
         OneDriveFunctions: Codeunit "OneDrive Functions";
         FirstLine: text;
         SecondLine: Text;
+        ItemCrossRef: Record "Item Cross Reference";
+        LPalletHeaderText: Text;
+        LFooterText: Text;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -187,11 +191,11 @@ codeunit 60035 "Sticker note functions"
                                     SecondLine := '%END%';
                                     PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
                                     LabelFormat := CustomerRec."Dispatch Format Description";
-                                end;
+                                end else
+                                    Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
-                                FileName := 'DispatchLabel_' + WarehouseShipmentLine."No." +
-                                    '_' + format(WarehouseShipmentLine."Line No.") +
-                                    '_' + WarehousePallet."Lot No." + '.txt';
+                                FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
+
 
                                 TempBlob.CreateOutStream(OutStr);
 
@@ -202,21 +206,68 @@ codeunit 60035 "Sticker note functions"
                                 OutStr.WriteText(SecondLine);
                                 OutStr.WriteText();
 
-                                DispatchText += PalletHeader."Pallet ID" + Splitter +
-                                                    format(PalletHeader."Pallet Status") + Splitter +
-                                                    PalletHeader."Location Code" + Splitter +
-                                                    format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                                    PalletHeader."User Created" + Splitter +
-                                                    format(PalletHeader."Exist in warehouse shipment") + Splitter +
-                                                    format(PalletHeader."Raw Material Pallet") + Splitter +
-                                                    PalletHeader."Pallet Type" + Splitter +
-                                                    format(PalletHeader."Disposal Status") + Splitter;
                             end;
+                        LPalletHeaderText := PalletHeader."Pallet ID" + Splitter +
+                                format(PalletHeader."Pallet Status") + Splitter +
+                                PalletHeader."Location Code" + Splitter +
+                                format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                PalletHeader."User Created" + Splitter +
+                                format(PalletHeader."Exist in warehouse shipment") + Splitter +
+                                format(PalletHeader."Raw Material Pallet") + Splitter +
+                                PalletHeader."Pallet Type" + Splitter +
+                                format(PalletHeader."Disposal Status") + Splitter;
+
+
+                        LFooterText := '';
+                        ItemAttrText := '';
+                        ItemAttributesMapping.reset;
+                        ItemAttributesMapping.setrange("Table ID", 27);
+                        ItemAttributesMapping.setrange("No.", WarehouseShipmentLine."Item No.");
+                        if ItemAttributesMapping.findset then
+                            repeat
+                                ItemAttrText += GetAttributeName(ItemAttributesMapping."Item Attribute ID") + ':' +
+                                GetAttributeValue(ItemAttributesMapping."Item Attribute ID", ItemAttributesMapping."Item Attribute Value ID") + Splitter;
+                            until ItemAttributesMapping.next = 0;
+
+                        if ItemAttrText <> '' then begin
+                            ItemAttrText := copystr(ItemAttrText, 1, strlen(ItemAttrText) - 1);
+                            LFooterText += ItemAttrText + Splitter;
+                        end
+                        else
+                            LFooterText += Splitter;
+
+                        LFooterText += SalesHeader."Sell-to Customer No." + Splitter +
+                                        SalesHeader."Sell-to Customer Name" + Splitter +
+                                        SalesHeader."No." + Splitter +
+                                        format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."order Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Work Description") + Splitter +
+                                        salesheader."External Document No." + splitter +
+                                        GetVendorShipmentNo(WarehousePallet) + splitter;
+
+                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
+                            ItemCrossRef.reset;
+                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                            ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
+                            if ItemCrossRef.findfirst then
+                                LFooterText += ItemCrossRef.Description + splitter;
+                        end;
+
+                        LFooterText += CompanyText;
 
                         PalletLine.reset;
                         PalletLine.setrange(PalletLine."Pallet ID", PalletHeader."Pallet ID");
                         if PalletLine.findset then
                             repeat
+                                DispatchText := LPalletHeaderText;
                                 DispatchText += format(PalletLine."Line No.") + Splitter +
                                                     PalletLine."Item No." + Splitter +
                                                     PalletLine."Variant Code" + Splitter +
@@ -233,51 +284,24 @@ codeunit 60035 "Sticker note functions"
                                                       GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
                                                       format(PurchaseHeader."Harvest Date") + splitter;
                                 end;
+                                DispatchText += LFooterText;
+                                OutStr.WriteText(DispatchText);
+                                OutStr.WriteText();
                             until PalletLine.next = 0;
 
-                        ItemAttrText := '';
-                        ItemAttributesMapping.reset;
-                        ItemAttributesMapping.setrange("Table ID", 27);
-                        ItemAttributesMapping.setrange("No.", WarehouseShipmentLine."Item No.");
-                        if ItemAttributesMapping.findset then
-                            repeat
-                                ItemAttrText += GetAttributeName(ItemAttributesMapping."Item Attribute ID") + ':' +
-                                GetAttributeValue(ItemAttributesMapping."Item Attribute ID", ItemAttributesMapping."Item Attribute Value ID") + Splitter;
-                            until ItemAttributesMapping.next = 0;
-
-                        if ItemAttrText <> '' then begin
-                            ItemAttrText := copystr(ItemAttrText, 1, strlen(ItemAttrText) - 1);
-                            DispatchText += ItemAttrText + Splitter;
-                        end
-                        else
-                            DispatchTExt += Splitter;
-
-                        DispatchText += SalesHeader."Sell-to Customer No." + Splitter +
-                                        SalesHeader."Sell-to Customer Name" + Splitter +
-                                        SalesHeader."No." + Splitter +
-                                        format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."order Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Work Description") + Splitter +
-                                        salesheader."External Document No." + splitter +
-                                        GetVendorShipmentNo(WarehousePallet) + splitter;
-
-                        DispatchText += CompanyText;
-                        OutStr.WriteText(DispatchText);
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
-
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
+
+
     end;
 
     //SSCC Label Sticker note
-    procedure CreateSSCCStickerNote(pShipmentHeader: Record "Warehouse Shipment Header"; PalletNumber: Code[20]; boolFilterPallet: Boolean)
+    procedure CreateSSCCStickerNote(pShipmentHeader: Record "Warehouse Shipment Header";
+                PalletNumber: Code[20];
+                boolFilterPallet: Boolean)
     var
         CompanyInformation: Record "Company Information";
         ItemRec: Record Item;
@@ -347,10 +371,10 @@ codeunit 60035 "Sticker note functions"
                                         PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
 
                                         LabelFormat := StickerPrinter."Sticker Note type";
-                                    end;
-                                    FileName := 'SSCC_' + WarehouseShipmentLine."No." +
-                                        '_' + format(WarehouseShipmentLine."Line No.") +
-                                        '_' + WarehousePallet."Lot No." + '.txt';
+                                    end else
+                                        Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
+
+                                    FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
 
                                     TempBlob.CreateOutStream(OutStr);
 
@@ -464,6 +488,8 @@ codeunit 60035 "Sticker note functions"
         FirstLine: Text;
         SecondLine: Text;
         ItemCrossRef: Record "Item Cross Reference";
+        LPalletHeaderText: Text;
+        LFooterText: Text;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -501,11 +527,10 @@ codeunit 60035 "Sticker note functions"
                                     SecondLine := '%END%';
                                     PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
                                     LabelFormat := CustomerRec."Item Label Format Description";
-                                end;
+                                end else
+                                    Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
-                                FileName := 'ItemLabel_' + WarehouseShipmentLine."No." +
-                                    '_' + format(WarehouseShipmentLine."Line No.") +
-                                    '_' + WarehousePallet."Lot No." + '.txt';
+                                FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
 
                                 TempBlob.CreateOutStream(OutStr);
 
@@ -515,22 +540,69 @@ codeunit 60035 "Sticker note functions"
                                 OutStr.WriteText();
                                 OutStr.WriteText(SecondLine);
                                 OutStr.WriteText();
-
-                                ItemText += PalletHeader."Pallet ID" + Splitter +
-                                                    format(PalletHeader."Pallet Status") + Splitter +
-                                                    PalletHeader."Location Code" + Splitter +
-                                                    format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                                    PalletHeader."User Created" + Splitter +
-                                                    format(PalletHeader."Exist in warehouse shipment") + Splitter +
-                                                    format(PalletHeader."Raw Material Pallet") + Splitter +
-                                                    PalletHeader."Pallet Type" + Splitter +
-                                                    format(PalletHeader."Disposal Status") + Splitter;
                             end;
+
+                        LPalletHeaderText := PalletHeader."Pallet ID" + Splitter +
+                                                                               format(PalletHeader."Pallet Status") + Splitter +
+                                                                               PalletHeader."Location Code" + Splitter +
+                                                                               format(PalletHeader."Creation Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                                                               PalletHeader."User Created" + Splitter +
+                                                                               format(PalletHeader."Exist in warehouse shipment") + Splitter +
+                                                                               format(PalletHeader."Raw Material Pallet") + Splitter +
+                                                                               PalletHeader."Pallet Type" + Splitter +
+                                                                               format(PalletHeader."Disposal Status") + Splitter;
+
+                        LFooterText := '';
+                        ItemAttrText := '';
+                        ItemAttributesMapping.reset;
+                        ItemAttributesMapping.setrange("Table ID", 27);
+                        ItemAttributesMapping.setrange("No.", WarehouseShipmentLine."Item No.");
+                        if ItemAttributesMapping.findset then
+                            repeat
+                                ItemAttrText += GetAttributeName(ItemAttributesMapping."Item Attribute ID") + ':' +
+                                GetAttributeValue(ItemAttributesMapping."Item Attribute ID", ItemAttributesMapping."Item Attribute Value ID") + Splitter;
+                            until ItemAttributesMapping.next = 0;
+
+                        if ItemAttrText <> '' then begin
+                            ItemAttrText := copystr(ItemAttrText, 1, strlen(ItemAttrText) - 1);
+                            LFooterText += ItemAttrText;
+                        end
+                        else
+                            LFooterText += splitter;
+
+                        LFooterText += SalesHeader."Sell-to Customer No." + Splitter +
+                                        SalesHeader."Sell-to Customer Name" + Splitter +
+                                        SalesHeader."No." + Splitter +
+                                        format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(calcdate('+14D', SalesHeader."Pack-out Date"), 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."order Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(SalesHeader."Work Description") + splitter;
+
+                        LFooterText += GetVendorShipmentNo(WarehousePallet) + splitter;
+
+                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
+                            ItemCrossRef.reset;
+                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                            ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
+                            if ItemCrossRef.findfirst then
+                                LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
+                        end;
+                        LFooterText += CompanyText;
+
 
                         PalletLine.reset;
                         PalletLine.setrange(PalletLine."Pallet ID", PalletHeader."Pallet ID");
                         if PalletLine.findset then
                             repeat
+                                ItemText := LPalletHeaderText;
                                 ItemText += format(PalletLine."Line No.") + Splitter +
                                                     PalletLine."Item No." + Splitter +
                                                     PalletLine."Variant Code" + Splitter +
@@ -545,62 +617,21 @@ codeunit 60035 "Sticker note functions"
                                     PalletLine."Purchase Order No.") then begin
                                     ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
                                                       GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
-                                                      format(PurchaseHeader."Harvest Date");
+                                                      format(PurchaseHeader."Harvest Date") + Splitter;
                                 end;
+
+                                ItemText += LFooterText;
+                                OutStr.WriteText(ItemText);
+                                OutStr.WriteText();
                             until PalletLine.next = 0;
 
-                        ItemAttrText := '';
-                        ItemAttributesMapping.reset;
-                        ItemAttributesMapping.setrange("Table ID", 27);
-                        ItemAttributesMapping.setrange("No.", WarehouseShipmentLine."Item No.");
-                        if ItemAttributesMapping.findset then
-                            repeat
-                                ItemAttrText += GetAttributeName(ItemAttributesMapping."Item Attribute ID") + ':' +
-                                GetAttributeValue(ItemAttributesMapping."Item Attribute ID", ItemAttributesMapping."Item Attribute Value ID") + Splitter;
-                            until ItemAttributesMapping.next = 0;
-
-                        if ItemAttrText <> '' then begin
-                            ItemAttrText := copystr(ItemAttrText, 1, strlen(ItemAttrText) - 1);
-                            ItemText += ItemAttrText;
-                        end
-                        else
-                            ItemText += splitter;
-
-                        ItemText += SalesHeader."Sell-to Customer No." + Splitter +
-                                        SalesHeader."Sell-to Customer Name" + Splitter +
-                                        SalesHeader."No." + Splitter +
-                                        format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(calcdate('+14D', SalesHeader."Pack-out Date"), 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."order Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(SalesHeader."Work Description") + splitter;
-
-                        ItemText += GetVendorShipmentNo(WarehousePallet) + splitter;
-
-                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                            ItemCrossRef.reset;
-                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
-                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
-                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
-                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
-                            ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
-                            if ItemCrossRef.findfirst then
-                                ItemText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
-                        end;
-
-                        outstr.WriteText();
-                        ItemText += CompanyText;
-                        OutStr.WriteText(ItemText);
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
 
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
+
     end;
 
     procedure GenerateSSCC(): Text

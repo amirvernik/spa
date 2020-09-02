@@ -8,6 +8,8 @@ codeunit 60001 "Pallet Functions"
 
     //Close Pallet - Global Function
     procedure ClosePallet(var pPalletHeader: Record "Pallet Header"; pType: text[2])
+    var
+        LPurchaseOrderLine: Record "Purchase Line";
     begin
 
         //No Lines - Dont close
@@ -23,19 +25,31 @@ codeunit 60001 "Pallet Functions"
         if PalletLines.findfirst then
             error(Err05);
 
-        //Change Status
-        pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Closed;
-        pPalletHeader.modify;
-
         //Update Remaining Quantity
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if PalletLines.findset then
             repeat
-                PalletLines."Remaining Qty" := PalletLines.Quantity;
+                LPurchaseOrderLine.Reset();
+                LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
+                LPurchaseOrderLine.SetRange("Document No.", PalletLines."Purchase Order No.");
+                LPurchaseOrderLine.SetRange("Line No.", PalletLines."Purchase Order Line No.");
+                IF LPurchaseOrderLine.FindFirst() then begin
+                    if LPurchaseOrderLine."Quantity Received" <= 0 then begin
+                        Error('You can`t close the pallet if you have not received the purchase line, Please make sure the purchase line is received and then retry to close the pallet');
+                        exit;
+                    end;
+                end else
+                    Error('You can`t close the pallet if you have not received the purchase line, Please make sure the purchase line is received and then retry to close the pallet');
+
+                IF LPurchaseOrderLine.FindFirst() then
+                    PalletLines."Remaining Qty" := PalletLines.Quantity;
                 PalletLines."QTY Consumed" := 0;
                 PalletLines.modify;
             until PalletLines.next = 0;
+
+        //if pType = 'UI' then
+        //    TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO        
 
         UpdateNoOfCopies(pPalletHeader); //Change No. Of Copies
         AddMaterials(pPalletHeader); //Add Materials
@@ -43,8 +57,11 @@ codeunit 60001 "Pallet Functions"
         ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
         ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
         //AddPoLines(pPalletHeader); //Add PO Lines
-        if pType = 'BC' then
-            TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO        
+
+        //Change Status
+        pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Closed;
+        pPalletHeader.modify;
+
     end;
 
     //Reopen Pallet - Global Function
