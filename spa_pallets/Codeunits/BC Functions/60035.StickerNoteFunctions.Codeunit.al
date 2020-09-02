@@ -156,6 +156,7 @@ codeunit 60035 "Sticker note functions"
         ItemCrossRef: Record "Item Cross Reference";
         LPalletHeaderText: Text;
         LFooterText: Text;
+        PalletLineTemp: Record "Pallet Line" temporary;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -194,7 +195,7 @@ codeunit 60035 "Sticker note functions"
                                 end else
                                     Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
-                                FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
+                                FileName := 'DispatchLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
 
 
                                 TempBlob.CreateOutStream(OutStr);
@@ -262,22 +263,44 @@ codeunit 60035 "Sticker note functions"
                         end;
 
                         LFooterText += CompanyText;
+                        if PalletLineTemp.findset then
+                            PalletLineTemp.DeleteAll();
 
                         PalletLine.reset;
                         PalletLine.setrange(PalletLine."Pallet ID", PalletHeader."Pallet ID");
                         if PalletLine.findset then
                             repeat
+                                PalletLineTemp.reset;
+                                PalletLineTemp.setrange("Pallet ID", PalletHeader."Pallet ID");
+                                PalletLineTemp.setrange("Item No.", PalletLine."Item No.");
+                                PalletLineTemp.setrange("Variant Code", PalletLine."Variant Code");
+                                PalletLineTemp.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                                if not PalletLineTemp.findfirst then begin
+                                    PalletLineTemp.init;
+                                    palletlinetemp.TransferFields(PalletLine);
+                                    PalletLineTemp.insert;
+                                end
+                                else begin
+                                    PalletLineTemp.Quantity += PalletLine.Quantity;
+                                    palletlinetemp.modify;
+                                end;
+                            until PalletLine.next = 0;
+
+                        PalletLineTemp.reset;
+                        PalletLineTemp.setrange(PalletLineTemp."Pallet ID", PalletHeader."Pallet ID");
+                        if PalletLineTemp.findset then
+                            repeat
                                 DispatchText := LPalletHeaderText;
-                                DispatchText += format(PalletLine."Line No.") + Splitter +
-                                                    PalletLine."Item No." + Splitter +
-                                                    PalletLine."Variant Code" + Splitter +
-                                                    PalletLine.Description + Splitter +
-                                                    PalletLine."Lot Number" + Splitter +
-                                                    PalletLine."Unit of Measure" + Splitter +
-                                                    format(PalletLine.Quantity) + Splitter +
-                                                    format(PalletLine."QTY Consumed") + Splitter +
-                                                    format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter;
+                                DispatchText += format(PalletLineTemp."Line No.") + Splitter +
+                                                    PalletLineTemp."Item No." + Splitter +
+                                                    PalletLineTemp."Variant Code" + Splitter +
+                                                    PalletLineTemp.Description + Splitter +
+                                                    PalletLineTemp."Lot Number" + Splitter +
+                                                    PalletLineTemp."Unit of Measure" + Splitter +
+                                                    format(PalletLineTemp.Quantity) + Splitter +
+                                                    format(PalletLineTemp."QTY Consumed") + Splitter +
+                                                    format(PalletLineTemp."Remaining Qty") + Splitter +
+                                                    format(PalletLineTemp."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter;
                                 if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
                                     PalletLine."Purchase Order No.") then begin
                                     DispatchText += PurchaseHeader."Buy-from Vendor No." + splitter +
@@ -287,7 +310,7 @@ codeunit 60035 "Sticker note functions"
                                 DispatchText += LFooterText;
                                 OutStr.WriteText(DispatchText);
                                 OutStr.WriteText();
-                            until PalletLine.next = 0;
+                            until PalletLineTemp.next = 0;
 
                         TempBlob.CreateInStream(InStr);
                         BearerToken := OneDriveFunctions.GetBearerToken();
