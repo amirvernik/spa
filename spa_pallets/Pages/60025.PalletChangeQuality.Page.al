@@ -103,7 +103,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                 begin
                     //Check if needs to do
-                    ChangeQualityMgmt.CheckChangeItem(Rec);
+                    ChangeQualityMgmt.CheckChangeItem(Rec); 
                     //Pallet Line Change Quantities
                     ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
                     ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 

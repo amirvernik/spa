@@ -138,6 +138,7 @@ codeunit 60001 "Pallet Functions"
     local procedure OnAfterInsertItemLedgerEntry(ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry")
     var
         PalletSetup: Record "Pallet Process Setup";
+        PurchRctLine: Record "Purch. Rcpt. Line";
     begin
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
@@ -146,6 +147,19 @@ codeunit 60001 "Pallet Functions"
         ItemLedgerEntry.modify;
         if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then
             PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
+
+        //Change Pallet ID To Pallet Number not receipt
+        if ItemLedgerEntry."Document Type" = ItemLedgerEntry."Document Type"::"Purchase Receipt" then begin
+            if PurchRctLine.get(ItemLedgerEntry."Document No.", ItemLedgerEntry."Document Line No.") then begin
+                PalletLines.reset;
+                palletlines.setrange("Purchase Order No.", PurchRctLine."Order No.");
+                PalletLines.setrange("Purchase Order Line No.", PurchRctLine."Order Line No.");
+                if PalletLines.findfirst then begin
+                    ItemLedgerEntry."Pallet ID" := PalletLines."Pallet ID";
+                    ItemLedgerEntry.modify;
+                end;
+            end;
+        end;
     end;
 
     //Adding Packing Materials - Global Function

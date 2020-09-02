@@ -614,6 +614,7 @@ codeunit 60010 "UI Pallet Functions"
         VariantCode: code[20];
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
         Released: Boolean;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
     begin
         IF pFunction <> 'AddItemToPallet' THEN
             EXIT;
@@ -726,11 +727,19 @@ codeunit 60010 "UI Pallet Functions"
                             purchaseline.validate("No.", PalletLine."Item No.");
                             PurchaseLine.VALIDATE("Variant Code", PalletLine."Variant Code");
                             purchaseline.validate("Location Code", PalletLine."Location Code");
-                            PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
-                            PurchaseLine.Validate(Quantity);
+                            //PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
+                            //PurchaseLine.Validate(Quantity);
 
-                            PurchaseLine.validate("Qty. to Receive", PurchaseLine.Quantity);
-                            PurchaseLine.validate("qty. to invoice", PurchaseLine.Quantity);
+                            //PurchaseLine.validate("Qty. to Receive", PurchaseLine.Quantity);
+                            //PurchaseLine.validate("qty. to invoice", PurchaseLine.Quantity);
+                            ItemUnitOfMeasure.reset;
+                            ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");
+                            ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
+                            if ItemUnitOfMeasure.findfirst then
+                                PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                            //PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
+                            PurchaseLine.validate("Qty. to Receive", 0);
+                            PurchaseLine.validate("qty. to invoice", 0);
                             PurchaseLine.modify;
 
                             //if PalletLine.get(PalletID, PalletLineNumber) then begin
