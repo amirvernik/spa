@@ -122,6 +122,31 @@ page 60006 "Pallet Card Subpage"
     {
         area(Processing)
         {
+
+            action("Change Item Quality")
+            {
+                ApplicationArea = All;
+                image = TaskQualityMeasure;
+
+                trigger OnAction()
+                var
+                    ChangeQualityPage: page "Pallet Change Quality";
+                    MsgCannotChange: Label 'Change quality is available only for closed pallets and pallets that were not allocated to a dispatch process (Shipment)';
+                    LPalletHeader: Record "Pallet Header";
+                begin
+                    LPalletHeader.Reset();
+                    LPalletHeader.SetRange("Pallet ID", Rec."Pallet ID");
+                    LPalletHeader.FindFirst();
+                    if ((LPalletHeader."Pallet Status" = "Pallet Status"::Closed) and
+                            (LPalletHeader."Exist in warehouse shipment" = false)) then begin
+                        ChangeQualityPage.SetPalletIDAndPalletLine(rec."Pallet ID", rec."Line No.");
+                        ChangeQualityPage.CalcChangeQuality(rec."Pallet ID", Rec."Line No.");
+                        ChangeQualityPage.run;
+                    end
+                    else
+                        message(MsgCannotChange);
+                end;
+            }
             group(Tracking)
             {
                 action("Item Tracking")

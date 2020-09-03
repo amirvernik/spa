@@ -72,6 +72,13 @@ table 60001 "Pallet Header"
             Caption = 'Disposal Status';
             DataClassification = ToBeClassified;
         }
+        field(30; "Warehouse Shipment No."; Code[20])
+        {
+            Caption = 'Warehouse Shipment No.';
+            FieldClass = FlowField;
+            CalcFormula = lookup ("Warehouse Pallet"."Whse Shipment No." where("Pallet ID" = field("Pallet ID")));
+            Editable = false;
+        }
     }
 
     keys

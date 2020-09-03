@@ -28,7 +28,7 @@ codeunit 60024 "Change Quality Management"
     var
         PalletID: Code[20];
         BadCount: Boolean;
-        ErrorToChange: Label 'Cannot change, please update replaced Qty to be different than Qty';
+        ErrorToChange: Label 'Cannot change, please update new Qty to be different than Qty';
     begin
         BadCount := false;
         PalletID := pPalletLineChg."Pallet ID";

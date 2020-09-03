@@ -65,6 +65,10 @@ page 60003 "Pallet Card"
                     editable = false;
 
                 }
+                field("Warehouse Shipment No."; "Warehouse Shipment No.")
+                {
+                    ApplicationArea = All;
+                }
                 field("Raw Material Pallet"; "Raw Material Pallet")
                 {
                     ApplicationArea = all;
@@ -165,26 +169,6 @@ page 60003 "Pallet Card"
                     end;
                 }
 
-                action("Change Item Quality")
-                {
-                    ApplicationArea = All;
-                    image = TaskQualityMeasure;
-
-                    trigger OnAction()
-                    var
-                        ChangeQualityPage: page "Pallet Change Quality";
-                        MsgCannotChange: Label 'Change quality is available only for closed pallets and pallets that were not allocated to a dispatch process (Shipment)';
-                    begin
-                        if (("Pallet Status" = "Pallet Status"::Closed) and
-                                ("Exist in warehouse shipment" = false)) then begin
-                            ChangeQualityPage.SetPalletID(rec."Pallet ID");
-                            ChangeQualityPage.CalcChangeQuality(rec."Pallet ID");
-                            ChangeQualityPage.run;
-                        end
-                        else
-                            message(MsgCannotChange);
-                    end;
-                }
                 action("Pallet Reservations")
                 {
                     ApplicationArea = All;

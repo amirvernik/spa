@@ -513,6 +513,7 @@ codeunit 60035 "Sticker note functions"
         ItemCrossRef: Record "Item Cross Reference";
         LPalletHeaderText: Text;
         LFooterText: Text;
+        LLabelDate: Date;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -588,18 +589,22 @@ codeunit 60035 "Sticker note functions"
 
                         if ItemAttrText <> '' then begin
                             ItemAttrText := copystr(ItemAttrText, 1, strlen(ItemAttrText) - 1);
-                            LFooterText += ItemAttrText;
+                            LFooterText += ItemAttrText + Splitter;
                         end
                         else
                             LFooterText += splitter;
-
+                        if SalesHeader."Pack-out Date" <= PalletHeader."Creation Date" then
+                            LLabelDate := PalletHeader."Creation Date"
+                        else
+                            LLabelDate := SalesHeader."Pack-out Date";
                         LFooterText += SalesHeader."Sell-to Customer No." + Splitter +
                                         SalesHeader."Sell-to Customer Name" + Splitter +
                                         SalesHeader."No." + Splitter +
                                         format(SalesHeader."Requested Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."document Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."Pack-out Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
-                                        format(calcdate('+14D', SalesHeader."Pack-out Date"), 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(LLabelDate, 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
+                                        format(calcdate('+14D', LLabelDate), 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."Dispatch Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."Promised Delivery Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +
                                         format(SalesHeader."due Date", 0, '<Day,2>/<Month,2>/<Year,2>') + Splitter +

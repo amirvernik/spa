@@ -38,6 +38,7 @@ table 60018 "Pallet Line Change Quality"
         field(8; Quantity; Decimal)
         {
             DataClassification = ToBeClassified;
+
         }
 
         field(9; "Expiration Date"; date)
@@ -64,6 +65,7 @@ table 60018 "Pallet Line Change Quality"
         {
             Caption = 'Replaced Qty';
             DataClassification = ToBeClassified;
+            MinValue = 0;
         }
         field(60020; "Variant Code"; code[10])
         {

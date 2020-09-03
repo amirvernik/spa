@@ -23,8 +23,9 @@ page 60025 "Pallet Change Quality"
                     TableRelation = "Pallet Header" where("Pallet Status" = filter(Closed));
                     trigger OnValidate()
                     begin
-                        CalcChangeQuality(PalletID);
+                        CalcChangeQuality(PalletID, PalletLineNo);
                         rec.setfilter("Pallet ID", PalletID);
+                        Rec.SetRange("Line No.", PalletLineNo);
                         rec.setfilter("User ID", UserId);
                         CurrPage.update;
                     end;
@@ -132,6 +133,7 @@ page 60025 "Pallet Change Quality"
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
         PalletLineChangeQuality.setrange("Pallet ID", PalletID);
+        PalletLineChangeQuality.SetRange("Line No.", PalletLineNo);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
 
@@ -143,12 +145,14 @@ page 60025 "Pallet Change Quality"
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("User Created", UserId);
         PalletChangeQuality.setrange("Pallet ID", PalletID);
+        PalletChangeQuality.SetRange("Pallet Line No.", PalletLineNo);
         if PalletChangeQuality.findset then
             PalletChangeQuality.DeleteAll();
 
         if PalletID <> '' then begin
-            CalcChangeQuality(PalletID);
+            CalcChangeQuality(PalletID, PalletLineNo);
             rec.setfilter("Pallet ID", PalletID);
+            rec.SetRange("Line No.", PalletLineNo);
             rec.setfilter("User ID", UserId);
         end
         else begin
@@ -159,18 +163,20 @@ page 60025 "Pallet Change Quality"
         CurrPage.update;
     end;
 
-    procedure SetPalletID(var pPalletID: code[20])
+    procedure SetPalletIDAndPalletLine(pPalletID: code[20]; pPalletLine: Integer)
     begin
         PalletID := pPalletID;
+        PalletLineNo := pPalletLine;
     end;
 
     //Calc Change Quality
-    procedure CalcChangeQuality(var pPalletID: code[20])
+    procedure CalcChangeQuality(pPalletID: code[20]; pPalletLine: Integer)
     var
 
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
+
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
 
@@ -181,6 +187,7 @@ page 60025 "Pallet Change Quality"
 
         PalletLine.reset;
         PalletLine.setrange("Pallet ID", pPalletID);
+        PalletLine.SetRange("Line No.", pPalletLine);
         if PalletLine.findset then
             repeat
                 PalletLineChangeQuality.init;
@@ -194,6 +201,7 @@ page 60025 "Pallet Change Quality"
 
     var
         PalletID: code[20];
+        PalletLineNo: Integer;
         PalletLine: Record "Pallet Line";
         PalletChangeQuality: Record "Pallet Change Quality";
         PalletLineChangeQuality: Record "Pallet Line Change Quality";

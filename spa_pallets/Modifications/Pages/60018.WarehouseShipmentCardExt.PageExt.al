@@ -82,6 +82,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
             {
                 Caption = 'P&allets';
                 Image = CalculateShipment;
+
                 action("Add a Pallet")
                 {
                     Image = ImportCodes;
