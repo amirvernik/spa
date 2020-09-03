@@ -263,7 +263,7 @@ codeunit 60035 "Sticker note functions"
                         end;
 
                         LFooterText += CompanyText;
-                        
+
                         if PalletLineTemp.findset then
                             PalletLineTemp.DeleteAll();
 
@@ -366,7 +366,6 @@ codeunit 60035 "Sticker note functions"
     begin
         PalletProcessSetup.get;
         CompanyInformation.get;
-        //
         WarehouseShipmentLine.reset;
         WarehouseShipmentLine.setrange("No.", pShipmentHeader."No.");
         if WarehouseShipmentLine.findset then
