@@ -263,6 +263,7 @@ codeunit 60035 "Sticker note functions"
                         end;
 
                         LFooterText += CompanyText;
+                        
                         if PalletLineTemp.findset then
                             PalletLineTemp.DeleteAll();
 
@@ -514,6 +515,7 @@ codeunit 60035 "Sticker note functions"
         LPalletHeaderText: Text;
         LFooterText: Text;
         LLabelDate: Date;
+        PalletLineTemp: Record "Pallet Line" temporary;
     begin
         CompanyInformation.get;
         CompanyText := CompanyInformation.name + Splitter +
@@ -625,22 +627,44 @@ codeunit 60035 "Sticker note functions"
                         end;
                         LFooterText += CompanyText;
 
+                        if PalletLineTemp.findset then
+                            PalletLineTemp.DeleteAll();
 
                         PalletLine.reset;
                         PalletLine.setrange(PalletLine."Pallet ID", PalletHeader."Pallet ID");
                         if PalletLine.findset then
                             repeat
+                                PalletLineTemp.reset;
+                                PalletLineTemp.setrange("Pallet ID", PalletHeader."Pallet ID");
+                                PalletLineTemp.setrange("Item No.", PalletLine."Item No.");
+                                PalletLineTemp.setrange("Variant Code", PalletLine."Variant Code");
+                                PalletLineTemp.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                                if not PalletLineTemp.findfirst then begin
+                                    PalletLineTemp.init;
+                                    palletlinetemp.TransferFields(PalletLine);
+                                    PalletLineTemp.insert;
+                                end
+                                else begin
+                                    PalletLineTemp.Quantity += PalletLine.Quantity;
+                                    palletlinetemp.modify;
+                                end;
+                            until PalletLine.next = 0;
+
+                        PalletLineTemp.reset;
+                        PalletLineTemp.setrange(PalletLineTemp."Pallet ID", PalletHeader."Pallet ID");
+                        if PalletLineTemp.findset then
+                            repeat
                                 ItemText := LPalletHeaderText;
-                                ItemText += format(PalletLine."Line No.") + Splitter +
-                                                    PalletLine."Item No." + Splitter +
-                                                    PalletLine."Variant Code" + Splitter +
-                                                    PalletLine.Description + Splitter +
-                                                    PalletLine."Lot Number" + Splitter +
-                                                    PalletLine."Unit of Measure" + Splitter +
-                                                    format(PalletLine.Quantity) + Splitter +
-                                                    format(PalletLine."QTY Consumed") + Splitter +
-                                                    format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
+                                ItemText += format(PalletLineTemp."Line No.") + Splitter +
+                                                    PalletLineTemp."Item No." + Splitter +
+                                                    PalletLineTemp."Variant Code" + Splitter +
+                                                    PalletLineTemp.Description + Splitter +
+                                                    PalletLineTemp."Lot Number" + Splitter +
+                                                    PalletLineTemp."Unit of Measure" + Splitter +
+                                                    format(PalletLineTemp.Quantity) + Splitter +
+                                                    format(PalletLineTemp."QTY Consumed") + Splitter +
+                                                    format(PalletLineTemp."Remaining Qty") + Splitter +
+                                                    format(PalletLineTemp."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
                                 if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
                                     PalletLine."Purchase Order No.") then begin
                                     ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +

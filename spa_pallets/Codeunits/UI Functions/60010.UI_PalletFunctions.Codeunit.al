@@ -738,8 +738,8 @@ codeunit 60010 "UI Pallet Functions"
                             if ItemUnitOfMeasure.findfirst then
                                 PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure");
                             //PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
-                            PurchaseLine.validate("Qty. to Receive", 0);
-                            PurchaseLine.validate("qty. to invoice", 0);
+                            //PurchaseLine.validate("Qty. to Receive", 0);
+                            //PurchaseLine.validate("qty. to invoice", 0);
                             PurchaseLine.modify;
 
                             //if PalletLine.get(PalletID, PalletLineNumber) then begin

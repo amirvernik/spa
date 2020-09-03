@@ -1,5 +1,23 @@
 codeunit 60034 "UI Transfer Order Management"
 {
+    /*[EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", 'OnBeforeTransferOrderPostReceipt', '', true, true)]
+    local procedure OnBeforeTransferOrderPostReceipt(var TransferHeader: Record "Transfer Header")
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.reset;
+        ReservationEntry.setrange("Source Type", 5741);
+        ReservationEntry.setrange("Source Subtype", 1);
+        ReservationEntry.setrange("Source ID", TransferHeader."No.");
+        ReservationEntry.setrange(Positive, true);
+        if ReservationEntry.findset then
+            repeat
+                ReservationEntry."Expiration Date" := 0D;
+                ReservationEntry.modify;
+            until ReservationEntry.next = 0;
+
+    end;*/
+
     //Create Transfer Order - CreateTransferOrder [9108]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     procedure CreateTransferOrder(VAR pFunction: Text[50]; VAR pContent: Text)

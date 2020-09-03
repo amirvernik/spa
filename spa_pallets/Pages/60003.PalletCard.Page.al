@@ -153,6 +153,19 @@ page 60003 "Pallet Card"
                         PalletFunctions.ReOpenPallet(rec);
                     end;
                 }
+                action("closePalletTest")
+                {
+                    ApplicationArea = All;
+                    image = Print;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    trigger OnAction()
+                    var
+                        cu: Codeunit "Tracking Line Functions";
+                    begin
+                        cu.AddTrackingLineToPO(rec);
+                    end;
+                }
                 action("Dispose Pallet")
                 {
                     ApplicationArea = All;
@@ -265,6 +278,7 @@ page 60003 "Pallet Card"
                     end;
                 }
             }
+
             action("Print Pallet")
             {
                 ApplicationArea = All;
