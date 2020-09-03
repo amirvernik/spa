@@ -15,7 +15,7 @@ codeunit 60012 "UI Inventory Functions"
         PalletLines: Record "Pallet Line";
         PurchaseFunctions: Codeunit "SPA Purchase Functions";
         TrackingLineFunctions: Codeunit "Tracking Line Functions";
-
+        PurchaseHeaderTemp2: Record "Purchase Header" temporary;
     begin
         IF pFunction <> 'ClosePallet' THEN
             EXIT;
@@ -61,10 +61,10 @@ codeunit 60012 "UI Inventory Functions"
                         PurchaseHeaderToPost.setrange(PurchaseHeaderToPost."Document Type", PurchaseHeaderTemp."Document Type");
                         PurchaseHeaderToPost.SetRange(PurchaseHeaderToPost."No.", PurchaseHeaderTemp."No.");
                         if PurchaseHeaderToPost.findfirst then begin
-                            PurchaseHeaderTemp := PurchaseHeaderToPost;
-                            PurchaseHeaderTemp.Receive := true;
-                            PurchaseHeaderTemp.Invoice := false;
-                            PurchasePost.Run(PurchaseHeaderTemp);
+                            PurchaseHeaderTemp2 := PurchaseHeaderToPost;
+                            PurchaseHeaderTemp2.Receive := true;
+                            PurchaseHeaderTemp2.Invoice := false;
+                            PurchasePost.Run(PurchaseHeaderTemp2);
 
                             //Create Negative Adjustment for WebUI
                             //PurchaseFunctions.CreateRMNegativeAdjustment(PurchaseHeaderTemp);

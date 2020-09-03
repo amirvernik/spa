@@ -123,7 +123,7 @@ pageextension 60000 PurchaseOrderExt extends "Purchase Order"
             ScrapVisible := true
         else
             ScrapVisible := false;
-        CurrPage.update;
+        //CurrPage.update;
     end;
 
     var

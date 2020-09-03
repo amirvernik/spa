@@ -188,7 +188,7 @@ codeunit 60003 "Pallet Ledger Functions"
         //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
         //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
         PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
-        PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
+        PalletLedgerEntry.validate(Quantity, -1 * ItemLedgerEntry."Packing Material Qty");
         PalletLedgerEntry."User ID" := userid;
         PalletLedgerEntry.Insert();
     end;
@@ -262,7 +262,7 @@ codeunit 60003 "Pallet Ledger Functions"
                     PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
                     PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
                     PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
-                    PalletLedgerEntry.validate(Quantity, PalletLines.Quantity);
+                    PalletLedgerEntry.validate(Quantity, -1 * PalletLines.Quantity);
                     PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
                     PalletLedgerEntry."User ID" := userid;
                     PalletLedgerEntry.Insert();
@@ -346,7 +346,7 @@ codeunit 60003 "Pallet Ledger Functions"
                 PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
                 PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
                 PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
-                PalletLedgerEntry.validate(Quantity, palletlines.Quantity);
+                PalletLedgerEntry.validate(Quantity, -1 * palletlines.Quantity);
                 PalletLedgerEntry."User ID" := userid;
                 PalletLedgerEntry.Insert();
                 LineNumber += 1;

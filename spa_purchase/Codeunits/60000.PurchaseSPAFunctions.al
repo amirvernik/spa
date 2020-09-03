@@ -81,6 +81,7 @@ codeunit 60000 "SPA Purchase Functions"
             PurchaseLine.reset;
             PurchaseLine.setrange("Document Type", pPurchaseHeader."Document Type");
             PurchaseLine.setrange("Document No.", pPurchaseHeader."No.");
+            PurchaseLine.setfilter("Outstanding Quantity", '<>%1', 0);
             if PurchaseLine.findset then
                 repeat
                     if ItemRec.get(PurchaseLine."No.") then
