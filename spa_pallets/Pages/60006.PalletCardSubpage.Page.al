@@ -191,8 +191,9 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection."Item No." := ItemLedgerEntry."Item No.";
                                     LotSelection."Variant code" := ItemLedgerEntry."Variant Code";
                                     LotSelection."Expiration Date" := ItemLedgerEntry."Expiration Date";
-                                    LotSelection."Quantity Available" := ItemLedgerEntry.Quantity -
-                                        PalletReservationFunctions.FctGetLotQtyReservered(ItemLedgerEntry."Lot No.");
+                                    LotSelection."Quantity Available" := ItemLedgerEntry.Quantity;
+                                    // -
+                                    //  PalletReservationFunctions.FctGetLotQtyReservered(ItemLedgerEntry."Lot No.");
                                     LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
                                     PurchaseReceiptLine.Reset();
                                     PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");

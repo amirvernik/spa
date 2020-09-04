@@ -16,7 +16,21 @@ pageextension 60020 PostedWarehouseShipmentCardExt extends "Posted Whse. Shipmen
 
     actions
     {
-        // Add changes to page actions here
+        addlast(processing)
+        {
+            action("Sticker Note")
+            {
+                image = PrintCover;
+                ApplicationArea = all;
+                Visible = PalletsExists;
+                trigger OnAction()
+                var
+                    StickerNoteFunctions: Codeunit "Sticker note functions";
+                begin
+                    StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipment(rec);
+                end;
+            }
+        }
     }
     trigger OnAfterGetRecord()
     begin

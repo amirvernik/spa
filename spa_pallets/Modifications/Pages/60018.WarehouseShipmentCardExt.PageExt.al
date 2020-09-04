@@ -136,7 +136,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                 {
                     image = PrintCover;
                     ApplicationArea = all;
-                    Visible = ShowRemovePallet;
+                    Visible = ShowPrint;
                     trigger OnAction()
                     var
                         StickerNoteFunctions: Codeunit "Sticker note functions";
@@ -174,11 +174,13 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
         ShowAddPallet := true;
         ShowRemovePallet := true;
         PalletsExists := true;
+        ShowPrint := true;
         WarehousePallets.reset;
         WarehousePallets.setrange("Whse Shipment No.", rec."No.");
         if not WarehousePallets.findset then begin
             PalletsExists := false;
             ShowRemovePallet := false;
+            ShowPrint := false;
         end;
         if UserSetup.get(UserId) then
             if not UserSetup."Remove Pallet from Whse. Ship" then
@@ -191,6 +193,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
     end;
 
     var
+        ShowPrint: Boolean;
         PalletsExists: Boolean;
         WarehousePallets: Record "Warehouse Pallet";
         WarehouseShipmentManagement: Codeunit "Warehouse Shipment Management";
