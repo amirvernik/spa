@@ -501,6 +501,8 @@ codeunit 60016 "UI Whse Shipments Functions"
         //Depth 2 - Header
         JsonObj.SelectToken('palletid', JsonTkn);
         PalletID := JsonTkn.AsValue().AsText();
+        if PalletID = '' then
+            Error('PalletID cannot be blank!');
 
         if (ShipmentNo <> '') and (PalletID <> '') then begin
             WarehousePallet.reset;
@@ -512,16 +514,17 @@ codeunit 60016 "UI Whse Shipments Functions"
                         RecGReservationEntry.Delete();
                     if WarehouseShipmentLine.get(WarehousePallet."Whse Shipment No.", WarehousePallet."Whse Shipment Line No.") then begin
                         WarehouseShipmentLine."Remaining Quantity" += WarehousePallet.quantity;
+                        WarehouseShipmentLine."Qty. to Ship" -= WarehousePallet.Quantity;
                         //WarehouseShipmentLine."Qty. Shipped" := WarehouseShipmentLine.Quantity - WarehouseShipmentLine."Remaining Quantity";
                         WarehouseShipmentLine.modify;
-                        LSalesOrderLines.Reset();
-                        LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);
-                        LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
-                        LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
-                        if LSalesOrderLines.FindFirst() then begin
-                            LSalesOrderLines."Qty. to Ship" -= WarehousePallet.quantity;
-                            if not LSalesOrderLines.Modify() then;
-                        end;
+                        // LSalesOrderLines.Reset();
+                        // LSalesOrderLines.SetRange("Document Type", LSalesOrderLines."Document Type"::Order);
+                        // LSalesOrderLines.SetRange("Document No.", WarehouseShipmentLine."Source No.");
+                        // LSalesOrderLines.SetRange("Line No.", WarehouseShipmentLine."Source Line No.");
+                        // if LSalesOrderLines.FindFirst() then begin
+                        //     LSalesOrderLines."Qty. to Ship" -= WarehousePallet.quantity;
+                        //     if not LSalesOrderLines.Modify() then;
+                        // end;
                     end;
 
                     WarehousePallet.Delete();
