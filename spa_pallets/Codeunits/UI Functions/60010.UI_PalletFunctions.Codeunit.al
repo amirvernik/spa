@@ -810,6 +810,7 @@ codeunit 60010 "UI Pallet Functions"
                     JsonObjItems.add('Lot', PalletLine."Variant Code");
                     JsonObjItems.add('Unit of Measure', PalletLine."Unit of Measure");
                     JsonObjItems.add('Item Qty', format(palletline.Quantity));
+                    JsonObjItems.add('Line No', format(palletline."Line No."));
                     JsonArrItems.Add(JsonObjItems);
 
                 until PalletLine.next = 0;

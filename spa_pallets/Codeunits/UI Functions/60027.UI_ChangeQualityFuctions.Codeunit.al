@@ -46,6 +46,11 @@ codeunit 60027 "UI Change Quality Functions"
         JsonObj.SelectToken('qtyToAdd', JsonTkn);
         qtyToAdd := JsonTkn.AsValue().AsDecimal();
 
+        //Get New Quantity to Add
+        JsonObj.SelectToken('lineNo', JsonTkn);
+        lineNo := JsonTkn.AsValue().AsInteger();
+
+
         PurchaseProcessSetup.Get();
         ItemJournalLine.reset;
         ItemJournalLine.setrange("Journal Template Name", 'ITEM');
@@ -56,6 +61,7 @@ codeunit 60027 "UI Change Quality Functions"
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.setrange("Pallet ID", PalletID);
         PalletLineChangeQuality.setrange("User ID", userid);
+        PalletLineChangeQuality.SetRange("Line No.", lineNo);
         if PalletLineChangeQuality.findfirst then begin
             TrackingItemNumber := ChangeQualityMgmt.ValidatePackMaterialsCreate(PalletLineChangeQuality);
             if TrackingItemNumber = '' then begin
@@ -151,4 +157,5 @@ codeunit 60027 "UI Change Quality Functions"
         newUM: code[20];
         qtyToAdd: Decimal;
 
+        lineNo: Integer;
 }
