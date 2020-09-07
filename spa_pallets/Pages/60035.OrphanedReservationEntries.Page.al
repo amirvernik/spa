@@ -84,7 +84,12 @@ page 60035 "Orphaned Reservation Entries"
             QtyReceived := PurchaseLine."Qty. Received (Base)";
     end;
 
-
+    trigger OnDeleteRecord(): Boolean
+    var
+    begin
+        if QtyReceived = 0 then
+            error('You cannot delete reservation, Purhcase needs to be completed');
+    end;
 
     var
 

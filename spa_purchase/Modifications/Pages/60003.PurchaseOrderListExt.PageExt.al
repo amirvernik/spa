@@ -23,6 +23,11 @@ pageextension 60003 PurchaseOrderListExt extends "Purchase Order List"
                 Caption = ' Completely Received';
                 ApplicationArea = all;
             }
+            field("Vendor Shipment No."; "Vendor Shipment No.")
+            {
+                Caption = 'Vendor Shipment No.';
+                ApplicationArea = all;
+            }
 
         }
     }

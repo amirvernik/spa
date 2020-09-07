@@ -144,7 +144,7 @@ codeunit 60010 "UI Pallet Functions"
                 PalletHeader.Init();
                 PalletHeader."Pallet ID" := PalletID;
                 PalletHeader."Location Code" := LocationCode;
-                PalletHeader."Creation Date" := today;
+                PalletHeader."Creation Date" := WorkDate();
                 PalletHeader."User Created" := UserId;
                 if RM_Pallet = 'true' then
                     PalletHeader."Raw Material Pallet" := true
@@ -254,6 +254,8 @@ codeunit 60010 "UI Pallet Functions"
                     purchaseheader.setrange(PurchaseHeader."Grading Result PO", true);
                 if PalletType = 'mw' then
                     purchaseheader.setrange(PurchaseHeader."Microwave Process PO", true);
+                PurchaseHeader.validate("Posting Date", workdate);
+                PurchaseHeader.validate("Order Date", workdate);
 
                 if purchaseheader.findfirst then begin
                     if PurchaseHeader.status = PurchaseHeader.status::Released then

@@ -103,23 +103,31 @@ page 60025 "Pallet Change Quality"
                 trigger OnAction()
                 var
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
+                    TrackingItemNumber: code[20];
                 begin
                     //Check if needs to do
-                    ChangeQualityMgmt.CheckChangeItem(Rec);
-                    //Pallet Line Change Quantities
-                    ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
-                    ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
-                    ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
-                    ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
-                    ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
-                    //Pallet Line Additions                 
-                    ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
-                    ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
-                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
-                    ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
-                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                                        
-                    ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials
-                    CurrPage.Close();
+                    //ChangeQualityMgmt.CheckChangeItem(Rec);
+                    TrackingItemNumber := ChangeQualityMgmt.ValidatePackMaterialsCreate(PalletLineChangeQuality);
+                    if TrackingItemNumber = '' then begin
+
+                        //Pallet Line Change Quantities
+                        ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
+                        ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+                        ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
+                        ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
+                        ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
+                        //Pallet Line Additions                 
+                        ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
+                        ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
+                        ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
+                        ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
+                        ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                                        
+                        ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials
+                        ChangeQualityMgmt.RemoveZeroPalletLine(rec); // Remove Pallet Lines with Zero Quantities
+                        CurrPage.Close();
+                    end
+                    else
+                        error('Error : Packing Material ' + TrackingItemNumber + ' Does not have sufficient Quantity');
                 end;
             }
         }
