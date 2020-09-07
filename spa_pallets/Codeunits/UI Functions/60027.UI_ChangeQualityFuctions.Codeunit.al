@@ -46,7 +46,7 @@ codeunit 60027 "UI Change Quality Functions"
         JsonObj.SelectToken('qtyToAdd', JsonTkn);
         qtyToAdd := JsonTkn.AsValue().AsDecimal();
 
-        //Get New Quantity to Add
+        //Get New lineNo to Add
         JsonObj.SelectToken('lineNo', JsonTkn);
         lineNo := JsonTkn.AsValue().AsInteger();
 
