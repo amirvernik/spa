@@ -89,64 +89,69 @@ codeunit 60021 "Purch. UI Functions"
                     OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", Today, true);
                     BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", Today, true);
                     PurchaseHeader."No." := OrderNumber;
+                    if PurchaseHeader.Insert(true) then begin
+                        case PurchaseType of
+                            'grading':
+                                begin
+                                    PurchaseHeader."Grading Result PO" := true;
+                                    if Vendorrec.get(VendorNo) then
+                                        PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                                    PurchaseHeader.validate("Order Date", Today);
+                                    PurchaseHeader.validate("Document Date", today);
+                                    PurchaseHeader.validate("posting Date", today);
+                                    PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                                    PurchaseHeader."Variety Code" := VarietyCode;
+                                    PurchaseHeader."Harvest Date" := HarvestDate;
+                                    PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                                    PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                                    PurchaseHeader."Batch Number" := BatchNumber;
+                                    PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                                    PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                                    PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                                    PurchaseHeader."Variety Code" := VarietyCode;
+                                    PurchaseHeader.Modify();
+                                end;
+                            'microwave':
+                                begin
+                                    PurchaseHeader."Microwave Process PO" := true;
+                                    if Vendorrec.get(VendorNo) then
+                                        PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                                    PurchaseHeader.validate("Order Date", Today);
+                                    PurchaseHeader.validate("Document Date", today);
+                                    PurchaseHeader.validate("posting Date", today);
+                                    PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
+                                    PurchaseHeader."Harvest Date" := HarvestDate;
+                                    PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                                    PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                                    PurchaseHeader."Batch Number" := rm_lot;
+                                    PurchaseHeader."Raw Material Item" := RM_Item;
+                                    PurchaseHeader."RM Location" := RM_Location;
+                                    PurchaseHeader."RM Qty" := RM_Qty;
+                                    PurchaseHeader."Item LOT Number" := rm_lot;
+                                    PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                                    PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                                    PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
 
-                    if PurchaseType = 'grading' then begin
-                        PurchaseHeader."Grading Result PO" := true;
-                        if Vendorrec.get(VendorNo) then
-                            PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                        PurchaseHeader.validate("Order Date", Today);
-                        PurchaseHeader.validate("Document Date", today);
-                        PurchaseHeader.validate("posting Date", today);
-                        PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
-                        PurchaseHeader."Variety Code" := VarietyCode;
-                        PurchaseHeader."Harvest Date" := HarvestDate;
-                        PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
-                        PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
-                        PurchaseHeader."Batch Number" := BatchNumber;
-                        PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
-                        PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
-                        PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-                        PurchaseHeader."Variety Code" := VarietyCode;
-                        PurchaseHeader.insert;
+                                    PurchaseHeader.Modify();
+                                end;
+                            'regular':
+                                begin
+                                    if Vendorrec.get(VendorNo) then
+                                        PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
+                                    PurchaseHeader.validate("Order Date", Today);
+                                    PurchaseHeader.validate("Document Date", today);
+                                    PurchaseHeader.validate("posting Date", today);
+                                    PurchaseHeader."Variety Code" := VarietyCode;
+                                    PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
+                                    PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
+                                    PurchaseHeader."Batch Number" := BatchNumber;
+                                    PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
+                                    PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
+                                    PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
+                                    PurchaseHeader.Modify();
+                                end;
+                        end;
                     end;
-                    if PurchaseType = 'microwave' then begin
-                        PurchaseHeader."Microwave Process PO" := true;
-                        if Vendorrec.get(VendorNo) then
-                            PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                        PurchaseHeader.validate("Order Date", Today);
-                        PurchaseHeader.validate("Document Date", today);
-                        PurchaseHeader.validate("posting Date", today);
-                        PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
-                        PurchaseHeader."Harvest Date" := HarvestDate;
-                        PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
-                        PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
-                        PurchaseHeader."Batch Number" := rm_lot;
-                        PurchaseHeader."Raw Material Item" := RM_Item;
-                        PurchaseHeader."RM Location" := RM_Location;
-                        PurchaseHeader."RM Qty" := RM_Qty;
-                        PurchaseHeader."Item LOT Number" := rm_lot;
-                        PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
-                        PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
-                        PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-
-                        PurchaseHeader.insert;
-                    end;
-                    if PurchaseType = 'regular' then begin
-                        if Vendorrec.get(VendorNo) then
-                            PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                        PurchaseHeader.validate("Order Date", Today);
-                        PurchaseHeader.validate("Document Date", today);
-                        PurchaseHeader.validate("posting Date", today);
-                        PurchaseHeader."Variety Code" := VarietyCode;
-                        PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
-                        PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
-                        PurchaseHeader."Batch Number" := BatchNumber;
-                        PurchaseHeader."No. Series" := PurchaseSetup."Order Nos.";
-                        PurchaseHeader."Posting No. Series" := PurchaseSetup."Posted Invoice Nos.";
-                        PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
-                        PurchaseHeader.insert;
-                    end;
-
                 end;
             end;
         end;
