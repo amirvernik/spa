@@ -75,6 +75,7 @@ codeunit 60001 "Pallet Functions"
                     PalletLines."Remaining Qty" := PalletLines.Quantity;
                 PalletLines."QTY Consumed" := 0;
                 PalletLines.modify;
+
             until PalletLines.next = 0;
 
         //if pType = 'UI' then
@@ -202,33 +203,34 @@ codeunit 60001 "Pallet Functions"
     begin
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
-        if PalletLines.findset then
-            repeat
-                BomComponent.reset;
-                BomComponent.setrange("Parent Item No.", PalletLines."Item No.");
-                if BomComponent.findset then
-                    repeat
-                        if not PackingMaterials.get(PalletLines."Pallet ID",
-                            BomComponent."No.", BomComponent."Unit of Measure Code") then begin
-                            PackingMaterials.init;
-                            PackingMaterials."Pallet ID" := PalletLines."Pallet ID";
-                            PackingMaterials."Item No." := BomComponent."No.";
-                            packingmaterials."Line No." := GetLastEntryPacking(PalletHeader);
-                            PackingMaterials.Description := BomComponent.Description;
-                            PackingMaterials."Reusable Item" := BomComponent."Reusable item";
-                            PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
-                            PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
-                            PackingMaterials."Location Code" := PalletHeader."Location Code";
-                            PackingMaterials.insert;
-                        end
-                        else begin
-                            PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
-                            PackingMaterials.modify;
 
-                        end;
+        if PalletLines.FindFirst() then begin
 
-                    until BomComponent.next = 0;
-            until PalletLines.next = 0;
+            BomComponent.reset;
+            BomComponent.setrange("Parent Item No.", PalletLines."Item No.");
+            if BomComponent.findset then
+                repeat
+                    if not PackingMaterials.get(PalletLines."Pallet ID",
+                        BomComponent."No.", BomComponent."Unit of Measure Code") then begin
+                        PackingMaterials.init;
+                        PackingMaterials."Pallet ID" := PalletLines."Pallet ID";
+                        PackingMaterials."Item No." := BomComponent."No.";
+                        packingmaterials."Line No." := GetLastEntryPacking(PalletHeader);
+                        PackingMaterials.Description := BomComponent.Description;
+                        PackingMaterials."Reusable Item" := BomComponent."Reusable item";
+                        PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
+                        PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
+                        PackingMaterials."Location Code" := PalletHeader."Location Code";
+                        PackingMaterials.insert;
+                    end
+                    else begin
+                        PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
+                        PackingMaterials.modify;
+
+                    end;
+
+                until BomComponent.next = 0;
+        end;
     end;
 
     //Delete Packing Materials - Global Function

@@ -789,6 +789,8 @@ codeunit 60035 "Sticker note functions"
         PalletLine: Record "Pallet Line";
         PalletHeader: Record "Pallet Header";
         LLabelDate: date;
+        LPalletsText: Text;
+        TotalQty: Decimal;
     begin
         PalletProcessSetup.get;
         CompanyInformation.get;
@@ -803,109 +805,120 @@ codeunit 60035 "Sticker note functions"
                     WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
                     repeat
-                        SSCCText := '';
-                        if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then
-                            if CustomerRec.get(SalesHeader."Sell-to Customer No.") then
-                                if CustomerRec."SSCC Sticker Note" then begin
-                                    StickerPrinter.reset;
-                                    StickerPrinter.setrange("User Code", UserId);
-                                    StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."SSCC Label Type Code");
-                                    StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
-                                    if StickerPrinter.findfirst then begin
-                                        FirstLine := '%BTW% /AF="' +
-                                                    StickerPrinter."Sticker Format Name(BTW)" +
-                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                    format(PalletProcessSetup."SSCC Label No. of Copies");
-                                        SecondLine := '%END%';
-                                        PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
+                        if not (StrPos(LPalletsText, WarehousePallet."Pallet ID") > 0) then begin
+                            LPalletsText += WarehousePallet."Pallet ID" + '|';
+                            SSCCText := '';
+                            if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then
+                                if CustomerRec.get(SalesHeader."Sell-to Customer No.") then
+                                    if CustomerRec."SSCC Sticker Note" then begin
+                                        StickerPrinter.reset;
+                                        StickerPrinter.setrange("User Code", UserId);
+                                        StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."SSCC Label Type Code");
+                                        StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
+                                        if StickerPrinter.findfirst then begin
+                                            FirstLine := '%BTW% /AF="' +
+                                                        StickerPrinter."Sticker Format Name(BTW)" +
+                                                        '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                                        format(PalletProcessSetup."SSCC Label No. of Copies");
+                                            SecondLine := '%END%';
+                                            PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
 
-                                        LabelFormat := StickerPrinter."Sticker Note type";
-                                    end else
-                                        Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
+                                            LabelFormat := StickerPrinter."Sticker Note type";
+                                        end else
+                                            Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
-                                    FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
+                                        FileName := 'SSCCLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
 
-                                    TempBlob.CreateOutStream(OutStr);
+                                        TempBlob.CreateOutStream(OutStr);
 
-                                    OutStr.WriteText(FirstLine);
-                                    OutStr.WriteText();
-                                    OutStr.WriteText(SecondLine);
-                                    OutStr.WriteText();
+                                        OutStr.WriteText(FirstLine);
+                                        OutStr.WriteText();
+                                        OutStr.WriteText(SecondLine);
+                                        OutStr.WriteText();
 
-                                    SSCCText += CompanyInformation.Name + Splitter + CompanyInformation.Address + Splitter;
+                                        SSCCText += CompanyInformation.Name + Splitter + CompanyInformation.Address + Splitter;
 
-                                    if ItemRec.get(WarehouseShipmentLine."Item No.") then
-                                        //GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN; removed by Braden
-                                        GTIN_Text := ItemRec.GTIN;
+                                        if ItemRec.get(WarehouseShipmentLine."Item No.") then
+                                            //GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN; removed by Braden
+                                            GTIN_Text := ItemRec.GTIN;
 
-                                    SSCCText += GTIN_Text + Splitter;
-                                    GTINText_Line2 := GTIN_Text;
+                                        SSCCText += GTIN_Text + Splitter;
+                                        GTINText_Line2 := GTIN_Text;
 
-                                    //NumberOfCrates_Line3 := '99'; //Line 3
-                                    //no of crates changed to quantity on the pallet line
-                                    if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
-                                        NumberOfCrates_Line3 := format(PalletLine.Quantity);
-                                    SSCCText += NumberOfCrates_Line3 + splitter;
+                                        //NumberOfCrates_Line3 := '99'; //Line 3
+                                        //no of crates changed to quantity on the pallet line
+                                        //if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
+                                        PalletHeader.get(WarehousePallet."Pallet ID");
+                                        TotalQty := 0;
+                                        PalletLine.reset;
+                                        PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
+                                        if PalletLine.findset then
+                                            repeat
+                                                TotalQty += PalletLine.Quantity;
+                                            until PalletLine.Next() = 0;
 
-                                    //Removed by ask of braden
-                                    /*PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
+                                        PalletLine.reset;
+                                        PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
+                                        if not PalletLine.FindFirst() then;
+                                        NumberOfCrates_Line3 := format(TotalQty);
+                                        SSCCText += NumberOfCrates_Line3 + splitter;
 
-                                    if SalesHeader."Posting Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Posting Date";
-                                    if SalesHeader."Pack-out Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Pack-out Date";
-                                    if SalesHeader."Document Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Document Date";
-                                    if SalesHeader."Dispatch Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Dispatch Date";*/
+                                        //Removed by ask of braden
+                                        /*PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
 
-                                    if SalesHeader."Pack-out Date" <= PalletHeader."Creation Date" then
-                                        LLabelDate := PalletHeader."Creation Date"
-                                    else
-                                        LLabelDate := SalesHeader."Pack-out Date";
+                                        if SalesHeader."Posting Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Posting Date";
+                                        if SalesHeader."Pack-out Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Pack-out Date";
+                                        if SalesHeader."Document Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Document Date";
+                                        if SalesHeader."Dispatch Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Dispatch Date";*/
 
-                                    PackDate_Line5 := LLabelDate;
+                                        if SalesHeader."Pack-out Date" <= PalletHeader."Creation Date" then
+                                            LLabelDate := PalletHeader."Creation Date"
+                                        else
+                                            LLabelDate := SalesHeader."Pack-out Date";
 
-                                    Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1));
-                                    /*Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    format(Date2DMY(PackDate_Line5, 3) - 2000);*/
+                                        PackDate_Line5 := LLabelDate;
 
-                                    //SSCCText += format(PackDate_Line5) + Splitter;
-                                    SSCCText += format(Packdate_Text) + Splitter;
+                                        Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
+                                                        PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                                        PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1));
+                                        /*Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
+                                                        PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                                        format(Date2DMY(PackDate_Line5, 3) - 2000);*/
+
+                                        //SSCCText += format(PackDate_Line5) + Splitter;
+                                        SSCCText += format(Packdate_Text) + Splitter;
 
 
-                                    SSCC_Text_Line6 := GenerateSSCC();
-                                    SSCCText += SSCC_Text_Line6 + splitter;
+                                        SSCC_Text_Line6 := GenerateSSCC();
+                                        SSCCText += SSCC_Text_Line6 + splitter;
 
-                                    Barcode_Line1 := '02' + GTINText_Line2 + '13' + Packdate_Text + '37' + format(NumberOfCrates_Line3);
-                                    Barcode_Line11 := '(02)' + GTINText_Line2 + '(13)' + Packdate_Text + '(37)' + format(NumberOfCrates_Line3);
-                                    SSCCText += Barcode_Line1 + splitter;
-                                    SSCCText += Barcode_Line11 + splitter;
+                                        Barcode_Line1 := '02' + GTINText_Line2 + '13' + Packdate_Text + '37' + format(NumberOfCrates_Line3);
+                                        Barcode_Line11 := '(02)' + GTINText_Line2 + '(13)' + Packdate_Text + '(37)' + format(NumberOfCrates_Line3);
+                                        SSCCText += Barcode_Line1 + splitter;
+                                        SSCCText += Barcode_Line11 + splitter;
 
-                                    Barcode_Line2 := '00' + SSCC_Text_Line6;
-                                    Barcode_Line21 := '(00)' + SSCC_Text_Line6;
-                                    SSCCText += Barcode_Line2 + splitter;
-                                    SSCCText += Barcode_Line21 + splitter;
+                                        Barcode_Line2 := '00' + SSCC_Text_Line6;
+                                        Barcode_Line21 := '(00)' + SSCC_Text_Line6;
+                                        SSCCText += Barcode_Line2 + splitter;
+                                        SSCCText += Barcode_Line21 + splitter;
 
-                                    //PalletLineText
-                                    if palletline.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                                        PalletHeader.get(PalletLine."Pallet ID");
                                         SSCCText += PalletLine."Item No." + splitter +
                                                     PalletLine."Variant Code" + Splitter +
                                                     format(LLabelDate, 0, '<Day,2>/<Month,2>/<Year,2>') + splitter +
-                                                    format(PalletLine.Quantity) + splitter;
+                                                    format(TotalQty) + splitter;
+
+                                        OutStr.WriteText(SSCCTExt);
+
+                                        TempBlob.CreateInStream(InStr);
+                                        BearerToken := OneDriveFunctions.GetBearerToken();
+                                        OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
+
                                     end;
-                                    OutStr.WriteText(SSCCTExt);
-
-                                    TempBlob.CreateInStream(InStr);
-                                    BearerToken := OneDriveFunctions.GetBearerToken();
-                                    OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
-
-                                end;
-
+                        end;
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
     end;
@@ -953,6 +966,8 @@ codeunit 60035 "Sticker note functions"
         PalletLine: Record "Pallet Line";
         PalletHeader: Record "Pallet Header";
         LLabelDate: Date;
+        TotalQty: Decimal;
+        LPalletsText: Text;
     begin
         PalletProcessSetup.get;
         CompanyInformation.get;
@@ -967,111 +982,11 @@ codeunit 60035 "Sticker note functions"
                     WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
                     repeat
-                        SSCCText := '';
-                        if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then begin
-                            if CustomerRec.get(SalesHeader."Sell-to Customer No.") then
-                                if CustomerRec."SSCC Sticker Note" then begin
-                                    StickerPrinter.reset;
-                                    StickerPrinter.setrange("User Code", UserId);
-                                    StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."SSCC Label Type Code");
-                                    StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
-                                    if StickerPrinter.findfirst then begin
-                                        FirstLine := '%BTW% /AF="' +
-                                                    StickerPrinter."Sticker Format Name(BTW)" +
-                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                    format(PalletProcessSetup."SSCC Label No. of Copies");
-                                        SecondLine := '%END%';
-                                        PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
-
-                                        LabelFormat := StickerPrinter."Sticker Note type";
-                                    end else
-                                        Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
-
-                                    FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
-
-                                    TempBlob.CreateOutStream(OutStr);
-
-                                    OutStr.WriteText(FirstLine);
-                                    OutStr.WriteText();
-                                    OutStr.WriteText(SecondLine);
-                                    OutStr.WriteText();
-
-                                    SSCCText += CompanyInformation.Name + Splitter + CompanyInformation.Address + Splitter;
-
-                                    if ItemRec.get(WarehouseShipmentLine."Item No.") then
-                                        //GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN; removed by Braden
-                                        GTIN_Text := ItemRec.GTIN;
-
-                                    SSCCText += GTIN_Text + Splitter;
-                                    GTINText_Line2 := GTIN_Text;
-
-                                    //NumberOfCrates_Line3 := '99'; //Line 3
-                                    //no of crates changed to quantity on the pallet line
-                                    if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
-                                        NumberOfCrates_Line3 := format(PalletLine.Quantity);
-                                    SSCCText += NumberOfCrates_Line3 + splitter;
-
-                                    //Removed by ask of braden
-                                    /*PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
-
-                                    if SalesHeader."Posting Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Posting Date";
-                                    if SalesHeader."Pack-out Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Pack-out Date";
-                                    if SalesHeader."Document Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Document Date";
-                                    if SalesHeader."Dispatch Date" < PackDate_Line5 then
-                                        PackDate_Line5 := SalesHeader."Dispatch Date";*/
-
-                                    if SalesHeader."Pack-out Date" <= PalletHeader."Creation Date" then
-                                        LLabelDate := PalletHeader."Creation Date"
-                                    else
-                                        LLabelDate := SalesHeader."Pack-out Date";
-
-                                    PackDate_Line5 := LLabelDate;
-
-                                    Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1));
-                                    /*Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
-                                                    PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
-                                                    format(Date2DMY(PackDate_Line5, 3) - 2000);*/
-
-                                    //SSCCText += format(PackDate_Line5) + Splitter;
-                                    SSCCText += format(Packdate_Text) + Splitter;
-
-
-                                    SSCC_Text_Line6 := GenerateSSCC();
-                                    SSCCText += SSCC_Text_Line6 + splitter;
-
-                                    Barcode_Line1 := '02' + GTINText_Line2 + '13' + Packdate_Text + '37' + format(NumberOfCrates_Line3);
-                                    Barcode_Line11 := '(02)' + GTINText_Line2 + '(13)' + Packdate_Text + '(37)' + format(NumberOfCrates_Line3);
-                                    SSCCText += Barcode_Line1 + splitter;
-                                    SSCCText += Barcode_Line11 + splitter;
-
-                                    Barcode_Line2 := '00' + SSCC_Text_Line6;
-                                    Barcode_Line21 := '(00)' + SSCC_Text_Line6;
-                                    SSCCText += Barcode_Line2 + splitter;
-                                    SSCCText += Barcode_Line21 + splitter;
-
-                                    //PalletLineText
-                                    if palletline.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                                        PalletHeader.get(PalletLine."Pallet ID");
-                                        SSCCText += PalletLine."Item No." + splitter +
-                                                    PalletLine."Variant Code" + Splitter +
-                                                    format(LLabelDate, 0, '<Day,2>/<Month,2>/<Year,2>') + splitter +
-                                                    format(PalletLine.Quantity) + splitter;
-                                    end;
-                                    OutStr.WriteText(SSCCTExt);
-
-                                    TempBlob.CreateInStream(InStr);
-                                    BearerToken := OneDriveFunctions.GetBearerToken();
-                                    OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
-
-                                end;
-                        end else begin
-                            if SalesHeaderArchive.get(SalesHeaderArchive."Document Type"::Order, WarehouseShipmentLine."Source No.") then
-                                if CustomerRec.get(SalesHeaderArchive."Sell-to Customer No.") then
+                        if not (StrPos(LPalletsText, WarehousePallet."Pallet ID") > 0) then begin
+                            LPalletsText += WarehousePallet."Pallet ID" + '|';
+                            SSCCText := '';
+                            if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then begin
+                                if CustomerRec.get(SalesHeader."Sell-to Customer No.") then
                                     if CustomerRec."SSCC Sticker Note" then begin
                                         StickerPrinter.reset;
                                         StickerPrinter.setrange("User Code", UserId);
@@ -1089,7 +1004,7 @@ codeunit 60035 "Sticker note functions"
                                         end else
                                             Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
-                                        FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
+                                        FileName := 'SSCCLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
 
                                         TempBlob.CreateOutStream(OutStr);
 
@@ -1109,14 +1024,38 @@ codeunit 60035 "Sticker note functions"
 
                                         //NumberOfCrates_Line3 := '99'; //Line 3
                                         //no of crates changed to quantity on the pallet line
-                                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
-                                            NumberOfCrates_Line3 := format(PalletLine.Quantity);
+                                        //if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
+                                        PalletHeader.get(WarehousePallet."Pallet ID");
+                                        TotalQty := 0;
+                                        PalletLine.reset;
+                                        PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
+                                        if PalletLine.findset then
+                                            repeat
+                                                TotalQty += PalletLine.Quantity;
+                                            until PalletLine.Next() = 0;
+
+                                        PalletLine.reset;
+                                        PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
+                                        if not PalletLine.FindFirst() then
+                                            NumberOfCrates_Line3 := format(TotalQty);
                                         SSCCText += NumberOfCrates_Line3 + splitter;
 
-                                        if SalesHeaderArchive."Pack-out Date" <= PalletHeader."Creation Date" then
+                                        //Removed by ask of braden
+                                        /*PackDate_Line5 := DMY2Date(31, 12, 3999); //Line 5
+
+                                        if SalesHeader."Posting Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Posting Date";
+                                        if SalesHeader."Pack-out Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Pack-out Date";
+                                        if SalesHeader."Document Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Document Date";
+                                        if SalesHeader."Dispatch Date" < PackDate_Line5 then
+                                            PackDate_Line5 := SalesHeader."Dispatch Date";*/
+
+                                        if SalesHeader."Pack-out Date" <= PalletHeader."Creation Date" then
                                             LLabelDate := PalletHeader."Creation Date"
                                         else
-                                            LLabelDate := SalesHeaderArchive."Pack-out Date";
+                                            LLabelDate := SalesHeader."Pack-out Date";
 
                                         PackDate_Line5 := LLabelDate;
 
@@ -1144,14 +1083,12 @@ codeunit 60035 "Sticker note functions"
                                         SSCCText += Barcode_Line2 + splitter;
                                         SSCCText += Barcode_Line21 + splitter;
 
-                                        //PalletLineText
-                                        if palletline.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                                            PalletHeader.get(PalletLine."Pallet ID");
-                                            SSCCText += PalletLine."Item No." + splitter +
-                                                        PalletLine."Variant Code" + Splitter +
-                                                        format(LLabelDate, 0, '<Day,2>/<Month,2>/<Year,2>') + splitter +
-                                                        format(PalletLine.Quantity) + splitter;
-                                        end;
+
+                                        SSCCText += PalletLine."Item No." + splitter +
+                                                    PalletLine."Variant Code" + Splitter +
+                                                    format(LLabelDate, 0, '<Day,2>/<Month,2>/<Year,2>') + splitter +
+                                                    format(TotalQty) + splitter;
+
                                         OutStr.WriteText(SSCCTExt);
 
                                         TempBlob.CreateInStream(InStr);
@@ -1159,7 +1096,107 @@ codeunit 60035 "Sticker note functions"
                                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
 
                                     end;
+                            end else begin
+                                if SalesHeaderArchive.get(SalesHeaderArchive."Document Type"::Order, WarehouseShipmentLine."Source No.") then begin
+                                    if CustomerRec.get(SalesHeaderArchive."Sell-to Customer No.") then
+                                        if CustomerRec."SSCC Sticker Note" then begin
+                                            StickerPrinter.reset;
+                                            StickerPrinter.setrange("User Code", UserId);
+                                            StickerPrinter.setrange("Sticker Note Type", PalletProcessSetup."SSCC Label Type Code");
+                                            StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
+                                            if StickerPrinter.findfirst then begin
+                                                FirstLine := '%BTW% /AF="' +
+                                                            StickerPrinter."Sticker Format Name(BTW)" +
+                                                            '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                                            format(PalletProcessSetup."SSCC Label No. of Copies");
+                                                SecondLine := '%END%';
+                                                PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
 
+                                                LabelFormat := StickerPrinter."Sticker Note type";
+                                            end else
+                                                Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
+
+                                            FileName := 'SSCCLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(WarehousePallet."Pallet Line No.") + '.txt';
+
+                                            TempBlob.CreateOutStream(OutStr);
+
+                                            OutStr.WriteText(FirstLine);
+                                            OutStr.WriteText();
+                                            OutStr.WriteText(SecondLine);
+                                            OutStr.WriteText();
+
+                                            SSCCText += CompanyInformation.Name + Splitter + CompanyInformation.Address + Splitter;
+
+                                            if ItemRec.get(WarehouseShipmentLine."Item No.") then
+                                                //GTIN_Text := PADSTR('', 14 - strlen(ItemRec.GTIN), '0') + ItemRec.GTIN; removed by Braden
+                                                GTIN_Text := ItemRec.GTIN;
+
+                                            SSCCText += GTIN_Text + Splitter;
+                                            GTINText_Line2 := GTIN_Text;
+
+                                            //NumberOfCrates_Line3 := '99'; //Line 3
+                                            //no of crates changed to quantity on the pallet line
+                                            //if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
+                                            PalletHeader.get(WarehousePallet."Pallet ID");
+                                            TotalQty := 0;
+                                            PalletLine.reset;
+                                            PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
+                                            if PalletLine.findset then
+                                                repeat
+                                                    TotalQty += PalletLine.Quantity;
+                                                until PalletLine.Next() = 0;
+
+                                            PalletLine.reset;
+                                            PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
+                                            if not PalletLine.FindFirst() then;
+                                            NumberOfCrates_Line3 := format(TotalQty);
+                                            SSCCText += NumberOfCrates_Line3 + splitter;
+
+                                            if SalesHeaderArchive."Pack-out Date" <= PalletHeader."Creation Date" then
+                                                LLabelDate := PalletHeader."Creation Date"
+                                            else
+                                                LLabelDate := SalesHeaderArchive."Pack-out Date";
+
+                                            PackDate_Line5 := LLabelDate;
+
+                                            Packdate_Text := format(Date2DMY(PackDate_Line5, 3) - 2000) +
+                                                            PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                                            PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1));
+                                            /*Packdate_Text := PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 1))), '0') + format(Date2DMY(PackDate_Line5, 1)) +
+                                                            PADSTR('', 2 - strlen(format(Date2DMY(PackDate_Line5, 2))), '0') + format(Date2DMY(PackDate_Line5, 2)) +
+                                                            format(Date2DMY(PackDate_Line5, 3) - 2000);*/
+
+                                            //SSCCText += format(PackDate_Line5) + Splitter;
+                                            SSCCText += format(Packdate_Text) + Splitter;
+
+
+                                            SSCC_Text_Line6 := GenerateSSCC();
+                                            SSCCText += SSCC_Text_Line6 + splitter;
+
+                                            Barcode_Line1 := '02' + GTINText_Line2 + '13' + Packdate_Text + '37' + format(NumberOfCrates_Line3);
+                                            Barcode_Line11 := '(02)' + GTINText_Line2 + '(13)' + Packdate_Text + '(37)' + format(NumberOfCrates_Line3);
+                                            SSCCText += Barcode_Line1 + splitter;
+                                            SSCCText += Barcode_Line11 + splitter;
+
+                                            Barcode_Line2 := '00' + SSCC_Text_Line6;
+                                            Barcode_Line21 := '(00)' + SSCC_Text_Line6;
+                                            SSCCText += Barcode_Line2 + splitter;
+                                            SSCCText += Barcode_Line21 + splitter;
+
+
+                                            SSCCText += PalletLine."Item No." + splitter +
+                                                        PalletLine."Variant Code" + Splitter +
+                                                        format(LLabelDate, 0, '<Day,2>/<Month,2>/<Year,2>') + splitter +
+                                                        format(TotalQty) + splitter;
+
+                                            OutStr.WriteText(SSCCTExt);
+
+                                            TempBlob.CreateInStream(InStr);
+                                            BearerToken := OneDriveFunctions.GetBearerToken();
+                                            OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
+                                        end;
+                                end;
+                            end;
                         end;
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
@@ -1167,7 +1204,9 @@ codeunit 60035 "Sticker note functions"
 
 
     //Item Label Sticker Note
-    procedure CreateItemLabelStickerNote(pShipmentHeader: Record "Warehouse Shipment Header"; PalletNumber: Code[20]; boolFilterPallet: Boolean)
+    procedure CreateItemLabelStickerNote(pShipmentHeader: Record "Warehouse Shipment Header";
+                PalletNumber: Code[20];
+                boolFilterPallet: Boolean)
     var
         PalletProcessSetup: Record "Pallet Process Setup";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
@@ -1235,11 +1274,6 @@ codeunit 60035 "Sticker note functions"
                                     StickerPrinter.setrange("Sticker Note Format", CustomerRec."Item Label Format Code");
                                     StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
                                     if StickerPrinter.findfirst then begin
-                                        FirstLine := '%BTW% /AF="' +
-                                                    StickerPrinter."Sticker Format Name(BTW)" +
-                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                    format(PalletLine."Item Label No. of Copies");
-                                        SecondLine := '%END%';
                                         PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
                                         LabelFormat := CustomerRec."Item Label Format Description";
                                     end else
@@ -1327,6 +1361,7 @@ codeunit 60035 "Sticker note functions"
                                     end
                                     else begin
                                         PalletLineTemp.Quantity += PalletLine.Quantity;
+                                        PalletLineTemp."Item Label No. of Copies" += PalletLine."Item Label No. of Copies";
                                         PalletLineTemp."Remaining Qty" += PalletLine."Remaining Qty";
                                         PalletLineTemp."QTY Consumed" += PalletLine."QTY Consumed";
                                         palletlinetemp.modify;
@@ -1340,6 +1375,11 @@ codeunit 60035 "Sticker note functions"
 
                                     FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLineTemp."Line No.") + '.txt';
                                     TempBlob.CreateOutStream(OutStr);
+                                    FirstLine := '%BTW% /AF="' +
+                                                    StickerPrinter."Sticker Format Name(BTW)" +
+                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                                    format(PalletLineTemp."Item Label No. of Copies");
+                                    SecondLine := '%END%';
                                     OutStr.WriteText(FirstLine);
                                     OutStr.WriteText();
                                     OutStr.WriteText(SecondLine);
@@ -1437,7 +1477,6 @@ codeunit 60035 "Sticker note functions"
                     repeat
                         if not (StrPos(LPalletsText, WarehousePallet."Pallet ID") > 0) then begin
                             LPalletsText += WarehousePallet."Pallet ID" + '|';
-                            PalletHeader.get(WarehousePallet."Pallet ID");
                             PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.");
                             ItemText := '';
                             if SalesHeader.get(SalesHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then begin
@@ -1449,17 +1488,10 @@ codeunit 60035 "Sticker note functions"
                                     StickerPrinter.setrange("Sticker Note Format", CustomerRec."Item Label Format Code");
                                     StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
                                     if StickerPrinter.findfirst then begin
-                                        FirstLine := '%BTW% /AF="' +
-                                                    StickerPrinter."Sticker Format Name(BTW)" +
-                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                    format(PalletLine."Item Label No. of Copies");
-                                        SecondLine := '%END%';
                                         PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
                                         LabelFormat := CustomerRec."Item Label Format Description";
                                     end else
                                         Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
-
-                                    TempBlob.CreateOutStream(OutStr);
 
                                     PalletHeader.get(WarehousePallet."Pallet ID");
 
@@ -1543,6 +1575,7 @@ codeunit 60035 "Sticker note functions"
                                         end
                                         else begin
                                             PalletLineTemp.Quantity += PalletLine.Quantity;
+                                            PalletLineTemp."Item Label No. of Copies" += PalletLine."Item Label No. of Copies";
                                             PalletLineTemp."Remaining Qty" += PalletLine."Remaining Qty";
                                             PalletLineTemp."QTY Consumed" += PalletLine."QTY Consumed";
                                             palletlinetemp.modify;
@@ -1556,11 +1589,15 @@ codeunit 60035 "Sticker note functions"
 
                                         FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLineTemp."Line No.") + '.txt';
                                         TempBlob.CreateOutStream(OutStr);
+                                        FirstLine := '%BTW% /AF="' +
+                                                        StickerPrinter."Sticker Format Name(BTW)" +
+                                                        '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                                        format(PalletLineTemp."Item Label No. of Copies");
+                                        SecondLine := '%END%';
                                         OutStr.WriteText(FirstLine);
                                         OutStr.WriteText();
                                         OutStr.WriteText(SecondLine);
                                         OutStr.WriteText();
-
                                         ItemText := LPalletHeaderText;
                                         ItemText += format(PalletLineTemp."Line No.") + Splitter +
                                                             PalletLineTemp."Item No." + Splitter +
@@ -1586,7 +1623,6 @@ codeunit 60035 "Sticker note functions"
                                         BearerToken := OneDriveFunctions.GetBearerToken();
                                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
                                     until PalletLineTemp.next = 0;
-
                             end else begin
                                 if SalesArchiveHeader.get(SalesArchiveHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then begin
                                     if CustomerRec.get(SalesArchiveHeader."Sell-to Customer No.") then begin
@@ -1597,16 +1633,12 @@ codeunit 60035 "Sticker note functions"
                                         StickerPrinter.setrange("Sticker Note Format", CustomerRec."Item Label Format Code");
                                         StickerPrinter.setrange("Location Code", WarehouseShipmentLine."Location Code");
                                         if StickerPrinter.findfirst then begin
-                                            FirstLine := '%BTW% /AF="' +
-                                                        StickerPrinter."Sticker Format Name(BTW)" +
-                                                        '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                        format(PalletLine."Item Label No. of Copies");
-                                            SecondLine := '%END%';
                                             PrinterPath := PalletProcessSetup."OneDrive Root Directory" + '/' + StickerPrinter."Printer Path";
                                             LabelFormat := CustomerRec."Item Label Format Description";
                                         end else
                                             Error('You do not have the right setup in the sticker note configuration table - Please contact your administrator');
 
+                                        PalletHeader.get(WarehousePallet."Pallet ID");
 
                                     end;
 
@@ -1688,6 +1720,7 @@ codeunit 60035 "Sticker note functions"
                                             end
                                             else begin
                                                 PalletLineTemp.Quantity += PalletLine.Quantity;
+                                                PalletLineTemp."Item Label No. of Copies" += PalletLine."Item Label No. of Copies";
                                                 PalletLineTemp."Remaining Qty" += PalletLine."Remaining Qty";
                                                 PalletLineTemp."QTY Consumed" += PalletLine."QTY Consumed";
                                                 palletlinetemp.modify;
@@ -1701,6 +1734,11 @@ codeunit 60035 "Sticker note functions"
 
                                             FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLineTemp."Line No.") + '.txt';
                                             TempBlob.CreateOutStream(OutStr);
+                                            FirstLine := '%BTW% /AF="' +
+                                                            StickerPrinter."Sticker Format Name(BTW)" +
+                                                            '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                                            format(PalletLineTemp."Item Label No. of Copies");
+                                            SecondLine := '%END%';
                                             OutStr.WriteText(FirstLine);
                                             OutStr.WriteText();
                                             OutStr.WriteText(SecondLine);
@@ -1730,7 +1768,6 @@ codeunit 60035 "Sticker note functions"
                                             BearerToken := OneDriveFunctions.GetBearerToken();
                                             OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
                                         until PalletLineTemp.next = 0;
-
 
                                 end;
                             end;

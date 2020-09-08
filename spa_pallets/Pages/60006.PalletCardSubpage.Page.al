@@ -122,7 +122,6 @@ page 60006 "Pallet Card Subpage"
     {
         area(Processing)
         {
-
             action("Change Item Quality")
             {
                 ApplicationArea = All;
