@@ -1258,7 +1258,7 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
                 if boolFilterPallet then
-                    WarehousePallet.SetRange("Pallet ID", PalletNumber);
+                    WarehousePallet.SetFilter("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
                     repeat
                         if not (StrPos(LPalletsText, WarehousePallet."Pallet ID") > 0) then begin

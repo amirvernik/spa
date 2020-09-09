@@ -96,9 +96,9 @@ codeunit 60021 "Purch. UI Functions"
                                     PurchaseHeader."Grading Result PO" := true;
                                     if Vendorrec.get(VendorNo) then
                                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                                    PurchaseHeader.validate("Order Date", Today);
-                                    PurchaseHeader.validate("Document Date", today);
-                                    PurchaseHeader.validate("posting Date", today);
+                                    PurchaseHeader."Document Date" := today;
+                                    PurchaseHeader."posting Date" := today;
+                                    PurchaseHeader."Order Date" := Today;
                                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
                                     PurchaseHeader."Variety Code" := VarietyCode;
                                     PurchaseHeader."Harvest Date" := HarvestDate;
@@ -116,9 +116,9 @@ codeunit 60021 "Purch. UI Functions"
                                     PurchaseHeader."Microwave Process PO" := true;
                                     if Vendorrec.get(VendorNo) then
                                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                                    PurchaseHeader.validate("Order Date", Today);
-                                    PurchaseHeader.validate("Document Date", today);
-                                    PurchaseHeader.validate("posting Date", today);
+                                    PurchaseHeader."Document Date" := today;
+                                    PurchaseHeader."posting Date" := today;
+                                    PurchaseHeader."Order Date" := Today;
                                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
                                     PurchaseHeader."Harvest Date" := HarvestDate;
                                     PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
@@ -138,9 +138,9 @@ codeunit 60021 "Purch. UI Functions"
                                 begin
                                     if Vendorrec.get(VendorNo) then
                                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                                    PurchaseHeader.validate("Order Date", Today);
-                                    PurchaseHeader.validate("Document Date", today);
-                                    PurchaseHeader.validate("posting Date", today);
+                                    PurchaseHeader."Document Date" := today;
+                                    PurchaseHeader."posting Date" := today;
+                                    PurchaseHeader."Order Date" := Today;
                                     PurchaseHeader."Variety Code" := VarietyCode;
                                     PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
                                     PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
@@ -380,14 +380,15 @@ codeunit 60021 "Purch. UI Functions"
                     OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", Today, true);
                     BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", Today, true);
                     PurchaseHeader."No." := OrderNumber;
-                    purchaseheader.insert;
+                    purchaseheader.insert(true);
 
                     PurchaseHeader."Microwave Process PO" := true;
                     if Vendorrec.get(VendorNo) then
                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                    PurchaseHeader.validate("Order Date", Today);
-                    PurchaseHeader.validate("Document Date", today);
-                    PurchaseHeader.validate("posting Date", today);
+
+                    PurchaseHeader."Document Date" := today;
+                    PurchaseHeader."posting Date" := today;
+                    PurchaseHeader."Order Date" := Today;
                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
                     PurchaseHeader."Variety Code" := Variety_Code;
                     PurchaseHeader."Harvest Date" := HarvestDate;
