@@ -11,6 +11,7 @@ codeunit 60001 "Pallet Functions"
     procedure ClosePallet(var pPalletHeader: Record "Pallet Header"; pType: text[2])
     var
         LPurchaseOrderLine: Record "Purchase Line";
+        PurchaseLine: Record "Purchase Line";
         LPurchaseHeader: Record "Purchase Header";
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
         CUPurchasePost: Codeunit "Purch.-Post";
@@ -33,36 +34,46 @@ codeunit 60001 "Pallet Functions"
             LPurchaseHeader.LockTable(true);
             LPurchaseOrderLine.LockTable(true);
 
+
             PalletLines.reset;
             PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
             PalletLines.SetFilter("Purchase Order Line No.", '<>%1', 0);
             if PalletLines.FindSet() then
                 repeat
-                    if LPurchaseHeader.Get(LPurchaseHeader."Document Type"::Order, PalletLines."Purchase Order No.") then
-                        if LPurchaseHeader.Status = LPurchaseHeader.Status::Open then begin
-                            LPurchaseOrderLine.Reset();
-                            LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
-                            LPurchaseOrderLine.SetRange("Document No.", PalletLines."Purchase Order No.");
-                            LPurchaseOrderLine.SetRange("Quantity Received", 0);
-                            IF LPurchaseOrderLine.FindSet() then begin
-                                repeat
-                                    if LPurchaseOrderLine."Line No." = PalletLines."Purchase Order Line No." then begin
-                                        LPurchaseOrderLine."Qty. to Receive" := LPurchaseOrderLine."Outstanding Quantity";
-                                        LPurchaseOrderLine."Qty. to Invoice" := LPurchaseOrderLine.Quantity;
-                                    end else begin
-                                        LPurchaseOrderLine."Qty. to Receive" := 0;
-                                        LPurchaseOrderLine."Qty. to Invoice" := 0;
-                                    end;
-                                    LPurchaseOrderLine.Modify();
-                                until LPurchaseOrderLine.Next() = 0;
-                            end;
-                            DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
-                            LPurchaseHeader.Receive := true;
-                            LPurchaseHeader.Invoice := false;
-                            LPurchaseHeader.Modify();
-                            CUPurchasePost.Run(LPurchaseHeader);
+                    PurchaseLine.Reset();
+                    PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+                    PurchaseLine.SetRange("Document No.", PalletLines."Purchase Order No.");
+                    PurchaseLine.SetRange("Line No.", PalletLines."Purchase Order Line No.");
+                    PurchaseLine.SetRange("Quantity Received", 0);
+                    if PurchaseLine.FindFirst() then begin
 
+                        if LPurchaseHeader.Get(LPurchaseHeader."Document Type"::Order, PalletLines."Purchase Order No.") then
+                            if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then
+                                DocmentStatusMgmt.PerformManualReopen(LPurchaseHeader);
+
+                        LPurchaseOrderLine.Reset();
+                        LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
+                        LPurchaseOrderLine.SetRange("Document No.", PalletLines."Purchase Order No.");
+                        LPurchaseOrderLine.SetRange("Quantity Received", 0);
+                        IF LPurchaseOrderLine.FindSet() then begin
+                            repeat
+                                if LPurchaseOrderLine."Line No." = PalletLines."Purchase Order Line No." then begin
+                                    LPurchaseOrderLine."Qty. to Receive" := LPurchaseOrderLine."Outstanding Quantity";
+                                    LPurchaseOrderLine."Qty. to Invoice" := LPurchaseOrderLine.Quantity;
+                                end else begin
+                                    LPurchaseOrderLine."Qty. to Receive" := 0;
+                                    LPurchaseOrderLine."Qty. to Invoice" := 0;
+                                end;
+                                LPurchaseOrderLine.Modify();
+                            until LPurchaseOrderLine.Next() = 0;
                         end;
+                        DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
+                        LPurchaseHeader.Receive := true;
+                        LPurchaseHeader.Invoice := false;
+                        LPurchaseHeader.Modify();
+                        CUPurchasePost.Run(LPurchaseHeader);
+
+                    end;
 
                 until PalletLines.Next() = 0;
         end;

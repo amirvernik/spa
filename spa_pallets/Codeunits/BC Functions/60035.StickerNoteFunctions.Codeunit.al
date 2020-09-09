@@ -1328,59 +1328,54 @@ codeunit 60035 "Sticker note functions"
 
                         LFooterText += GetVendorShipmentNo(WarehousePallet) + splitter;
 
-                        if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                            ItemCrossRef.reset;
-                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
-                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
-                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
-                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
-                            ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
-                            if ItemCrossRef.findfirst then
-                                LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
+                        PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.");
+                        ItemCrossRef.reset;
+                        ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                        ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                        ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                        ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                        ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
+                        if ItemCrossRef.findfirst then
+                            LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
+
+
+
+                        FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLine."Line No.") + '.txt';
+                        TempBlob.CreateOutStream(OutStr);
+                        FirstLine := '%BTW% /AF="' +
+                                        StickerPrinter."Sticker Format Name(BTW)" +
+                                        '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                        format(PalletLine."Item Label No. of Copies");
+                        SecondLine := '%END%';
+                        OutStr.WriteText(FirstLine);
+                        OutStr.WriteText();
+                        OutStr.WriteText(SecondLine);
+                        OutStr.WriteText();
+                        ItemText := LPalletHeaderText;
+                        ItemText += format(PalletLine."Line No.") + Splitter +
+                                            PalletLine."Item No." + Splitter +
+                                            PalletLine."Variant Code" + Splitter +
+                                            PalletLine.Description + Splitter +
+                                            PalletLine."Lot Number" + Splitter +
+                                            PalletLine."Unit of Measure" + Splitter +
+                                            format(PalletLine.Quantity) + Splitter +
+                                            format(PalletLine."QTY Consumed") + Splitter +
+                                            format(PalletLine."Remaining Qty") + Splitter +
+                                            format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
+                        if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
+                            PalletLine."Purchase Order No.") then begin
+                            ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
+                                              GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
+                                              format(PurchaseHeader."Harvest Date") + Splitter;
                         end;
-                        LFooterText += CompanyText;
 
-                        PalletLine.reset;
-                        PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
-                        PalletLine.SetRange("Line No.", WarehousePallet."Pallet Line No.");
-                        if PalletLine.FindFirst() then begin
+                        ItemText += LFooterText;
+                        OutStr.WriteText(ItemText);
 
-                            FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLine."Line No.") + '.txt';
-                            TempBlob.CreateOutStream(OutStr);
-                            FirstLine := '%BTW% /AF="' +
-                                            StickerPrinter."Sticker Format Name(BTW)" +
-                                            '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                            format(PalletLine."Item Label No. of Copies");
-                            SecondLine := '%END%';
-                            OutStr.WriteText(FirstLine);
-                            OutStr.WriteText();
-                            OutStr.WriteText(SecondLine);
-                            OutStr.WriteText();
-                            ItemText := LPalletHeaderText;
-                            ItemText += format(PalletLine."Line No.") + Splitter +
-                                                PalletLine."Item No." + Splitter +
-                                                PalletLine."Variant Code" + Splitter +
-                                                PalletLine.Description + Splitter +
-                                                PalletLine."Lot Number" + Splitter +
-                                                PalletLine."Unit of Measure" + Splitter +
-                                                format(PalletLine.Quantity) + Splitter +
-                                                format(PalletLine."QTY Consumed") + Splitter +
-                                                format(PalletLine."Remaining Qty") + Splitter +
-                                                format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
-                            if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
-                                PalletLine."Purchase Order No.") then begin
-                                ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
-                                                  GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
-                                                  format(PurchaseHeader."Harvest Date") + Splitter;
-                            end;
+                        TempBlob.CreateInStream(InStr);
+                        BearerToken := OneDriveFunctions.GetBearerToken();
+                        OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
 
-                            ItemText += LFooterText;
-                            OutStr.WriteText(ItemText);
-
-                            TempBlob.CreateInStream(InStr);
-                            BearerToken := OneDriveFunctions.GetBearerToken();
-                            OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
-                        end;
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
 
@@ -1513,59 +1508,59 @@ codeunit 60035 "Sticker note functions"
 
                             LFooterText += GetVendorShipmentNo_Posted(WarehousePallet) + splitter;
 
-                            if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                                ItemCrossRef.reset;
-                                ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
-                                ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
-                                ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
-                                ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
-                                ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
-                                if ItemCrossRef.findfirst then
-                                    LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
-                            end;
+                            PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.");// then begin
+                            ItemCrossRef.reset;
+                            ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                            ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                            ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                            ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                            ItemCrossRef.SetRange("Cross-Reference type No.", salesheader."Sell-to Customer No.");
+                            if ItemCrossRef.findfirst then
+                                LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
+                            //end;
                             LFooterText += CompanyText;
 
-                            PalletLine.reset;
+                            /*PalletLine.reset;
                             PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
                             PalletLine.SetRange("Line No.", WarehousePallet."Pallet Line No.");
-                            if PalletLine.FindFirst() then begin
+                            if PalletLine.FindFirst() then begin*/
 
-                                FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLine."Line No.") + '.txt';
-                                TempBlob.CreateOutStream(OutStr);
-                                FirstLine := '%BTW% /AF="' +
-                                                StickerPrinter."Sticker Format Name(BTW)" +
-                                                '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                format(PalletLine."Item Label No. of Copies");
-                                SecondLine := '%END%';
-                                OutStr.WriteText(FirstLine);
-                                OutStr.WriteText();
-                                OutStr.WriteText(SecondLine);
-                                OutStr.WriteText();
-                                ItemText := LPalletHeaderText;
-                                ItemText += format(PalletLine."Line No.") + Splitter +
-                                                    PalletLine."Item No." + Splitter +
-                                                    PalletLine."Variant Code" + Splitter +
-                                                    PalletLine.Description + Splitter +
-                                                    PalletLine."Lot Number" + Splitter +
-                                                    PalletLine."Unit of Measure" + Splitter +
-                                                    format(PalletLine.Quantity) + Splitter +
-                                                    format(PalletLine."QTY Consumed") + Splitter +
-                                                    format(PalletLine."Remaining Qty") + Splitter +
-                                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
-                                if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
-                                    PalletLine."Purchase Order No.") then begin
-                                    ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
-                                                      GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
-                                                      format(PurchaseHeader."Harvest Date") + Splitter;
-                                end;
-
-                                ItemText += LFooterText;
-                                OutStr.WriteText(ItemText);
-
-                                TempBlob.CreateInStream(InStr);
-                                BearerToken := OneDriveFunctions.GetBearerToken();
-                                OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
+                            FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLine."Line No.") + '.txt';
+                            TempBlob.CreateOutStream(OutStr);
+                            FirstLine := '%BTW% /AF="' +
+                                            StickerPrinter."Sticker Format Name(BTW)" +
+                                            '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                            format(PalletLine."Item Label No. of Copies");
+                            SecondLine := '%END%';
+                            OutStr.WriteText(FirstLine);
+                            OutStr.WriteText();
+                            OutStr.WriteText(SecondLine);
+                            OutStr.WriteText();
+                            ItemText := LPalletHeaderText;
+                            ItemText += format(PalletLine."Line No.") + Splitter +
+                                                PalletLine."Item No." + Splitter +
+                                                PalletLine."Variant Code" + Splitter +
+                                                PalletLine.Description + Splitter +
+                                                PalletLine."Lot Number" + Splitter +
+                                                PalletLine."Unit of Measure" + Splitter +
+                                                format(PalletLine.Quantity) + Splitter +
+                                                format(PalletLine."QTY Consumed") + Splitter +
+                                                format(PalletLine."Remaining Qty") + Splitter +
+                                                format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
+                            if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
+                                PalletLine."Purchase Order No.") then begin
+                                ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
+                                                  GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
+                                                  format(PurchaseHeader."Harvest Date") + Splitter;
                             end;
+
+                            ItemText += LFooterText;
+                            OutStr.WriteText(ItemText);
+
+                            TempBlob.CreateInStream(InStr);
+                            BearerToken := OneDriveFunctions.GetBearerToken();
+                            OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
+                            //end;
                         end else begin
                             if SalesArchiveHeader.get(SalesArchiveHeader."Document Type"::Order, WarehouseShipmentLine."Source No.") then begin
                                 if CustomerRec.get(SalesArchiveHeader."Sell-to Customer No.") then begin
@@ -1632,59 +1627,59 @@ codeunit 60035 "Sticker note functions"
 
                                 LFooterText += GetVendorShipmentNo_Posted(WarehousePallet) + splitter;
 
-                                if PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then begin
-                                    ItemCrossRef.reset;
-                                    ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
-                                    ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
-                                    ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
-                                    ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
-                                    ItemCrossRef.SetRange("Cross-Reference type No.", SalesArchiveHeader."Sell-to Customer No.");
-                                    if ItemCrossRef.findfirst then
-                                        LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
-                                end;
+                                PalletLine.get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.");// then begin
+                                ItemCrossRef.reset;
+                                ItemCrossRef.setrange("Item No.", PalletLine."Item No.");
+                                ItemCrossRef.setrange("Variant Code", PalletLine."Variant Code");
+                                ItemCrossRef.setrange("Unit of Measure", PalletLine."Unit of Measure");
+                                ItemCrossRef.SetRange(ItemCrossRef."Cross-Reference Type", ItemCrossRef."Cross-Reference Type"::Customer);
+                                ItemCrossRef.SetRange("Cross-Reference type No.", SalesArchiveHeader."Sell-to Customer No.");
+                                if ItemCrossRef.findfirst then
+                                    LFooterText += ItemCrossRef."Cross-Reference No." + Splitter + ItemCrossRef.Description + splitter;
+                                //end;
                                 LFooterText += CompanyText;
 
-                                PalletLine.reset;
+                                /*PalletLine.reset;
                                 PalletLine.setrange(PalletLine."Pallet ID", WarehousePallet."Pallet ID");
                                 PalletLine.SetRange("Line No.", WarehousePallet."Pallet Line No.");
-                                if PalletLine.FindFirst() then begin
+                                if PalletLine.FindFirst() then begin*/
 
-                                    FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLine."Line No.") + '.txt';
-                                    TempBlob.CreateOutStream(OutStr);
-                                    FirstLine := '%BTW% /AF="' +
-                                                    StickerPrinter."Sticker Format Name(BTW)" +
-                                                    '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
-                                                    format(PalletLine."Item Label No. of Copies");
-                                    SecondLine := '%END%';
-                                    OutStr.WriteText(FirstLine);
-                                    OutStr.WriteText();
-                                    OutStr.WriteText(SecondLine);
-                                    OutStr.WriteText();
-                                    ItemText := LPalletHeaderText;
-                                    ItemText += format(PalletLine."Line No.") + Splitter +
-                                                        PalletLine."Item No." + Splitter +
-                                                        PalletLine."Variant Code" + Splitter +
-                                                        PalletLine.Description + Splitter +
-                                                        PalletLine."Lot Number" + Splitter +
-                                                        PalletLine."Unit of Measure" + Splitter +
-                                                        format(PalletLine.Quantity) + Splitter +
-                                                        format(PalletLine."QTY Consumed") + Splitter +
-                                                        format(PalletLine."Remaining Qty") + Splitter +
-                                                        format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
-                                    if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
-                                        PalletLine."Purchase Order No.") then begin
-                                        ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
-                                                          GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
-                                                          format(PurchaseHeader."Harvest Date") + Splitter;
-                                    end;
-
-                                    ItemText += LFooterText;
-                                    OutStr.WriteText(ItemText);
-
-                                    TempBlob.CreateInStream(InStr);
-                                    BearerToken := OneDriveFunctions.GetBearerToken();
-                                    OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
+                                FileName := 'ItemLabel_' + WarehousePallet."Whse Shipment No." + '_' + format(WarehousePallet."Whse Shipment Line No.") + '_' + WarehousePallet."Pallet ID" + '_' + Format(PalletLine."Line No.") + '.txt';
+                                TempBlob.CreateOutStream(OutStr);
+                                FirstLine := '%BTW% /AF="' +
+                                                StickerPrinter."Sticker Format Name(BTW)" +
+                                                '" /D="%Trigger File Name%" /PRN="' + StickerPrinter."Printer Name" + '"   /R=3 /P /C=' +
+                                                format(PalletLine."Item Label No. of Copies");
+                                SecondLine := '%END%';
+                                OutStr.WriteText(FirstLine);
+                                OutStr.WriteText();
+                                OutStr.WriteText(SecondLine);
+                                OutStr.WriteText();
+                                ItemText := LPalletHeaderText;
+                                ItemText += format(PalletLine."Line No.") + Splitter +
+                                                    PalletLine."Item No." + Splitter +
+                                                    PalletLine."Variant Code" + Splitter +
+                                                    PalletLine.Description + Splitter +
+                                                    PalletLine."Lot Number" + Splitter +
+                                                    PalletLine."Unit of Measure" + Splitter +
+                                                    format(PalletLine.Quantity) + Splitter +
+                                                    format(PalletLine."QTY Consumed") + Splitter +
+                                                    format(PalletLine."Remaining Qty") + Splitter +
+                                                    format(PalletLine."Expiration Date", 0, '<Day,2>/<Month,2>/<Year,2>') + splitter;
+                                if PurchaseHeader.get(PurchaseHeader."Document Type"::order,
+                                    PalletLine."Purchase Order No.") then begin
+                                    ItemText += PurchaseHeader."Buy-from Vendor No." + splitter +
+                                                      GetVendorAddress(PurchaseHeader."Buy-from Vendor No.") + splitter +
+                                                      format(PurchaseHeader."Harvest Date") + Splitter;
                                 end;
+
+                                ItemText += LFooterText;
+                                OutStr.WriteText(ItemText);
+
+                                TempBlob.CreateInStream(InStr);
+                                BearerToken := OneDriveFunctions.GetBearerToken();
+                                OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
+                                // end;
                             end;
                         end;
                     until WarehousePallet.next = 0;
