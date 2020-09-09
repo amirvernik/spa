@@ -23,6 +23,7 @@ codeunit 60010 "UI Pallet Functions"
             EXIT;
 
         PalletHeader.reset;
+        PalletHeader.SetFilter("Pallet Status", '= %1 | =%2', PalletHeader."Pallet Status"::Open, PalletHeader."Pallet Status"::Closed);
         if PalletHeader.findset then
             repeat
                 JsonObj.add('Pallet ID', PalletHeader."Pallet ID");
