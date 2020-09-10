@@ -326,6 +326,7 @@ codeunit 60003 "Pallet Ledger Functions"
                     //Change Status of Pallet to closed after Post Sales Return Order
                     if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Closed;
+                        PalletHeader."Exist in warehouse shipment" := false;
                         PalletHeader.modify;
                     end;
 

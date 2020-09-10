@@ -178,6 +178,8 @@ codeunit 60034 "UI Transfer Order Management"
                         JsonObj.add('TransferOrder', TransferHeader."No.");
                         JsonObj.add('FromLocation', TransferHeader."Transfer-from Code");
                         JsonObj.add('ToLocation', TransferHeader."Transfer-to Code");
+                        TransferHeader.CalcFields("Has Shipped Lines");
+                        JsonObj.add('HasShippedLines', format(TransferHeader."Has Shipped Lines"));
                         TransferLine.reset;
                         TransferLine.setrange("Document No.", TransferHeader."No.");
                         TransferLine.SetRange("Transfer-from Code", TransferHeader."Transfer-from Code");
@@ -188,6 +190,11 @@ codeunit 60034 "UI Transfer Order Management"
                                 JsonObjLines.add('ItemNo', TransferLine."Item No.");
                                 JsonObjLines.add('VarietyCode', TransferLine."Variant Code");
                                 JsonObjLines.add('QtyToShip', TransferLine."Qty. to Ship");
+                                JsonObjLines.add('QtyToReceive', TransferLine."Qty. to Receive");
+                                JsonObjLines.add('QtyShipped', TransferLine."Quantity Shipped");
+                                JsonObjLines.add('Qtyreceived', TransferLine."Quantity Received");
+
+
                                 JsonObjLines.add('LotNo', TransferLine."Lot No.");
                                 JsonObjLines.add('PalletID', TransferLine."Pallet ID");
                                 JsonArrLines.Add(JsonObjLines);

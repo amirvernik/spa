@@ -109,6 +109,7 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 ApplicationArea = all;
             }
         }
+        /*
         addafter(Quantity)
         {
             field("Quantity (SPA)"; "Quantity (SPA)")
@@ -116,5 +117,6 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 ApplicationArea = all;
             }
         }
+        */
     }
 }

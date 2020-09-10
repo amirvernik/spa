@@ -49,6 +49,11 @@ page 60012 "Warehouse Pallet FactBox"
                 {
                     ApplicationArea = All;
                 }
+                field("Printed"; Printed)
+                {
+                    ApplicationArea = All;
+                }
+
             }
         }
 

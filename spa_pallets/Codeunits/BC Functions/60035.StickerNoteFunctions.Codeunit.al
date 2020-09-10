@@ -206,6 +206,7 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.reset;
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                WarehousePallet.setrange(Printed, false);
                 if boolFilterPallet then
                     WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
@@ -801,6 +802,7 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.reset;
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                WarehousePallet.setrange(Printed, false);
                 if boolFilterPallet then
                     WarehousePallet.SetRange("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
@@ -1257,6 +1259,7 @@ codeunit 60035 "Sticker note functions"
                 WarehousePallet.reset;
                 WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentLine."No.");
                 WarehousePallet.setrange("Whse Shipment Line No.", WarehouseShipmentLine."Line No.");
+                WarehousePallet.SetRange(Printed, false);
                 if boolFilterPallet then
                     WarehousePallet.SetFilter("Pallet ID", PalletNumber);
                 if WarehousePallet.findset then
@@ -1376,6 +1379,8 @@ codeunit 60035 "Sticker note functions"
                         BearerToken := OneDriveFunctions.GetBearerToken();
                         OneDriveFunctions.UploadFile(PrinterPath, FileName, BearerToken, InStr);
 
+                        WarehousePallet.Printed := true;
+                        WarehousePallet.Modify();
                     until WarehousePallet.next = 0;
             until WarehouseShipmentLine.next = 0;
 
@@ -1757,16 +1762,16 @@ codeunit 60035 "Sticker note functions"
         TotalDuration: Duration;
 
     begin
-        // Add the payload to the content 
+        // Add the payload to the content
         content.WriteFrom(payload);
-        // Retrieve the contentHeaders associated with the content 
+        // Retrieve the contentHeaders associated with the content
         content.GetHeaders(contentHeaders);
         contentHeaders.Clear();
         contentHeaders.Add('Content-Type', 'application/json');
         contentHeaders.Add('Content-Length', format(StrLen(payload)));
-        // Assigning content to request.Content will actually create a copy of the content and assign it. 
-        // After this line, modifying the content variable or its associated headers will not reflect in 
-        // the content associated with the request message 
+        // Assigning content to request.Content will actually create a copy of the content and assign it.
+        // After this line, modifying the content variable or its associated headers will not reflect in
+        // the content associated with the request message
         request.Content := content;
         request.SetRequestUri(uri);
         request.Method := 'POST';
@@ -1779,7 +1784,7 @@ codeunit 60035 "Sticker note functions"
         ResponseBlob.CreateInStream(ResponseInstr);
         WebResponse.Content().ReadAs(ResponseInstr);
 
-        // Read the response content as XML. 
+        // Read the response content as XML.
         WebResponse.Content().ReadAs(responseText);
     end;
 

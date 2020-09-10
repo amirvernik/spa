@@ -17,6 +17,7 @@ tableextension 60001 PurchaseLineExt extends "Purchase Line"
                 if RecGItemUnitOfMeasure.findfirst then begin
                     QtyBefore := rec."Qty. (Base) SPA" / RecGItemUnitOfMeasure."Qty. per Unit of Measure";
                     QtyAfter := round(QtyBefore, 0.1, '>');
+                    QtyBefore := round(QtyBefore, 0.00001); //yt 10-09-2020
                     //rec.validate(Quantity, rec."Qty. (Base) SPA" / RecGItemUnitOfMeasure."Qty. per Unit of Measure");
                     //rec.validate(Quantity, QtyAfter);
                     //rec.Validate("Quantity (Base)", QtyAfter);

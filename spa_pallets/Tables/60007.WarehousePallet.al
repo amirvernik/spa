@@ -51,9 +51,13 @@ table 60007 "Warehouse Pallet"
         {
             DataClassification = ToBeClassified;
         }
-        field(20;"Uploaded to Truck";Boolean)
+        field(20; "Uploaded to Truck"; Boolean)
         {
-            DataClassification=ToBeClassified;
+            DataClassification = ToBeClassified;
+        }
+        field(30; "Printed"; Boolean)
+        {
+            DataClassification = ToBeClassified;
         }
     }
 
