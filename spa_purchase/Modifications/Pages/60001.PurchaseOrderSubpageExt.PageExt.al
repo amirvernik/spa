@@ -136,8 +136,8 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 var
                     purchaseLines: Record "Purchase Line";
                 begin
-                    if not (LowerCase(UserId()) = LowerCase('Prodware1@sweetpotatoesaustralia.com.au')) then
-                        Error('You are not allowed to run this Action');
+                    // if not (LowerCase(UserId()) = LowerCase('Prodware1@sweetpotatoesaustralia.com.au')) then
+                    //     Error('You are not allowed to run this Action');
                     purchaseLines.Reset();
                     purchaseLines.SetRange("Document Type", purchaseLines."Document Type"::Order);
                     purchaseLines.SetRange("Document No.", '106260');

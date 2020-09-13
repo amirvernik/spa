@@ -293,8 +293,10 @@ report 60003 "Consignment Note"
                 ExtDocNo := '';
                 RD := 0D;
                 ShiptoAddress := '';
-
-                if LArchiveSalesHeader.get(LArchiveSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
+                LArchiveSalesHeader.Reset();
+                LArchiveSalesHeader.SetRange("Document Type", LArchiveSalesHeader."Document Type"::Order);
+                LArchiveSalesHeader.SetRange("No.", "Posted Whse. Shipment Line"."Source No.");
+                if LArchiveSalesHeader.FindFirst() then begin
                     tempCustomer.Get(LArchiveSalesHeader."Sell-to Customer No.");
                     GSalesOrder := LArchiveSalesHeader."No.";
                     if (LArchiveSalesHeader."Ship-to Code" <> '') and (LArchiveSalesHeader."Ship-to Address" <> '') then
