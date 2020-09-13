@@ -130,12 +130,14 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
-                Visible = fixVisible;
+
 
                 trigger OnAction()
                 var
                     purchaseLines: Record "Purchase Line";
                 begin
+                    if not (LowerCase(UserId()) = LowerCase('Prodware1@sweetpotatoesaustralia.com.au')) then
+                        Error('You are not allowed to run this Action');
                     purchaseLines.Reset();
                     purchaseLines.SetRange("Document Type", purchaseLines."Document Type"::Order);
                     purchaseLines.SetRange("Document No.", '106260');
@@ -153,12 +155,6 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
             }
         }
     }
-    trigger OnOpenPage()
-    var
-        myInt: Integer;
-    begin
-        fixVisible := UserId() = 'Prodware1@sweetpotatoesaustralia.com.au';
-    end;
 
     var
         fixVisible: Boolean;
