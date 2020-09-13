@@ -293,40 +293,41 @@ report 60003 "Consignment Note"
                 ExtDocNo := '';
                 RD := 0D;
                 ShiptoAddress := '';
-                if LSalesHeader.get(LSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
-                    tempCustomer.Get(LSalesHeader."Sell-to Customer No.");
-                    GSalesOrder := LSalesHeader."No.";
-                    if (LSalesHeader."Ship-to Code" <> '') and (LSalesHeader."Ship-to Address" <> '') then
-                        ShiptoAddress := LSalesHeader."Ship-to Address" + ', '
-                                        + LSalesHeader."Ship-to City" + ', '
-                                        + LSalesHeader."Ship-to Post Code" + ', '
-                                        + LSalesHeader."Ship-to Country/Region Code"
+
+                if LArchiveSalesHeader.get(LArchiveSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
+                    tempCustomer.Get(LArchiveSalesHeader."Sell-to Customer No.");
+                    GSalesOrder := LArchiveSalesHeader."No.";
+                    if (LArchiveSalesHeader."Ship-to Code" <> '') and (LArchiveSalesHeader."Ship-to Address" <> '') then
+                        ShiptoAddress := LArchiveSalesHeader."Ship-to Address" + ', '
+                                        + LArchiveSalesHeader."Ship-to City" + ', '
+                                        + LArchiveSalesHeader."Ship-to Post Code" + ', '
+                                        + LArchiveSalesHeader."Ship-to Country/Region Code"
                     else
                         ShiptoAddress := tempCustomer."Address" + ', '
                                            + tempCustomer."City" + ', '
                                            + tempCustomer."Post Code" + ', '
                                            + tempCustomer."Country/Region Code";
-                    ExtDocNo := LSalesHeader."External Document No.";
-                    RD := LSalesHeader."Requested Delivery Date";
+                    ExtDocNo := LArchiveSalesHeader."External Document No.";
+                    RD := LArchiveSalesHeader."Requested Delivery Date";
+
                 end else begin
-                    if LArchiveSalesHeader.get(LArchiveSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Posted Source No.") then begin
-                        tempCustomer.Get(LArchiveSalesHeader."Sell-to Customer No.");
-                        GSalesOrder := LArchiveSalesHeader."No.";
-                        if (LArchiveSalesHeader."Ship-to Code" <> '') and (LArchiveSalesHeader."Ship-to Address" <> '') then
-                            ShiptoAddress := LArchiveSalesHeader."Ship-to Address" + ', '
-                                            + LArchiveSalesHeader."Ship-to City" + ', '
-                                            + LArchiveSalesHeader."Ship-to Post Code" + ', '
-                                            + LArchiveSalesHeader."Ship-to Country/Region Code"
+                    if LSalesHeader.get(LSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
+                        tempCustomer.Get(LSalesHeader."Sell-to Customer No.");
+                        GSalesOrder := LSalesHeader."No.";
+                        if (LSalesHeader."Ship-to Code" <> '') and (LSalesHeader."Ship-to Address" <> '') then
+                            ShiptoAddress := LSalesHeader."Ship-to Address" + ', '
+                                            + LSalesHeader."Ship-to City" + ', '
+                                            + LSalesHeader."Ship-to Post Code" + ', '
+                                            + LSalesHeader."Ship-to Country/Region Code"
                         else
                             ShiptoAddress := tempCustomer."Address" + ', '
                                                + tempCustomer."City" + ', '
                                                + tempCustomer."Post Code" + ', '
                                                + tempCustomer."Country/Region Code";
-                        ExtDocNo := LArchiveSalesHeader."External Document No.";
-                        RD := LArchiveSalesHeader."Requested Delivery Date";
+                        ExtDocNo := LSalesHeader."External Document No.";
+                        RD := LSalesHeader."Requested Delivery Date";
                     end;
                 end;
-
                 TotalCustomerQty := 0;
                 NumberOfPallet := 0;
             end;
