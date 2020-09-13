@@ -401,7 +401,7 @@ codeunit 60001 "Pallet Functions"
         if palletline.findset then
             repeat
                 if ItemUOM.get(Palletline."Item No.", Palletline."Unit of Measure") then begin
-                    Palletline."Item Label No. of Copies" := Palletline.Quantity *
+                    Palletline."Item Label No. of Copies" := round(Palletline.Quantity, 1) *
                         ItemUOM."Sticker Note Relation";
                     Palletline.modify;
                 end;

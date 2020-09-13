@@ -309,7 +309,7 @@ report 60003 "Consignment Note"
                     ExtDocNo := LSalesHeader."External Document No.";
                     RD := LSalesHeader."Requested Delivery Date";
                 end else begin
-                    if LArchiveSalesHeader.get(LArchiveSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Source No.") then begin
+                    if LArchiveSalesHeader.get(LArchiveSalesHeader."Document Type"::Order, "Posted Whse. Shipment Line"."Posted Source No.") then begin
                         tempCustomer.Get(LArchiveSalesHeader."Sell-to Customer No.");
                         GSalesOrder := LArchiveSalesHeader."No.";
                         if (LArchiveSalesHeader."Ship-to Code" <> '') and (LArchiveSalesHeader."Ship-to Address" <> '') then
