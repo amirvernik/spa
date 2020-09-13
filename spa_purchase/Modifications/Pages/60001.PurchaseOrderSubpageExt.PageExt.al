@@ -119,4 +119,47 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
         }
         */
     }
+    actions
+    {
+        addlast("F&unctions")
+        {
+            action("Fix Qty Base")
+            {
+                ApplicationArea = All;
+                Caption = 'Fix Qty Base';
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                Visible = fixVisible;
+
+                trigger OnAction()
+                var
+                    purchaseLines: Record "Purchase Line";
+                begin
+                    purchaseLines.Reset();
+                    purchaseLines.SetRange("Document Type", purchaseLines."Document Type"::Order);
+                    purchaseLines.SetRange("Document No.", '106260');
+                    purchaseLines.SetFilter("Quantity Received", '=%1', 0);
+                    if purchaseLines.FindSet() then
+                        repeat
+                            purchaseLines."Qty. Rcd. Not Invoiced (Base)" := 0;
+                            purchaseLines."Qty. Received (Base)" := 0;
+                            purchaseLines."Qty. to Receive (Base)" := purchaseLines."Quantity (Base)";
+                            purchaseLines."Outstanding Qty. (Base)" := purchaseLines."Quantity (Base)";
+                            purchaseLines.Modify();
+                        until purchaseLines.Next() = 0;
+                    Message('done');
+                end;
+            }
+        }
+    }
+    trigger OnOpenPage()
+    var
+        myInt: Integer;
+    begin
+        fixVisible := UserId() = 'Prodware1@sweetpotatoesaustralia.com.au';
+    end;
+
+    var
+        fixVisible: Boolean;
 }
