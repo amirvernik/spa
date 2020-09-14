@@ -617,29 +617,136 @@ codeunit 60024 "Change Quality Management"
     procedure AddPackingMaterialsToExisting(pPalletLineChg: Record "Pallet Line Change Quality")
     var
         QualityChangeLine: Record "Pallet Change Quality";
+        BomComponent: Record "BOM Component";
         PalletHeader: Record "Pallet Header";
+        PalletLines: Record "Pallet Line";
+        PalletLedgerEntry: Record "Pallet Ledger Entry";
         PackingMaterials: Record "Packing Material Line";
         PalletFunctions: Codeunit "Pallet Functions";
         PalletID: Code[20];
         PalletLineNo: Integer;
+        ItemLedgerEntry: Record "Item Ledger Entry";
     begin
-        //PalletID := pPalletLineChg."Pallet ID";
-        //PalletLineNo := pPalletLineChg."Line No.";
+        PalletID := pPalletLineChg."Pallet ID";
+        PalletLineNo := pPalletLineChg."Line No.";
+        PalletHeader.get(PalletID);
+
         pPalletLineChg.reset;
         pPalletLineChg.setrange("User ID", UserId);
-        //pPalletLineChg.SetRange("Pallet ID", PalletID);
-        //pPalletLineChg.SetRange("Line No.", PalletLineNo);
-        if pPalletLineChg.findfirst then begin
-            if PalletHeader.get(pPalletLineChg."Pallet ID") then begin
-                //Delete Existing Packing Materials
-                PackingMaterials.reset;
-                PackingMaterials.setrange("Pallet ID", PalletHeader."Pallet ID");
-                if PackingMaterials.findset then
-                    PackingMaterials.DeleteAll();
-                //Create New Packing Materials 
-                PalletFunctions.AddMaterials(PalletHeader);
-            end;
-        end;
+        pPalletLineChg.SetRange("Pallet ID", PalletID);
+        pPalletLineChg.SetRange("Line No.", PalletLineNo);
+        if pPalletLineChg.FindSet() then
+            repeat
+                if PalletLines.Get(PalletID, PalletLineNo) then begin
+                    BomComponent.reset;
+                    BomComponent.setrange("Parent Item No.", pPalletLineChg."Item No.");
+                    if BomComponent.findset then
+                        repeat
+                            if not PackingMaterials.get(PalletLines."Pallet ID",
+                                BomComponent."No.", BomComponent."Unit of Measure Code") then begin
+                                PackingMaterials.init;
+                                PackingMaterials."Pallet ID" := PalletLines."Pallet ID";
+                                PackingMaterials."Item No." := BomComponent."No.";
+                                packingmaterials."Line No." := PalletFunctions.GetLastEntryPacking(PalletHeader);
+                                PackingMaterials.Description := BomComponent.Description;
+                                PackingMaterials."Reusable Item" := BomComponent."Reusable item";
+                                PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
+                                PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
+                                PackingMaterials."Location Code" := PalletLines."Location Code";
+                                PackingMaterials.insert;
+                            end
+                            else begin
+                                PackingMaterials.Quantity -= BomComponent."Quantity per" * pPalletLineChg."Replaced Qty";
+                                PackingMaterials.modify;
+                            end;
+
+                            PalletLedgerEntry.Init();
+                            PalletLedgerEntry."Entry No." := GetLastEntry();
+                            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
+                            PalletLedgerEntry."Pallet ID" := PackingMaterials."Pallet ID";
+                            PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                            PalletLedgerEntry."Document No." := PackingMaterials."Pallet ID";
+                            PalletLedgerEntry.validate("Posting Date", Today);
+                            PalletLedgerEntry.validate("Item No.", PackingMaterials."Item No.");
+                            //PalletLedgerEntry."Variant Code" :=
+                            PalletLedgerEntry."Item Description" := PackingMaterials.Description;
+                            PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                            PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                            PalletLedgerEntry.validate("Unit of Measure", BomComponent."Unit of Measure Code");
+                            PalletLedgerEntry.validate(Quantity, -BomComponent."Quantity per" * pPalletLineChg."Replaced Qty");
+                            PalletLedgerEntry."User ID" := userid;
+                            ItemLedgerEntry.Reset();
+                            ItemLedgerEntry.SetRange("Pallet ID", PalletID);
+                            ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
+                            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
+                            ItemLedgerEntry.SetRange("Unit of Measure Code", PackingMaterials."Unit of Measure Code");
+                            if ItemLedgerEntry.FindLast() then begin
+                                PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                            end;
+                            if PalletLedgerEntry.Quantity <> 0 then
+                                PalletLedgerEntry.Insert();
+
+                        until BomComponent.next = 0;
+                end;
+            until pPalletLineChg.Next() = 0;
+
+
+        QualityChangeLine.Reset();
+        QualityChangeLine.SetRange("User Created", UserId);
+        QualityChangeLine.SetRange("Pallet ID", PalletID);
+        QualityChangeLine.SetRange("Pallet Line No.", PalletLineNo);
+        if QualityChangeLine.FindSet() then
+            repeat
+                BomComponent.reset;
+                BomComponent.setrange("Parent Item No.", QualityChangeLine."New Item No.");
+                if BomComponent.findset then
+                    repeat
+                        if not PackingMaterials.get(PalletLines."Pallet ID",
+                            BomComponent."No.", BomComponent."Unit of Measure Code") then begin
+                            PackingMaterials.init;
+                            PackingMaterials."Pallet ID" := PalletLines."Pallet ID";
+                            PackingMaterials."Item No." := BomComponent."No.";
+                            packingmaterials."Line No." := PalletFunctions.GetLastEntryPacking(PalletHeader);
+                            PackingMaterials.Description := BomComponent.Description;
+                            PackingMaterials."Reusable Item" := BomComponent."Reusable item";
+                            PackingMaterials.Quantity := BomComponent."Quantity per" * QualityChangeLine."New Quantity";
+                            PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
+                            PackingMaterials."Location Code" := PalletLines."Location Code";
+                            PackingMaterials.insert;
+                        end
+                        else begin
+                            PackingMaterials.Quantity += BomComponent."Quantity per" * QualityChangeLine."New Quantity";
+                            PackingMaterials.modify;
+                        end;
+
+                        PalletLedgerEntry.Init();
+                        PalletLedgerEntry."Entry No." := GetLastEntry();
+                        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
+                        PalletLedgerEntry."Pallet ID" := PackingMaterials."Pallet ID";
+                        PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                        PalletLedgerEntry."Document No." := PackingMaterials."Pallet ID";
+                        PalletLedgerEntry.validate("Posting Date", Today);
+                        PalletLedgerEntry.validate("Item No.", PackingMaterials."Item No.");
+                        //PalletLedgerEntry."Variant Code" := ;
+                        PalletLedgerEntry."Item Description" := PackingMaterials.Description;
+                        PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                        PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                        PalletLedgerEntry.validate("Unit of Measure", BomComponent."Unit of Measure Code");
+                        PalletLedgerEntry.validate(Quantity, BomComponent."Quantity per" * QualityChangeLine."New Quantity");
+                        PalletLedgerEntry."User ID" := userid;
+                        ItemLedgerEntry.Reset();
+                        ItemLedgerEntry.SetRange("Pallet ID", PalletID);
+                        ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
+                        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
+                        ItemLedgerEntry.SetRange("Unit of Measure Code", PackingMaterials."Unit of Measure Code");
+                        if ItemLedgerEntry.FindLast() then begin
+                            PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                        end;
+                        if PalletLedgerEntry.Quantity <> 0 then
+                            PalletLedgerEntry.Insert();
+
+                    until BomComponent.next = 0;
+            until QualityChangeLine.Next() = 0;
     end;
 
     //Calc Change Quality

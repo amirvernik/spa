@@ -245,6 +245,7 @@ codeunit 60001 "Pallet Functions"
                         PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
                         PackingMaterials."Location Code" := PalletHeader."Location Code";
                         PackingMaterials.insert;
+
                     end
                     else begin
                         PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
@@ -408,7 +409,7 @@ codeunit 60001 "Pallet Functions"
             until palletline.next = 0;
     end;
 
-    local procedure GetLastEntryPacking(var pPalletHeader: Record "Pallet Header"): Integer
+    procedure GetLastEntryPacking(var pPalletHeader: Record "Pallet Header"): Integer
     var
         PackingMaterialLine: Record "Packing Material Line";
     begin
