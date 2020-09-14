@@ -3277,26 +3277,15 @@
               </Style>
             </Textbox>
             <Textbox Name="Textbox10">
-              <CanGrow>true</CanGrow>
               <KeepTogether>true</KeepTogether>
               <Paragraphs>
                 <Paragraph>
                   <TextRuns>
                     <TextRun>
-                      <Value>Consignment Note      </Value>
+                      <Value>Consignment Note</Value>
                       <Style>
                         <FontStyle>Italic</FontStyle>
                         <FontFamily>Calibri</FontFamily>
-                        <FontSize>18pt</FontSize>
-                        <FontWeight>Bold</FontWeight>
-                        <TextDecoration>None</TextDecoration>
-                        <Color>#000000</Color>
-                      </Style>
-                    </TextRun>
-                    <TextRun>
-                      <Value xml:space="preserve">       </Value>
-                      <Style>
-                        <FontStyle>Italic</FontStyle>
                         <FontSize>18pt</FontSize>
                         <FontWeight>Bold</FontWeight>
                         <TextDecoration>None</TextDecoration>
