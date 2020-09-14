@@ -58,11 +58,11 @@ codeunit 60001 "Pallet Functions"
                         IF LPurchaseOrderLine.FindSet() then begin
                             repeat
                                 if LPurchaseOrderLine."Line No." = PalletLines."Purchase Order Line No." then begin
-                                    LPurchaseOrderLine."Qty. to Receive" := LPurchaseOrderLine."Outstanding Quantity";
-                                    LPurchaseOrderLine."Qty. to Invoice" := LPurchaseOrderLine.Quantity;
+                                    LPurchaseOrderLine.validate("Qty. to Receive", LPurchaseOrderLine."Outstanding Quantity");
+                                    LPurchaseOrderLine.validate("Qty. to Invoice", LPurchaseOrderLine.Quantity);
                                 end else begin
-                                    LPurchaseOrderLine."Qty. to Receive" := 0;
-                                    LPurchaseOrderLine."Qty. to Invoice" := 0;
+                                    LPurchaseOrderLine.validate("Qty. to Receive", 0);
+                                    LPurchaseOrderLine.validate("Qty. to Invoice", 0);
                                 end;
                                 LPurchaseOrderLine.Modify();
                             until LPurchaseOrderLine.Next() = 0;

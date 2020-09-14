@@ -255,8 +255,8 @@ codeunit 60010 "UI Pallet Functions"
                     purchaseheader.setrange(PurchaseHeader."Grading Result PO", true);
                 if PalletType = 'mw' then
                     purchaseheader.setrange(PurchaseHeader."Microwave Process PO", true);
-                PurchaseHeader.validate("Posting Date", workdate);
-                PurchaseHeader.validate("Order Date", workdate);
+                PurchaseHeader."Posting Date" := Today;
+                PurchaseHeader."Order Date" := Today;
 
                 if purchaseheader.findfirst then begin
                     if PurchaseHeader.status = PurchaseHeader.status::Released then

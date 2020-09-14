@@ -99,7 +99,7 @@ table 60001 "Pallet Header"
         PalletReservations: Record "Pallet reservation Entry";
         Err003: label 'Pallet is closed, for Delete Please Re-Open';
         Err004: Label 'Pallet is Consumed for Microwave Order, Cannot be Deleted';
-
+        Err005: Label 'Only open Pallets Can Be deleted';
 
     trigger OnInsert()
     begin
@@ -121,6 +121,9 @@ table 60001 "Pallet Header"
             error(Err003);
         if rec."Pallet Status" = rec."Pallet Status"::Consumed then
             error(Err004);
+
+        if rec."Pallet Status" <> rec."Pallet Status"::Open then
+            error(Err005);
 
         PalletReservations.reset;
         PalletReservations.setrange("Pallet ID", rec."Pallet ID");

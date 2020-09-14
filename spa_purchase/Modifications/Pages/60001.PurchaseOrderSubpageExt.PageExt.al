@@ -140,7 +140,7 @@ pageextension 60001 PurchaseOrderSubPageExt extends "Purchase Order Subform"
                     //     Error('You are not allowed to run this Action');
                     purchaseLines.Reset();
                     purchaseLines.SetRange("Document Type", purchaseLines."Document Type"::Order);
-                    purchaseLines.SetRange("Document No.", '106288');
+                    purchaseLines.SetRange("Document No.", Rec."Document No.");
                     purchaseLines.SetFilter("Quantity Received", '=%1', 0);
                     if purchaseLines.FindSet() then
                         repeat

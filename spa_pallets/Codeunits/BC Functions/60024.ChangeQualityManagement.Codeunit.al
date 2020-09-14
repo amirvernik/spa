@@ -265,6 +265,7 @@ codeunit 60024 "Change Quality Management"
         RecGReservationEntry2: Record "Reservation Entry";
         MaxEntry: Integer;
         PalletChangeQuality: Record "Pallet Change Quality";
+        BomComponent: Record "BOM Component";
         PalletID: Code[20];
         PalletLineNo: Integer;
     begin
@@ -605,10 +606,11 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine.validate("Item No.", BomComponent."No.");
                         ItemJournalLine.validate("Variant Code", BomComponent."Variant Code");
                         ItemJournalLine.validate("Location Code", PalletHeader."Location Code");
+                        ItemJournalLine.Validate("Unit of Measure Code", BomComponent."Unit of Measure Code");
                         ItemJournalLine.validate(Quantity, QualityChangeLine."New Quantity" * BomComponent."Quantity per");
                         ItemJournalLine."Pallet ID" := QualityChangeLine."Pallet ID";
                         ItemJournalLine.modify;
-                        LineNumber += 10000;
+                        LineNumber += 1000;
                     until BomComponent.next = 0;
             until QualityChangeLine.next = 0;
     end;
@@ -660,32 +662,33 @@ codeunit 60024 "Change Quality Management"
                                 PackingMaterials.modify;
                             end;
 
-                            PalletLedgerEntry.Init();
-                            PalletLedgerEntry."Entry No." := GetLastEntry();
-                            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
-                            PalletLedgerEntry."Pallet ID" := PackingMaterials."Pallet ID";
-                            PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
-                            PalletLedgerEntry."Document No." := PackingMaterials."Pallet ID";
-                            PalletLedgerEntry.validate("Posting Date", Today);
-                            PalletLedgerEntry.validate("Item No.", PackingMaterials."Item No.");
-                            //PalletLedgerEntry."Variant Code" :=
-                            PalletLedgerEntry."Item Description" := PackingMaterials.Description;
-                            PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
-                            PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
-                            PalletLedgerEntry.validate("Unit of Measure", BomComponent."Unit of Measure Code");
-                            PalletLedgerEntry.validate(Quantity, -BomComponent."Quantity per" * pPalletLineChg."Replaced Qty");
-                            PalletLedgerEntry."User ID" := userid;
-                            ItemLedgerEntry.Reset();
-                            ItemLedgerEntry.SetRange("Pallet ID", PalletID);
-                            ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
-                            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
-                            ItemLedgerEntry.SetRange("Unit of Measure Code", PackingMaterials."Unit of Measure Code");
-                            if ItemLedgerEntry.FindLast() then begin
-                                PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-                            end;
-                            if PalletLedgerEntry.Quantity <> 0 then
-                                PalletLedgerEntry.Insert();
-
+                        /* PalletLedgerEntry.Init();
+                         PalletLedgerEntry."Entry No." := GetLastEntry();
+                         PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
+                         PalletLedgerEntry."Pallet ID" := PackingMaterials."Pallet ID";
+                         PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                         PalletLedgerEntry."Document No." := PackingMaterials."Pallet ID";
+                         PalletLedgerEntry.validate("Posting Date", Today);
+                         PalletLedgerEntry.validate("Item No.", PackingMaterials."Item No.");
+                         PalletLedgerEntry."Variant Code" := BomComponent."Variant Code";
+                         PalletLedgerEntry."Item Description" := PackingMaterials.Description;
+                         PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                         PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                         PalletLedgerEntry.validate("Unit of Measure", BomComponent."Unit of Measure Code");
+                         PalletLedgerEntry.validate(Quantity, -BomComponent."Quantity per" * pPalletLineChg."Replaced Qty");
+                         PalletLedgerEntry."User ID" := userid;
+                         ItemLedgerEntry.Reset();
+                         ItemLedgerEntry.SetRange("Pallet ID", PalletID);
+                         ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
+                         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
+                         ItemLedgerEntry.SetRange("Unit of Measure Code", PackingMaterials."Unit of Measure Code");
+                         ItemLedgerEntry.SetRange("Posting Date", Today());
+                         if ItemLedgerEntry.FindLast() then begin
+                             PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                         end;
+                         if PalletLedgerEntry.Quantity <> 0 then
+                             PalletLedgerEntry.Insert();
+*/
                         until BomComponent.next = 0;
                 end;
             until pPalletLineChg.Next() = 0;
@@ -727,18 +730,21 @@ codeunit 60024 "Change Quality Management"
                         PalletLedgerEntry."Document No." := PackingMaterials."Pallet ID";
                         PalletLedgerEntry.validate("Posting Date", Today);
                         PalletLedgerEntry.validate("Item No.", PackingMaterials."Item No.");
-                        //PalletLedgerEntry."Variant Code" := ;
+                        PalletLedgerEntry."Variant Code" := BomComponent."Variant Code";
                         PalletLedgerEntry."Item Description" := PackingMaterials.Description;
                         PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
                         PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
                         PalletLedgerEntry.validate("Unit of Measure", BomComponent."Unit of Measure Code");
-                        PalletLedgerEntry.validate(Quantity, BomComponent."Quantity per" * QualityChangeLine."New Quantity");
+                        PalletLedgerEntry.validate(Quantity, -BomComponent."Quantity per" * QualityChangeLine."New Quantity");
                         PalletLedgerEntry."User ID" := userid;
+
                         ItemLedgerEntry.Reset();
-                        ItemLedgerEntry.SetRange("Pallet ID", PalletID);
+                        ItemLedgerEntry.SetRange("Document No.", PalletID);
                         ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
-                        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
-                        ItemLedgerEntry.SetRange("Unit of Measure Code", PackingMaterials."Unit of Measure Code");
+                        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
+                        ItemLedgerEntry.SetRange("Unit of Measure Code", PalletLedgerEntry."Unit of Measure");
+                        ItemLedgerEntry.SetRange(Quantity, PalletLedgerEntry.Quantity);
+                        ItemLedgerEntry.SetRange("Posting Date", Today());
                         if ItemLedgerEntry.FindLast() then begin
                             PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
                         end;
