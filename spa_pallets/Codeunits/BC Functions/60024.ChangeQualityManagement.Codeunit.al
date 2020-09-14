@@ -420,6 +420,7 @@ codeunit 60024 "Change Quality Management"
                     PalletLedgerEntry.validate("Unit of Measure", pPalletLineChg."Unit of Measure");
                     PalletLedgerEntry.validate(Quantity, -1 * (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
                     PalletLedgerEntry."User ID" := userid;
+
                     if PalletLedgerEntry.Quantity <> 0 then
                         PalletLedgerEntry.Insert();
                     //LineNumber += 1;
@@ -741,9 +742,10 @@ codeunit 60024 "Change Quality Management"
                         ItemLedgerEntry.Reset();
                         ItemLedgerEntry.SetRange("Document No.", PalletID);
                         ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
+                        ItemLedgerEntry.SetRange("Variant Code", PalletLedgerEntry."Variant Code");
                         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
-                        ItemLedgerEntry.SetRange("Unit of Measure Code", PalletLedgerEntry."Unit of Measure");
-                        ItemLedgerEntry.SetRange(Quantity, PalletLedgerEntry.Quantity);
+                        //ItemLedgerEntry.SetRange("Unit of Measure Code", PalletLedgerEntry."Unit of Measure");
+                        // ItemLedgerEntry.SetRange(Quantity, PalletLedgerEntry.Quantity);
                         ItemLedgerEntry.SetRange("Posting Date", Today());
                         if ItemLedgerEntry.FindLast() then begin
                             PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
@@ -752,6 +754,27 @@ codeunit 60024 "Change Quality Management"
                             PalletLedgerEntry.Insert();
 
                     until BomComponent.next = 0;
+
+                PalletLedgerEntry.Reset();
+                PalletLedgerEntry.SetRange("Pallet ID", PalletID);
+                PalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+                if PalletLedgerEntry.FindSet() then
+                    repeat
+                        ItemLedgerEntry.Reset();
+                        ItemLedgerEntry.SetRange("Posting Date", PalletLedgerEntry."Posting Date");
+                        ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
+                        ItemLedgerEntry.SetRange("Variant Code", PalletLedgerEntry."Variant Code");
+                        ItemLedgerEntry.SetRange("Document No.", PalletID);
+                        if PalletLedgerEntry.Quantity < 0 then
+                            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.")
+                        else
+                            ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
+                        if ItemLedgerEntry.FindLast() then begin
+                            PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                            PalletLedgerEntry.Modify();
+                        end;
+
+                    until PalletLedgerEntry.Next() = 0;
             until QualityChangeLine.Next() = 0;
     end;
 
