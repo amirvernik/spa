@@ -37,6 +37,7 @@ table 60017 "Pallet Change Quality"
         field(50; "New Quantity"; Decimal)
         {
             DataClassification = ToBeClassified;
+            MinValue = 0;
         }
         field(60; Description; text[50])
         {
@@ -75,7 +76,7 @@ table 60017 "Pallet Change Quality"
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("Pallet ID", Rec."Pallet ID");
         PalletChangeQuality.setrange("Pallet Line No.", rec."Pallet Line No.");
-        PalletChangeQuality.setrange("User Created",UserId);
+        PalletChangeQuality.setrange("User Created", UserId);
         if PalletChangeQuality.findlast then
             LineNumber := PalletChangeQuality."Line No." + 10000
         else

@@ -100,16 +100,26 @@ page 60025 "Pallet Change Quality"
                 PromotedCategory = process;
                 ApplicationArea = All;
                 Image = Change;
+
                 trigger OnAction()
                 var
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                     TrackingItemNumber: code[20];
                     PalletItemChgLine: Record "Pallet Change Quality";
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
+                    ErrNewItem: Label 'You have not enterd a new item line';
+                    PalletChangeQuality: Record "Pallet Change Quality";
                 begin
                     //Check if needs to do
                     //ChangeQualityMgmt.CheckChangeItem(Rec);
-
+                    PalletChangeQuality.Reset();
+                    PalletChangeQuality.SetRange("Pallet ID", "Pallet ID");
+                    PalletChangeQuality.SetRange("User Created", UserId);
+                    PalletChangeQuality.SetRange("Pallet Line No.", "Line No.");
+                    if not PalletChangeQuality.FindFirst() then begin
+                        Error(ErrNewItem);
+                        exit;
+                    end;
                     PalletItemChgLine.reset;
                     PalletItemChgLine.setrange("Pallet ID", Rec."Pallet ID");
                     PalletItemChgLine.setrange("User Created", UserId);
@@ -136,6 +146,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items  
                     ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials                                      
+                    ChangeQualityMgmt.RecreateReservations(rec."Pallet ID");
                     ChangeQualityMgmt.RemoveZeroPalletLine(rec); // Remove Pallet Lines with Zero Quantities
                     CurrPage.Close();
                 end;
