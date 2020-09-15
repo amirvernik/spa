@@ -28,6 +28,10 @@ codeunit 60022 "Sales Orders Management"
         if CustomerRec.get(rec."Sell-to Customer No.") then begin
             rec."Shipping Time" := CustomerRec."Shipping Time";
             rec."Packing Days" := CustomerRec."Packing Days";
+
+            rec.Validate("Salesperson Code", CustomerRec."Salesperson Code");
+            rec.validate("Shipping Agent Code", CustomerRec."Shipping Agent Code");
+            rec.validate("Shipping Agent Service Code", CustomerRec."Shipping Agent Service Code");
         end;
 
     end;

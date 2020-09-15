@@ -27,7 +27,7 @@ pageextension 60020 PostedWarehouseShipmentCardExt extends "Posted Whse. Shipmen
                 var
                     StickerNoteFunctions: Codeunit "Sticker note functions";
                 begin
-                    StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipment(rec);
+                    StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipment(rec, 'BC');
                 end;
             }
         }

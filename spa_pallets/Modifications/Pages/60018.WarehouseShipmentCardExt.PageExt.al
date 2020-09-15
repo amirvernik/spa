@@ -140,8 +140,16 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                     trigger OnAction()
                     var
                         StickerNoteFunctions: Codeunit "Sticker note functions";
+                        LWarehousepallet: Record "Warehouse Pallet";
                     begin
-                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec);
+                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec, 'BC');
+                        /* LWarehousepallet.Reset();
+                         LWarehousepallet.SetRange("Whse Shipment No.", Rec."No.");
+                         if LWarehousepallet.FindSet() then
+                             repeat
+                                 LWarehousepallet.Printed := true;
+                                 if not LWarehousepallet.Modify(false) then;
+                             until LWarehousepallet.Next() = 0;*/
                     end;
                 }
             }
