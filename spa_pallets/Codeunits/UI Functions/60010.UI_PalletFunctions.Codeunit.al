@@ -611,6 +611,7 @@ codeunit 60010 "UI Pallet Functions"
         ItemNo: Code[20];
         UOM: code[20];
         Qty: Decimal;
+        POtype: text;
         LOTNO: code[20];
         PalletLineCheck: Record "Pallet Line";
         PalletLineNumber: Integer;
@@ -626,11 +627,17 @@ codeunit 60010 "UI Pallet Functions"
         JsonBuffer.ReadFromText(pContent);
 
         //Depth 2 - Header
+        iCount := 0;
         JSONBuffer.RESET;
         JSONBuffer.SETRANGE(JSONBuffer.Depth, 2);
         JSONBuffer.SETRANGE(JSONBuffer."Token type", JSONBuffer."Token type"::String);
-        IF JSONBuffer.findfirst THEn
-            PalletID := JSONBuffer.Value;
+        IF JSONBuffer.FindSet() THEN
+            repeat
+                if JsonBuffer.path = '[' + format(icount) + '].palletid' then
+                    PalletID := JSONBuffer.Value;
+                if JsonBuffer.Path = '[' + Format(icount) + '].POtype' then
+                    POtype := JSONBuffer.Value;
+            until jsonbuffer.next = 0;
 
         if PalletHeader.get(PalletID) then begin
 
@@ -670,7 +677,6 @@ codeunit 60010 "UI Pallet Functions"
 
                             IF JSONBuffer.Path = '[1][' + FORMAT(iCount) + '].VarietyCode' THEN
                                 VariantCode := JSONBuffer.Value;
-
                         UNTIL JSONBuffer.NEXT = 0;
 
                     iCount += 1;
@@ -704,6 +710,12 @@ codeunit 60010 "UI Pallet Functions"
                         PurchaseHeader.reset;
                         PurchaseHeader.setrange(PurchaseHeader."Document Type", PurchaseHeader."Document Type"::Order);
                         purchaseheader.setrange(PurchaseHeader."Batch Number", LOTNO);
+                        case POtype of
+                            'Grade':
+                                PurchaseHeader.SetRange("Grading Result PO", true);
+                            'Valueadd':
+                                PurchaseHeader.SetRange("Microwave Process PO", true);
+                        end;
                         if purchaseheader.findfirst then begin
                             PurchaseOrderNo := PurchaseHeader."No.";
 

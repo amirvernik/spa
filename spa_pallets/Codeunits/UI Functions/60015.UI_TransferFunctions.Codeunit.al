@@ -17,6 +17,7 @@ codeunit 60015 "UI Transfer Functions"
         RecGReservationEntry: Record "Reservation Entry";
         maxEntry: Integer;
         ItemRec: Record Item;
+        ErrLocation: Label 'Ship from location can`t be equal to the shipping location';
 
     begin
         IF pFunction <> 'TransferPallet' THEN
@@ -37,7 +38,16 @@ codeunit 60015 "UI Transfer Functions"
                         ToLocation := JSONBuffer.Value;
             until JsonBuffer.next = 0;
 
-        if PalletHeader.GET(PalletID) then begin
+        PalletHeader.Reset();
+        PalletHeader.SetRange("Pallet ID", PalletID);
+        PalletHeader.SetRange("Pallet Status", PalletHeader."Pallet Status"::Closed);
+        PalletHeader.SetRange("Exist in warehouse shipment", false);
+        if PalletHeader.FindFirst() then begin
+            if PalletHeader."Location Code" = ToLocation then begin
+                Error(ErrLocation);
+                exit;
+            end;
+
             PalletSetup.get;
             ItemJournalLine.reset;
             ItemJournalLine.setrange("Journal Template Name", PalletSetup."Item Reclass Template");
