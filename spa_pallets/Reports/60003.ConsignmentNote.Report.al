@@ -4,7 +4,7 @@ report 60003 "Consignment Note"
     ApplicationArea = All;
     // DefaultLayout = Word;
     DefaultLayout = RDLC;
-    WordLayout = './Layout/ConsignmentNote.docx';
+    // WordLayout = './Layout/ConsignmentNote.docx';
     RDLCLayout = './Layout/ConsignmentNote.rdl';
     Caption = 'Consigment Note';
 

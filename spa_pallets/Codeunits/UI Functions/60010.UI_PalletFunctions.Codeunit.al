@@ -139,7 +139,7 @@ codeunit 60010 "UI Pallet Functions"
 
             //Create Pallet Header
             if PalletSetup.get then begin
-                PalletID := NoSeriesMgt.GetNextNo(PalletSetup."Pallet No. Series", today, true);
+                PalletID := NoSeriesMgt.GetNextNo(PalletSetup."Pallet No. Series", GetCurrTime, true);
                 pContent := '{"palletid":"' + PalletID + '"}';
                 PalletHeader.LockTable();
                 PalletHeader.Init();
@@ -214,9 +214,9 @@ codeunit 60010 "UI Pallet Functions"
                 PalletLine.validate("Variant Code", VariantCode);
                 if ItemRec.get(ItemNo) then begin
                     if format(ItemRec."Expiration Calculation") = '' then
-                        PalletLine."Expiration Date" := today
+                        PalletLine."Expiration Date" := GetCurrTime
                     else
-                        PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), today);
+                        PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), GetCurrTime);
                 end;
                 PalletLine.validate("Location Code", LocationCode);
 
@@ -255,8 +255,8 @@ codeunit 60010 "UI Pallet Functions"
                     purchaseheader.setrange(PurchaseHeader."Grading Result PO", true);
                 if PalletType = 'mw' then
                     purchaseheader.setrange(PurchaseHeader."Microwave Process PO", true);
-                PurchaseHeader."Posting Date" := Today;
-                PurchaseHeader."Order Date" := Today;
+                PurchaseHeader."Posting Date" := GetCurrTime; //yt14092020
+                PurchaseHeader."Order Date" := GetCurrTime; //yt14092020
 
                 if purchaseheader.findfirst then begin
                     if PurchaseHeader.status = PurchaseHeader.status::Released then
@@ -697,9 +697,9 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine.validate("Variant Code", VariantCode);
                         if ItemRec.get(ItemNo) then begin
                             if format(ItemRec."Expiration Calculation") = '' then
-                                PalletLine."Expiration Date" := today
+                                PalletLine."Expiration Date" := GetCurrTime
                             else
-                                PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), today);
+                                PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), GetCurrTime);
                         end;
                         PalletLine."Location Code" := PalletHeader."Location Code";
                         PalletLine."Lot Number" := LOTNO;
@@ -1069,9 +1069,9 @@ codeunit 60010 "UI Pallet Functions"
         PalletLine.validate("Item No.", New_Item);
         if ItemRec.get(New_Item) then begin
             if format(ItemRec."Expiration Calculation") = '' then
-                PalletLine."Expiration Date" := today
+                PalletLine."Expiration Date" := GetCurrTime()
             else
-                PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), today);
+                PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), GetCurrTime);
         end;
         PalletLine.modify;
     end;
@@ -1130,6 +1130,27 @@ codeunit 60010 "UI Pallet Functions"
             until ItemTemp.next = 0;
         JsonArr.WriteTo(pContent);
     end;
+
+    procedure GetCurrTime(): date;
+    var
+        lLocalTime: Time;
+        lDateTimeTxt: Text;
+        lTimeTxt: Text;
+        IntHour: Integer;
+        GMTplus: date;
+
+    BEGIN
+        EVALUATE(lLocalTime, '17:00:00');
+        lDateTimeTxt := FORMAT(CREATEDATETIME(TODAY, time), 0, 9);
+        lTimeTxt := COPYSTR(lDateTimeTxt, STRPOS(lDateTimeTxt, 'T') + 1);
+        lTimeTxt := COPYSTR(lTimeTxt, 1, STRPOS(lTimeTxt, ':') - 1);
+        evaluate(IntHour, lTimeTxt);
+        if IntHour > 13 then
+            GMTplus := CalcDate('+1D', Today)
+        else
+            GMTplus := Today;
+        exit(GMTplus);
+    END;
 
 }
 

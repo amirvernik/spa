@@ -86,8 +86,8 @@ codeunit 60021 "Purch. UI Functions"
                     PurchaseSetup.get;
                     PurchaseHeader.init;
                     PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::order;
-                    OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", Today, true);
-                    BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", Today, true);
+                    OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", GetCurrTime, true);
+                    BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", GetCurrTime, true);
                     PurchaseHeader."No." := OrderNumber;
                     if PurchaseHeader.Insert(true) then begin
                         case PurchaseType of
@@ -96,9 +96,9 @@ codeunit 60021 "Purch. UI Functions"
                                     PurchaseHeader."Grading Result PO" := true;
                                     if Vendorrec.get(VendorNo) then
                                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                                    PurchaseHeader."Document Date" := today;
-                                    PurchaseHeader."posting Date" := today;
-                                    PurchaseHeader."Order Date" := Today;
+                                    PurchaseHeader."Document Date" := GetCurrTime;
+                                    PurchaseHeader."posting Date" := GetCurrTime;
+                                    PurchaseHeader."Order Date" := GetCurrTime;
                                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
                                     PurchaseHeader."Variety Code" := VarietyCode;
                                     PurchaseHeader."Harvest Date" := HarvestDate;
@@ -116,9 +116,9 @@ codeunit 60021 "Purch. UI Functions"
                                     PurchaseHeader."Microwave Process PO" := true;
                                     if Vendorrec.get(VendorNo) then
                                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                                    PurchaseHeader."Document Date" := today;
-                                    PurchaseHeader."posting Date" := today;
-                                    PurchaseHeader."Order Date" := Today;
+                                    PurchaseHeader."Document Date" := GetCurrTime;
+                                    PurchaseHeader."posting Date" := GetCurrTime;
+                                    PurchaseHeader."Order Date" := GetCurrTime;
                                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
                                     PurchaseHeader."Harvest Date" := HarvestDate;
                                     PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
@@ -138,9 +138,9 @@ codeunit 60021 "Purch. UI Functions"
                                 begin
                                     if Vendorrec.get(VendorNo) then
                                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
-                                    PurchaseHeader."Document Date" := today;
-                                    PurchaseHeader."posting Date" := today;
-                                    PurchaseHeader."Order Date" := Today;
+                                    PurchaseHeader."Document Date" := GetCurrTime;
+                                    PurchaseHeader."posting Date" := GetCurrTime;
+                                    PurchaseHeader."Order Date" := GetCurrTime;
                                     PurchaseHeader."Variety Code" := VarietyCode;
                                     PurchaseHeader."Vendor Shipment No." := VendorShipmentNo;
                                     PurchaseHeader."Vendor Invoice No." := VendorShipmentNo;
@@ -377,8 +377,8 @@ codeunit 60021 "Purch. UI Functions"
                     PurchaseSetup.get;
                     PurchaseHeader.init;
                     PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::order;
-                    OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", Today, true);
-                    BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", Today, true);
+                    OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", GetCurrTime, true);
+                    BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", GetCurrTime, true);
                     PurchaseHeader."No." := OrderNumber;
                     purchaseheader.insert(true);
 
@@ -386,9 +386,9 @@ codeunit 60021 "Purch. UI Functions"
                     if Vendorrec.get(VendorNo) then
                         PurchaseHeader.validate("Buy-from Vendor No.", VendorNo);
 
-                    PurchaseHeader."Document Date" := today;
-                    PurchaseHeader."posting Date" := today;
-                    PurchaseHeader."Order Date" := Today;
+                    PurchaseHeader."Document Date" := GetCurrTime;
+                    PurchaseHeader."posting Date" := GetCurrTime;
+                    PurchaseHeader."Order Date" := GetCurrTime;
                     PurchaseHeader."Number Of Raw Material Bins" := BinQuantity;
                     PurchaseHeader."Variety Code" := Variety_Code;
                     PurchaseHeader."Harvest Date" := HarvestDate;
@@ -596,9 +596,9 @@ codeunit 60021 "Purch. UI Functions"
         ItemJournalLine."Line No." := LineNumber;
         ItemJournalLine.insert;
         ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
-        ItemJournalLine."Posting Date" := Today;
+        ItemJournalLine."Posting Date" := GetCurrTime;
         ItemJournalLine."Document No." := PurchaseOrderNo;
-        ItemJournalLine."Document Date" := today;
+        ItemJournalLine."Document Date" := GetCurrTime;
         ItemJournalLine.validate("Item No.", PalletLedgEntry."Item No.");
         ItemJournalLine.validate("Variant Code", PalletLedgEntry."Variant Code");
         ItemJournalLine.validate("Location Code", PalletLedgEntry."Location Code");
@@ -617,9 +617,9 @@ codeunit 60021 "Purch. UI Functions"
                 //V16.0 - Changed From [3] to "Prospect" on Enum
                 RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
                 //V16.0 - Changed From [3] to "Prospect" on Enum
-                RecGReservationEntry."Creation Date" := Today;
+                RecGReservationEntry."Creation Date" := GetCurrTime;
                 RecGReservationEntry."Created By" := UserId;
-                RecGReservationEntry."Expected Receipt Date" := Today;
+                RecGReservationEntry."Expected Receipt Date" := GetCurrTime;
                 RecGReservationEntry."Source Type" := 83;
                 RecGReservationEntry."Source Subtype" := 3;
                 RecGReservationEntry."Source ID" := 'ITEM';
@@ -846,4 +846,27 @@ codeunit 60021 "Purch. UI Functions"
         JsonObjResult.add('Result', ResultText);
         JsonObjResult.WriteTo(pContent);
     end;
+
+    var
+    procedure GetCurrTime(): date;
+    var
+        lLocalTime: Time;
+        lDateTimeTxt: Text;
+        lTimeTxt: Text;
+        IntHour: Integer;
+        GMTplus: date;
+
+    BEGIN
+        EVALUATE(lLocalTime, '17:00:00');
+        lDateTimeTxt := FORMAT(CREATEDATETIME(TODAY, time), 0, 9);
+        lTimeTxt := COPYSTR(lDateTimeTxt, STRPOS(lDateTimeTxt, 'T') + 1);
+        lTimeTxt := COPYSTR(lTimeTxt, 1, STRPOS(lTimeTxt, ':') - 1);
+        evaluate(IntHour, lTimeTxt);
+        if IntHour > 13 then
+            GMTplus := CalcDate('+1D', Today)
+        else
+            GMTplus := Today;
+        exit(GMTplus);
+    END;
+
 }
