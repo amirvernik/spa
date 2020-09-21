@@ -145,7 +145,7 @@ codeunit 60010 "UI Pallet Functions"
                 PalletHeader.Init();
                 PalletHeader."Pallet ID" := PalletID;
                 PalletHeader."Location Code" := LocationCode;
-                PalletHeader."Creation Date" := WorkDate();
+                PalletHeader."Creation Date" := GetCurrTime();
                 PalletHeader."User Created" := UserId;
                 if RM_Pallet = 'true' then
                     PalletHeader."Raw Material Pallet" := true
