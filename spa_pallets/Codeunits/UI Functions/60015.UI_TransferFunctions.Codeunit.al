@@ -69,8 +69,8 @@ codeunit 60015 "UI Transfer Functions"
                     ItemJournalLine."Line No." := LineNumber;
                     ItemJournalLine.insert;
                     ItemJournalLine."Document No." := PalletID;
-                    ItemJournalLine."Posting Date" := today;
-                    ItemJournalLine."Document Date" := today;
+                    ItemJournalLine."Posting Date" := PalletFunctionCodeunit.GetCurrTime();
+                    ItemJournalLine."Document Date" := PalletFunctionCodeunit.GetCurrTime();
                     ItemJournalLine.validate("Item No.", PalletLine."Item No.");
                     ItemJournalLine.Validate("Variant Code", PalletLine."Variant Code");
                     ItemJournalLine.validate(Quantity, PalletLine.Quantity);
@@ -94,10 +94,10 @@ codeunit 60015 "UI Transfer Functions"
                             //V16.0 - Changed From [3] to "Prospect" on Enum
                             RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
                             //V16.0 - Changed From [3] to "Prospect" on Enum
-                            RecGReservationEntry.validate("Creation Date", Today);
+                            RecGReservationEntry.validate("Creation Date", PalletFunctionCodeunit.GetCurrTime());
                             RecGReservationEntry."Created By" := UserId;
-                            RecGReservationEntry."Expected Receipt Date" := Today;
-                            RecGReservationEntry."Shipment Date" := today;
+                            RecGReservationEntry."Expected Receipt Date" := PalletFunctionCodeunit.GetCurrTime();
+                            RecGReservationEntry."Shipment Date" := PalletFunctionCodeunit.GetCurrTime();
                             RecGReservationEntry."Source Type" := 83;
                             RecGReservationEntry."Source Subtype" := 4;
                             RecGReservationEntry."Source ID" := PalletSetup."Item Reclass Template";
@@ -114,7 +114,7 @@ codeunit 60015 "UI Transfer Functions"
                                 RecGReservationEntry.validate("Variant Code", PalletLine."Variant Code");
                             RecGReservationEntry.validate("Quantity (Base)", -1 * PalletLine.Quantity);
                             RecGReservationEntry.validate(Quantity, -1 * palletline.Quantity);
-                            RecGReservationEntry."Packing Date" := Today;
+                            RecGReservationEntry."Packing Date" := PalletFunctionCodeunit.GetCurrTime();
                             // RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
                             RecGReservationEntry."New Expiration Date" := PalletLine."Expiration Date";
                             RecGReservationEntry.Description := Palletline.Description;
@@ -159,4 +159,7 @@ codeunit 60015 "UI Transfer Functions"
 
         pContent := 'Success';
     end;
+
+    var
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
 }

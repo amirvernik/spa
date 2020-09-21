@@ -82,10 +82,10 @@ page 60009 "Pallet List Select Transfer"
                         //V16.0 - Changed From [2] to "Surplus" on Enum
                         RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
                         //V16.0 - Changed From [2] to "surplus" on Enum
-                        RecGReservationEntry.validate("Creation Date", Today);
+                        RecGReservationEntry.validate("Creation Date", PalletFunctionCodeunit.GetCurrTime());
                         RecGReservationEntry."Created By" := UserId;
-                        RecGReservationEntry."Expected Receipt Date" := Today;
-                        RecGReservationEntry."Shipment Date" := today;
+                        RecGReservationEntry."Expected Receipt Date" := PalletFunctionCodeunit.GetCurrTime();
+                        RecGReservationEntry."Shipment Date" := PalletFunctionCodeunit.GetCurrTime();
                         RecGReservationEntry."Source Type" := 5741;
                         RecGReservationEntry."Source Subtype" := 0;
                         RecGReservationEntry."Source ID" := TransferLine."Document No.";
@@ -115,10 +115,10 @@ page 60009 "Pallet List Select Transfer"
                         //V16.0 - Changed From [2] to "Surplus" on Enum
                         RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
                         //V16.0 - Changed From [2] to "Surplus" on Enum
-                        RecGReservationEntry.validate("Creation Date", Today);
+                        RecGReservationEntry.validate("Creation Date", PalletFunctionCodeunit.GetCurrTime());
                         RecGReservationEntry."Created By" := UserId;
-                        RecGReservationEntry."Expected Receipt Date" := Today;
-                        RecGReservationEntry."Shipment Date" := today;
+                        RecGReservationEntry."Expected Receipt Date" := PalletFunctionCodeunit.GetCurrTime();
+                        RecGReservationEntry."Shipment Date" := PalletFunctionCodeunit.GetCurrTime();
                         RecGReservationEntry."Source Type" := 5741;
                         RecGReservationEntry."Source Subtype" := 1;
                         RecGReservationEntry."Source ID" := TransferLine."Document No.";
@@ -151,4 +151,5 @@ page 60009 "Pallet List Select Transfer"
         maxEntry: integer;
         LineNumber2: integer;
         TransferOrderNumber: code[20];
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
 }

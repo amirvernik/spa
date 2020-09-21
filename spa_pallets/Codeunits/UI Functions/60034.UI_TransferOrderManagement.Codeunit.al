@@ -320,7 +320,8 @@ codeunit 60034 "UI Transfer Order Management"
         RecGReservationEntry2: Record "Reservation Entry";
         ItemRec: Record Item;
         maxEntry: Integer;
-
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
+        DateToday: Date;
     begin
         IF pFunction <> 'AddTransferOrderLinePallet' THEN
             EXIT;
@@ -367,16 +368,16 @@ codeunit 60034 "UI Transfer Order Management"
                         RecGReservationEntry2.reset;
                         if RecGReservationEntry2.findlast then
                             maxEntry := RecGReservationEntry2."Entry No." + 1;
-
+                        DateToday := PalletFunctionCodeunit.GetCurrTime();
                         RecGReservationEntry.init;
                         RecGReservationEntry."Entry No." := MaxEntry;
                         //V16.0 - Changed From [2] to "Surplus" on Enum
                         RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
                         //V16.0 - Changed From [2] to "surplus" on Enum
-                        RecGReservationEntry.validate("Creation Date", Today);
+                        RecGReservationEntry.validate("Creation Date", DateToday);
                         RecGReservationEntry."Created By" := UserId;
-                        RecGReservationEntry."Expected Receipt Date" := Today;
-                        RecGReservationEntry."Shipment Date" := today;
+                        RecGReservationEntry."Expected Receipt Date" := DateToday;
+                        RecGReservationEntry."Shipment Date" := DateToday;
                         RecGReservationEntry."Source Type" := 5741;
                         RecGReservationEntry."Source Subtype" := 0;
                         RecGReservationEntry."Source ID" := TransferLine."Document No.";

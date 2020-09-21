@@ -303,9 +303,9 @@ codeunit 60012 "UI Inventory Functions"
                             //V16.0 - Changed From [2] to "surplus" on Enum
                             RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
                             //V16.0 - Changed From [2] to "surplus" on Enum
-                            RecGReservationEntry."Creation Date" := Today;
+                            RecGReservationEntry."Creation Date" := PalletFunctionCodeunit.GetCurrTime();
                             RecGReservationEntry."Created By" := UserId;
-                            RecGReservationEntry."Expected Receipt Date" := Today;
+                            RecGReservationEntry."Expected Receipt Date" := PalletFunctionCodeunit.GetCurrTime();
                             RecGReservationEntry.Positive := true;
                             RecGReservationEntry."Source Type" := 39;
                             RecGReservationEntry."Source Subtype" := 1;
@@ -323,11 +323,7 @@ codeunit 60012 "UI Inventory Functions"
                             RecGReservationEntry.validate("Quantity (Base)", purchaseline."Qty. (Base) SPA");
                             RecGReservationEntry.validate(Quantity, purchaseline.Quantity);
                             RecGReservationEntry."Qty. per Unit of Measure" := PurchaseLine."Qty. per Unit of Measure";
-                            RecGReservationEntry."Packing Date" := today;
-                            // if format(ItemRec."Expiration Calculation") <> '' then
-                            //     RecGReservationEntry."Expiration Date" := calcdate('+' + format(ItemRec."Expiration Calculation"), today)
-                            // else
-                            //     RecGReservationEntry."Expiration Date" := today;
+                            RecGReservationEntry."Packing Date" := PalletFunctionCodeunit.GetCurrTime();
                             RecGReservationEntry.insert;
                         end
                         else
@@ -344,4 +340,7 @@ codeunit 60012 "UI Inventory Functions"
             end;
         end;
     end;
+
+    var
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
 }

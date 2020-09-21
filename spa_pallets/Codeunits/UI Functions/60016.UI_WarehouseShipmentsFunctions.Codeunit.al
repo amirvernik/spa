@@ -211,6 +211,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         end;
 
         //Create warehouse Shipment Header
+        DateToday := PalletFunctionCodeunit.GetCurrTime();
         WarehouseSetup.get;
         ShipmentNo := NoSeriesMgmt.GetNextNo(WarehouseSetup."Whse. Ship Nos.", today, true);
         WarehouseShipmentHeader.init;
@@ -218,8 +219,8 @@ codeunit 60016 "UI Whse Shipments Functions"
         WarehouseShipmentHeader."No. Series" := WarehouseSetup."Whse. Ship Nos.";
         WarehouseShipmentHeader.Status := WarehouseShipmentHeader.Status::Open;
         WarehouseShipmentHeader."Location Code" := LocationCode;
-        WarehouseShipmentHeader."Posting Date" := today;
-        WarehouseShipmentHeader."Shipment Date" := today;
+        WarehouseShipmentHeader."Posting Date" := DateToday;
+        WarehouseShipmentHeader."Shipment Date" := DateToday;
         WarehouseShipmentHeader."External Document No." := ExtDocNo;
         WarehouseShipmentHeader."Shipping No. Series" := WarehouseSetup."Posted Whse. Shipment Nos.";
         WarehouseShipmentHeader.insert;
@@ -439,6 +440,7 @@ codeunit 60016 "UI Whse Shipments Functions"
         BoolOnlyOne: Boolean;
 
     begin
+        DateToday := PalletFunctionCodeunit.GetCurrTime();
         SalesHeader.get(SalesHeader."Document Type"::Order, pOrderNo);
         BoolAll := false;
         BoolOnlyOne := false;
@@ -447,7 +449,7 @@ codeunit 60016 "UI Whse Shipments Functions"
             SalesPrice.setrange("Item No.", salesline."No.");
             SalesPrice.setrange("Variant Code", Salesline."Variant Code");
             SalesPrice.setrange("Ending Date", 0D);
-            SalesPrice.setfilter("Starting Date", '<=%1', today);
+            SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
             SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::"All Customers");
             if SalesPrice.findfirst then
                 BoolAll := true;
@@ -458,7 +460,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                 SalesPrice.setrange("Item No.", salesline."No.");
                 SalesPrice.setrange("Variant Code", Salesline."Variant Code");
                 SalesPrice.setrange("Ending Date", 0D);
-                SalesPrice.setfilter("Starting Date", '<=%1', today);
+                SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
                 SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::Customer);
                 SalesPrice.setrange(SalesPrice."Sales Code", SalesHeader."Sell-to Customer No.");
                 if SalesPrice.findfirst then
@@ -929,5 +931,9 @@ codeunit 60016 "UI Whse Shipments Functions"
         else
             pContent := Err001;
     end;
+
+    var
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
+        DateToday: Date;
 
 }

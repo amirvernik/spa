@@ -99,7 +99,7 @@ codeunit 60020 "UI Sales Return Orders"
         CustomerNo: code[20];
         Json_Text: text;
         PalletLedgerEntry: Record "Pallet Ledger Entry";
-
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
     begin
         IF pFunction <> 'CreateSalesReturnOrder' THEN
             EXIT;
@@ -134,7 +134,7 @@ codeunit 60020 "UI Sales Return Orders"
                 end;
             until JsonBuffer.next = 0;
 
-        NextSalesreturnOrder := NoSeriesMgmt.GetNextNo(SalesAndReceivablesSetup."Return Order Nos.", today, true);
+        NextSalesreturnOrder := NoSeriesMgmt.GetNextNo(SalesAndReceivablesSetup."Return Order Nos.", PalletFunctionCodeunit.GetCurrTime(), true);
         PalletProccessSetup.get;
         ToSalesHeader.init;
         ToSalesHeader."No." := NextSalesreturnOrder;

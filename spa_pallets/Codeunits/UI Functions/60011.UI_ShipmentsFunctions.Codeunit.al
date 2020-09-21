@@ -485,6 +485,7 @@ codeunit 60011 "UI Shipments Functions"
         JsonObj: JsonObject;
         JsonArr: JsonArray;
         boolExist: Boolean;
+        DateToday: date;
     begin
         IF pFunction <> 'GetItemsByPurchasePrice' THEN
             EXIT;
@@ -511,24 +512,24 @@ codeunit 60011 "UI Shipments Functions"
         PurchasePriceRec.SetRange("Vendor No.", VendorNo);
         PurchasePriceRec.SetRange("Variant Code", VariantCode);
         if PurchasePriceRec.FindSet() then begin
-
+            DateToday := PalletFunctionCodeunit.GetCurrTime();
             repeat
                 if (PurchasePriceRec."Starting Date" <> 0D) and (PurchasePriceRec."Ending Date" <> 0D)
-                    and ((PurchasePriceRec."Starting Date" <= Today()) and (PurchasePriceRec."Ending Date" >= Today)) then
+                    and ((PurchasePriceRec."Starting Date" <= DateToday) and (PurchasePriceRec."Ending Date" >= Today)) then
                     if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
                         boolExist := true;
                         JsonArr.Add(PurchasePriceRec."Item No.");
                     end;
 
                 if (PurchasePriceRec."Starting Date" <> 0D) and (PurchasePriceRec."Ending Date" = 0D)
-                    and (PurchasePriceRec."Starting Date" <= Today()) then
+                    and (PurchasePriceRec."Starting Date" <= DateToday) then
                     if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
                         boolExist := true;
                         JsonArr.Add(PurchasePriceRec."Item No.");
                     end;
 
                 if (PurchasePriceRec."Starting Date" = 0D) and (PurchasePriceRec."Ending Date" <> 0D)
-                    and (PurchasePriceRec."Ending Date" >= Today()) then
+                    and (PurchasePriceRec."Ending Date" >= DateToday) then
                     if CheckItemPurchaseUnitofMeasure(PurchasePriceRec."Item No.", PurchasePriceRec."Unit of Measure Code") then begin
                         boolExist := true;
                         JsonArr.Add(PurchasePriceRec."Item No.");
@@ -562,6 +563,9 @@ codeunit 60011 "UI Shipments Functions"
         end;
         exit(false);
     end;
+
+    var
+        PalletFunctionCodeunit: Codeunit "UI Pallet Functions";
 
 }
 
