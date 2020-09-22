@@ -86,6 +86,7 @@ codeunit 60022 "Sales Orders Management"
         Customer: Record Customer;
         SalesLine: Record "Sales Line";
         SalesLineWOLocation: Label 'Not all lines have locations, please update lines';
+        LItem: Record Item;
         LocationTemp: Record Location temporary;
         Err001: label 'Customer does not have Packing days, Please update and release again';
     begin
@@ -130,8 +131,14 @@ codeunit 60022 "Sales Orders Management"
             SalesLine.setrange("Document Type", SalesHeader."Document Type");
             SalesLine.Setrange("Document No.", SalesHeader."No.");
             SalesLine.setrange("Location Code", '');
-            if SalesLine.findfirst then
-                error(SalesLineWOLocation);
+            SalesLine.SetRange(Type, SalesLine.Type::Item);
+            SalesLine.SetFilter("No.", '<>%1', '');
+            if SalesLine.FindSet() then
+                repeat
+                    if LItem.Get(SalesLine."No.") then
+                        if LItem.Type = LItem.Type::Inventory then
+                            error(SalesLineWOLocation);
+                until SalesLine.Next() = 0;
 
             SalesLine.reset;
             SalesLine.setrange("Document Type", SalesHeader."Document Type");
