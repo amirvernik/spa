@@ -108,6 +108,7 @@ codeunit 60002 "Item Ledger Functions"
         RecGItemJournalLine.setrange("Journal Template Name", 'ITEM');
         RecGItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
         RecGItemJournalLine.setrange("Pallet ID", PalletHeader."Pallet ID");
+        RecGItemJournalLine.SetFilter(Quantity, '<>%1', 0);
         if RecGItemJournalLine.findset() then
             CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", RecGItemJournalLine);
     end;

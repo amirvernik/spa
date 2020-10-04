@@ -12,7 +12,7 @@ codeunit 60001 "Pallet Functions"
     var
         LPurchaseOrderLine: Record "Purchase Line";
         PurchaseLine: Record "Purchase Line";
-        LPurchaseHeader: Record "Purchase Header";
+        LPurchaseOrdersText: Text;
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
         CUPurchasePost: Codeunit "Purch.-Post";
     begin
@@ -31,51 +31,69 @@ codeunit 60001 "Pallet Functions"
             error(Err05);
 
         if pType = 'BC' then begin
-            LPurchaseHeader.LockTable(true);
-            LPurchaseOrderLine.LockTable(true);
-
+            //LPurchaseHeader.LockTable(true);
+            //LPurchaseOrderLine.LockTable(true);
+            LPurchaseOrdersText := '';
 
             PalletLines.reset;
             PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
             PalletLines.SetFilter("Purchase Order Line No.", '<>%1', 0);
             if PalletLines.FindSet() then
                 repeat
-                    PurchaseLine.Reset();
-                    PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
-                    PurchaseLine.SetRange("Document No.", PalletLines."Purchase Order No.");
-                    PurchaseLine.SetRange("Line No.", PalletLines."Purchase Order Line No.");
-                    PurchaseLine.SetRange("Quantity Received", 0);
-                    if PurchaseLine.FindFirst() then begin
-
-                        if LPurchaseHeader.Get(LPurchaseHeader."Document Type"::Order, PalletLines."Purchase Order No.") then
-                            if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then
-                                DocmentStatusMgmt.PerformManualReopen(LPurchaseHeader);
-
-                        LPurchaseOrderLine.Reset();
-                        LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
-                        LPurchaseOrderLine.SetRange("Document No.", PalletLines."Purchase Order No.");
-                        LPurchaseOrderLine.SetRange("Quantity Received", 0);
-                        IF LPurchaseOrderLine.FindSet() then begin
-                            repeat
-                                if LPurchaseOrderLine."Line No." = PalletLines."Purchase Order Line No." then begin
-                                    LPurchaseOrderLine.validate("Qty. to Receive", LPurchaseOrderLine."Outstanding Quantity");
-                                    LPurchaseOrderLine.validate("Qty. to Invoice", LPurchaseOrderLine.Quantity);
-                                end else begin
-                                    LPurchaseOrderLine.validate("Qty. to Receive", 0);
-                                    LPurchaseOrderLine.validate("Qty. to Invoice", 0);
-                                end;
-                                LPurchaseOrderLine.Modify();
-                            until LPurchaseOrderLine.Next() = 0;
-                        end;
-                        DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
-                        LPurchaseHeader.Receive := true;
-                        LPurchaseHeader.Invoice := false;
-                        LPurchaseHeader.Modify();
-                        CUPurchasePost.Run(LPurchaseHeader);
-
-                    end;
-
+                    LPurchaseOrderLine.Reset();
+                    LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
+                    LPurchaseOrderLine.SetRange("Document No.", PalletLines."Purchase Order No.");
+                    LPurchaseOrderLine.SetRange("Line No.", PalletLines."Purchase Order Line No.");
+                    LPurchaseOrderLine.SetRange("Quantity Received", 0);
+                    if LPurchaseOrderLine.FindFirst() then
+                        if LPurchaseOrdersText = '' then
+                            LPurchaseOrdersText := PalletLines."Purchase Order No."
+                        else
+                            LPurchaseOrdersText += '|' + PalletLines."Purchase Order No.";
                 until PalletLines.Next() = 0;
+
+            if LPurchaseOrdersText <> '' then begin
+
+                LPurchaseOrderLine.Reset();
+                LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
+                LPurchaseOrderLine.SetFilter("Document No.", LPurchaseOrdersText);
+                LPurchaseOrderLine.SetRange("Quantity Received", 0);
+                LPurchaseOrderLine.SetFilter("Qty. to Receive", '<>%1', 0);
+                IF LPurchaseOrderLine.FindSet() then
+                    repeat
+                        LPurchaseOrderLine.validate("Qty. to Receive", 0);
+                        //LPurchaseOrderLine.validate("Qty. to Invoice", 0);
+                        LPurchaseOrderLine.Modify();
+                    until LPurchaseOrderLine.Next() = 0;
+
+                GPurchaseHeader.Reset();
+                GPurchaseHeader.SetRange("Document Type", GPurchaseHeader."Document Type"::Order);
+                GPurchaseHeader.SetFilter("No.", LPurchaseOrdersText);
+                if GPurchaseHeader.FindSet() then
+                    repeat
+                        if GPurchaseHeader.Status <> GPurchaseHeader.Status::Open then begin
+                            //DocmentStatusMgmt.PerformManualReopen(LPurchaseHeader);
+                            GPurchaseHeader.Status := GPurchaseHeader.Status::Open;
+                            GPurchaseHeader.Modify();
+                        end;
+                        PalletLines.Reset();
+                        PalletLines.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+                        PalletLines.SetRange("Purchase Order No.", GPurchaseHeader."No.");
+                        if PalletLines.FindSet() then
+                            repeat
+                                LPurchaseOrderLine.Get(LPurchaseOrderLine."Document Type"::Order, PalletLines."Purchase Order No.", PalletLines."Purchase Order Line No.");
+                                LPurchaseOrderLine.validate("Qty. to Receive", LPurchaseOrderLine."Outstanding Quantity");
+                                LPurchaseOrderLine.validate("Qty. to Invoice", LPurchaseOrderLine.Quantity);
+                                LPurchaseOrderLine.Modify();
+                            until PalletLines.Next() = 0;
+
+                        DocmentStatusMgmt.PerformManualRelease(GPurchaseHeader);
+                        GPurchaseHeader.Receive := true;
+                        GPurchaseHeader.Invoice := false;
+                        if GPurchaseHeader.Modify() then
+                            CUPurchasePost.Run(GPurchaseHeader);
+                    until GPurchaseHeader.Next() = 0;
+            end;
         end;
 
         //Update Remaining Quantity
@@ -83,26 +101,18 @@ codeunit 60001 "Pallet Functions"
         PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if PalletLines.findset then
             repeat
-                LPurchaseOrderLine.Reset();
-                LPurchaseOrderLine.SetRange("Document Type", LPurchaseOrderLine."Document Type"::Order);
-                LPurchaseOrderLine.SetRange("Document No.", PalletLines."Purchase Order No.");
-                LPurchaseOrderLine.SetRange("Line No.", PalletLines."Purchase Order Line No.");
-                IF LPurchaseOrderLine.FindFirst() then begin
-                    if LPurchaseOrderLine."Quantity Received" <= 0 then begin
+                if LPurchaseOrderLine.Get(LPurchaseOrderLine."Document Type"::Order, PalletLines."Purchase Order No.", PalletLines."Purchase Order Line No.")
+                then begin
+                    if LPurchaseOrderLine."Quantity Received" <= 0 then
                         Error('You can`t close the pallet if you have not received the purchase line, Please make sure the purchase line is received and then retry to close the pallet');
-                        exit;
-                    end;
+                    exit;
                 end;
 
-                IF LPurchaseOrderLine.FindFirst() then
-                    PalletLines."Remaining Qty" := PalletLines.Quantity;
+                PalletLines."Remaining Qty" := PalletLines.Quantity;
                 PalletLines."QTY Consumed" := 0;
                 PalletLines.modify;
 
             until PalletLines.next = 0;
-
-        //if pType = 'UI' then
-        //    TrackingLineFunctions.AddTrackingLineToPO(pPalletHeader); //Add Tracking Line to PO        
 
         UpdateNoOfCopies(pPalletHeader); //Change No. Of Copies
         AddMaterials(pPalletHeader); //Add Materials
@@ -116,6 +126,8 @@ codeunit 60001 "Pallet Functions"
         pPalletHeader.modify;
 
     end;
+
+
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostLines', '', false, false)]
     procedure OnBeforePostLinesPO(VAR PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean)
@@ -162,7 +174,10 @@ codeunit 60001 "Pallet Functions"
                     PalletLines."Remaining Qty" := 0;
                     palletlines."QTY Consumed" := 0;
                     PalletLines.modify;
-                until PalletLines.next = 0;
+                until PalletLines.next =
+
+
+0;
 
             TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
             ItemLedgerFunctions.PosItemLedgerEntry(pPalletHeader); //Positive on Item Journal Packing Material
@@ -252,6 +267,9 @@ codeunit 60001 "Pallet Functions"
                         PackingMaterials.modify;
 
                     end;
+
+
+
 
                 until BomComponent.next = 0;
         end;
@@ -450,6 +468,7 @@ codeunit 60001 "Pallet Functions"
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         ItemLedgerFunctions: Codeunit "Item Ledger Functions";
+        GPurchaseHeader: Record "Purchase Header";
         TrackingLineFunctions: Codeunit "Tracking Line Functions";
         UserSetup: Record "User Setup";
         PalletLines: Record "Pallet Line";
@@ -463,6 +482,6 @@ codeunit 60001 "Pallet Functions"
         Err05: label 'There are no Quantities, nothing to close';
         Err06: label 'Lot No. exists in Pallet No. %1, Please remove Lot from the Pallet and Select Again';
         Err07: label 'You cannot enter Pallet ID Manualy';
-        Err08: label 'not All lines have lot Numbers, Please enter Tracking line';
+        Err08: label 'not All lines have lot Numbers, Plea        se enter Tracking line';
         Err09: Label 'Cant reopen - Pallet is in status Consumed/Partially consumed';
 }
