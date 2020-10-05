@@ -90,8 +90,8 @@ codeunit 60001 "Pallet Functions"
                         DocmentStatusMgmt.PerformManualRelease(GPurchaseHeader);
                         GPurchaseHeader.Receive := true;
                         GPurchaseHeader.Invoice := false;
-                        if GPurchaseHeader.Modify() then
-                            CUPurchasePost.Run(GPurchaseHeader);
+                        GPurchaseHeader.Modify();
+                        CUPurchasePost.Run(GPurchaseHeader);
                     until GPurchaseHeader.Next() = 0;
             end;
         end;
@@ -103,11 +103,11 @@ codeunit 60001 "Pallet Functions"
             repeat
                 if LPurchaseOrderLine.Get(LPurchaseOrderLine."Document Type"::Order, PalletLines."Purchase Order No.", PalletLines."Purchase Order Line No.")
                 then begin
-                    if LPurchaseOrderLine."Quantity Received" <= 0 then
+                    if LPurchaseOrderLine."Quantity Received" <= 0 then begin
                         Error('You can`t close the pallet if you have not received the purchase line, Please make sure the purchase line is received and then retry to close the pallet');
-                    exit;
+                        exit;
+                    end;
                 end;
-
                 PalletLines."Remaining Qty" := PalletLines.Quantity;
                 PalletLines."QTY Consumed" := 0;
                 PalletLines.modify;
