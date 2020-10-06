@@ -43,7 +43,7 @@ codeunit 60003 "Pallet Ledger Functions"
     var
         ItemUnitOfMeasure: Record "Item Unit of Measure";
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
@@ -65,7 +65,7 @@ codeunit 60003 "Pallet Ledger Functions"
                 PalletLedgerEntry.validate(Quantity, palletlines.Quantity);
                 PalletLedgerEntry."User ID" := userid;
                 if PalletLedgerEntry.Quantity <> 0 then
-                    PalletLedgerEntry.Insert();
+                    if not PalletLedgerEntry.Insert() then PalletLedgerEntry.Modify();
                 LineNumber += 1;
             until palletlines.next = 0;
     end;

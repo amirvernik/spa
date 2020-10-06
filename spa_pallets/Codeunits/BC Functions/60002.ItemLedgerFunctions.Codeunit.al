@@ -102,6 +102,8 @@ codeunit 60002 "Item Ledger Functions"
 
     //Post Item Journal - Global Function
     procedure PostLedger(var PalletHeader: Record "Pallet Header")
+    var
+
     begin
         PalletSetup.get();
         RecGItemJournalLine.reset;
@@ -110,7 +112,11 @@ codeunit 60002 "Item Ledger Functions"
         RecGItemJournalLine.setrange("Pallet ID", PalletHeader."Pallet ID");
         RecGItemJournalLine.SetFilter(Quantity, '<>%1', 0);
         if RecGItemJournalLine.findset() then
-            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", RecGItemJournalLine);
+            repeat
+                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
+            until RecGItemJournalLine.Next() = 0;
+        //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", RecGItemJournalLine);
+        //
     end;
 
     //On AFter Post Item Journal Line
