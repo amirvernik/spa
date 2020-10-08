@@ -11,7 +11,7 @@ codeunit 60003 "Pallet Ledger Functions"
     //Negative Pallet Ledger Entry from a Pallet - Reopen Pallet
     procedure NegPalletLedger(var PalletHeader: Record "Pallet Header")
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
@@ -74,7 +74,7 @@ codeunit 60003 "Pallet Ledger Functions"
     procedure NegPalletLedgerTransfer(var pTransferShipLine: record "Transfer Shipment Line");
     begin
         TransferShipHeader.get(pTransferShipLine."Document No.");
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", pTransferShipLine."Pallet ID");
@@ -105,7 +105,7 @@ codeunit 60003 "Pallet Ledger Functions"
     procedure PosPalletLedgerTransfer(var pTransferReceiptLine: record "Transfer Receipt Line");
     begin
         TransferReceiptHeader.get(pTransferReceiptLine."Document No.");
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", pTransferReceiptLine."Pallet ID");
@@ -136,7 +136,7 @@ codeunit 60003 "Pallet Ledger Functions"
     procedure PalletLedgerEntryReclass(var ItemLedgerEntry: Record "Item Ledger Entry")
 
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", ItemLedgerEntry."Pallet ID");
@@ -173,7 +173,7 @@ codeunit 60003 "Pallet Ledger Functions"
     var
         PackingMaterialLine: Record "Packing Material Line";
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
@@ -204,7 +204,7 @@ codeunit 60003 "Pallet Ledger Functions"
     var
         ItemUOM: Record "Item Unit of Measure";
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
@@ -338,7 +338,7 @@ codeunit 60003 "Pallet Ledger Functions"
     //Consume Raw Materials for MW
     procedure ConsumeRawMaterials(var PalletHeader: Record "Pallet Header")
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
@@ -367,7 +367,7 @@ codeunit 60003 "Pallet Ledger Functions"
     //Consume Raw Materials for MW
     procedure ValueAddConsume(var PalletLine: Record "Pallet Line"; pQty: Decimal)
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
@@ -398,7 +398,7 @@ codeunit 60003 "Pallet Ledger Functions"
         PalletLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if PalletLine.findset then
             repeat
-                PalletLedgerEntry.LockTable();
+                //PalletLedgerEntry.LockTable();
                 LineNumber := GetLastEntry();
                 PalletLedgerEntry.Init();
                 PalletLedgerEntry."Entry No." := LineNumber;
