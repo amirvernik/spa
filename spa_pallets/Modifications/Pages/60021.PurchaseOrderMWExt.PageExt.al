@@ -4,7 +4,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
     {
         addfirst(factboxes)
         {
-            part("PO Details Factbox"; "PO Details Factbox")
+            part("PO Details Factbox"; "PO Details Factbox") //Pallet Inforamtion
             {
                 ApplicationArea = All;
             }
@@ -15,7 +15,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
     {
         addlast(processing)
         {
-            action("PO Details")
+            action("Pallet Information")
             {
                 ApplicationArea = All;
                 Image = ExportToExcel;
@@ -44,16 +44,8 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
                                 PalletHeader.Mark(true);
                         until PalletLedgerEntry.next = 0;
 
-                        //CLEAR(PalletList);
-                        //PalletList.LOOKUPMODE := TRUE;
                         PalletHeader.MARKEDONLY(TRUE);
                         page.run(page::"Pallet List", PalletHeader);
-                        //PalletList.SETRECORD(PalletHeader);
-                        //PalletList.SETTABLEVIEW(PalletHeader);
-                        //PalletList.RUN;
-                        //ItemList.GETRECORD(Item);
-                        //Sender.VALIDATE(Sender."No.", Item."No.");
-                        //end;
                     end;
                 end;
             }
@@ -99,7 +91,7 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
     {
         addlast(processing)
         {
-            action("PO Details")
+            action("Pallet Information")
             {
                 ApplicationArea = All;
                 Image = ExportToExcel;

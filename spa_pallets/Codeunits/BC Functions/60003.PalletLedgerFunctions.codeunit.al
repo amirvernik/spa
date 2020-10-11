@@ -173,7 +173,7 @@ codeunit 60003 "Pallet Ledger Functions"
     var
         PackingMaterialLine: Record "Packing Material Line";
     begin
-        //PalletLedgerEntry.LockTable();
+        // PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
@@ -367,7 +367,7 @@ codeunit 60003 "Pallet Ledger Functions"
     //Consume Raw Materials for MW
     procedure ValueAddConsume(var PalletLine: Record "Pallet Line"; pQty: Decimal)
     begin
-        //PalletLedgerEntry.LockTable();
+        // PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;

@@ -1,6 +1,7 @@
 table 60024 "PO Details Factbox"
 {
     DataClassification = ToBeClassified;
+    Caption = 'Pallet Information';
 
     fields
     {
@@ -54,7 +55,7 @@ table 60024 "PO Details Factbox"
 
     keys
     {
-        key(PK; "Purchase Order No.", "User Created", "Pallet ID", "Pallet Line No.")
+        key(PK; "Purchase Order No.", "Purchase Order Line No.", "User Created", "Pallet ID", "Pallet Line No.")
         {
             Clustered = true;
         }

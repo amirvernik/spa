@@ -466,6 +466,7 @@ codeunit 60001 "Pallet Functions"
     procedure ExportToExcelPODetials(PONumber: Code[20]);
     var
         LPalletLine: Record "Pallet Line";
+        LPurchaseLine: Record "Purchase Line";
         LWarehousePallet: Record "Warehouse Pallet";
         LPostedWarehousePallet: Record "Posted Warehouse Pallet";
         TempBlob: Record TempBlob;
@@ -476,78 +477,80 @@ codeunit 60001 "Pallet Functions"
         LPath: Text;
         LFile: File;
     begin
+        CLEARALL;
+        IF ExcelBuffer.FINDSET THEN
+            ExcelBuffer.DELETEALL;
+
+        ExcelBuffer.AddColumn('Purchase Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Purchase Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Warehose Shipment Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Posted Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Posted Warehose Shipment Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.NewRow;
+
         Clear(LInStr);
-        LPalletLine.Reset();
-        if PONumber <> '' then begin
-            LPalletLine.SetCurrentKey("Purchase Order No.");
-            LPalletLine.SetRange("Purchase Order No.", PONumber);
-        end else
-            LPalletLine.SetFilter("Purchase Order No.", '<>%1', '');
-        IF LPalletLine.FindSet() then begin
-            CLEARALL;
-            IF ExcelBuffer.FINDSET THEN
-                ExcelBuffer.DELETEALL;
-
-            ExcelBuffer.AddColumn('Purchase Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Purchase Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Warehose Shipment Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Posted Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.AddColumn('Posted Warehose Shipment Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-            ExcelBuffer.NewRow;
+        LPurchaseLine.Reset();
+        LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
+        if PONumber <> '' then
+            LPurchaseLine.SetRange("Document No.", PONumber);
+        if LPurchaseLine.FindSet() then
             repeat
-                ExcelBuffer.AddColumn(LPalletLine."Purchase Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                ExcelBuffer.AddColumn(format(LPalletLine."Purchase Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                ExcelBuffer.AddColumn(LPalletLine."Pallet ID", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                LPalletLine.Reset();
+                LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
+                LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
+                IF LPalletLine.FindSet() then begin
+                    repeat
+                        ExcelBuffer.AddColumn(LPalletLine."Purchase Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn(format(LPalletLine."Purchase Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn(LPalletLine."Pallet ID", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
 
-                LPostedWarehousePallet.Reset();
-                LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
-                LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
-                If LPostedWarehousePallet.FindLast() then begin
-                    ExcelBuffer.AddColumn(LPostedWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                    ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                    ExcelBuffer.AddColumn(LPostedWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                    ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        LPostedWarehousePallet.Reset();
+                        LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                        LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                        If LPostedWarehousePallet.FindLast() then begin
+                            ExcelBuffer.AddColumn(LPostedWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn(LPostedWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        end else begin
+                            LWarehousePallet.Reset();
+                            LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                            LWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                            If LWarehousePallet.FindLast() then begin
+                                ExcelBuffer.AddColumn(LWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(LWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            end;
+                        end;
+
+                        ExcelBuffer.NewRow;
+                    until LPalletLine.Next() = 0;
                 end else begin
-                    LWarehousePallet.Reset();
-                    LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
-                    LWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
-                    If LWarehousePallet.FindLast() then begin
-                        ExcelBuffer.AddColumn(LWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn(format(LWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn(LWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn(format(LWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                    end;
+                    ExcelBuffer.AddColumn(LPurchaseLine."Document No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                    ExcelBuffer.AddColumn(format(LPurchaseLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                    ExcelBuffer.NewRow;
                 end;
+            until LPurchaseLine.Next() = 0;
 
-                ExcelBuffer.NewRow;
-            until LPalletLine.Next() = 0;
+        LPath := StrSubstNo('PO - %1', PONumber) + Format(Today());
+        ExcelBuffer.CreateNewBook(LPath);
+        ExcelBuffer.WriteSheet(LPath, CompanyName, UserId);
+        ExcelBuffer.CloseBook();
+        ExcelBuffer.OpenExcel();
 
-            LPath := StrSubstNo('PO - %1', PONumber) + Format(Today());
-            ExcelBuffer.CreateNewBook(LPath);
-            ExcelBuffer.WriteSheet(LPath, CompanyName, UserId);
-            ExcelBuffer.CloseBook();
-            ExcelBuffer.OpenExcel();
-            /*TempBlob.Init();
-            TempBlob.Blob.CreateInStream(LInStr);
-            TempBlob.Blob.CreateOutStream(LOutStr);
-
-            ExcelBuffer.SetFriendlyFilename(StrSubstNo('PO - %1', PONumber) + Format(Today()));
-            ExcelBuffer.SaveToStream(LOutStr, true);
-            // ExcelBuffer.OpenBookStream(LInStr, StrSubstNo('PO - %1', PONumber) + Format(Today()))
-        */
-
-        end;
     end;
+
 
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
