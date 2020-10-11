@@ -543,7 +543,9 @@ codeunit 60021 "Purch. UI Functions"
                         ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
                         ItemJournalLine.setrange(ItemJournalLine."Document No.", OrderNo);
                         if ItemJournalLine.findset() then begin
-                            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
+                            repeat
+                                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+                            until ItemJournalLine.Next() = 0;
                             if GetLastErrorText = '' then begin
                                 PurchaseHeader."RM Add Neg" := true;
                                 //Edit Scrap Qty

@@ -59,6 +59,7 @@ table 60007 "Warehouse Pallet"
         {
             DataClassification = ToBeClassified;
         }
+
     }
 
     keys

@@ -55,7 +55,7 @@ table 60001 "Pallet Header"
         {
             Caption = 'Total Quantity';
             FieldClass = FlowField;
-            CalcFormula = Sum ("Pallet Line".Quantity WHERE("Pallet ID" = FIELD("Pallet ID")));
+            CalcFormula = Sum("Pallet Line".Quantity WHERE("Pallet ID" = FIELD("Pallet ID")));
         }
         field(9; "Raw Material Pallet"; Boolean)
         {
@@ -76,7 +76,7 @@ table 60001 "Pallet Header"
         {
             Caption = 'Warehouse Shipment No.';
             FieldClass = FlowField;
-            CalcFormula = lookup ("Warehouse Pallet"."Whse Shipment No." where("Pallet ID" = field("Pallet ID")));
+            CalcFormula = lookup("Warehouse Pallet"."Whse Shipment No." where("Pallet ID" = field("Pallet ID")));
             Editable = false;
         }
     }

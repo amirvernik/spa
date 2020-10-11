@@ -142,6 +142,11 @@ table 60003 "Pallet Line"
         {
             Clustered = true;
         }
+        key(PO; "Purchase Order No.")
+        {
+
+        }
+
     }
     trigger OnInsert()
     var

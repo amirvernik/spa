@@ -2,13 +2,30 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
 {
     layout
     {
-        // Add changes to page layout here
+        addfirst(factboxes)
+        {
+            part("PO Details Factbox"; "PO Details Factbox")
+            {
+                ApplicationArea = All;
+            }
+        }
     }
 
     actions
     {
         addlast(processing)
         {
+            action("PO Details")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPODetials(Rec."No.");
+                end;
+            }
             action("RM Pallets")
             {
                 ApplicationArea = All;
@@ -44,6 +61,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
     }
     trigger OnOpenPage()
     begin
+
         PO_Microwave_Process := true;
         if not rec."Microwave Process PO" then
             PO_Microwave_Process := false;
@@ -51,6 +69,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
 
     trigger OnAfterGetRecord()
     begin
+
         PO_Microwave_Process := true;
         if not rec."Microwave Process PO" then
             PO_Microwave_Process := false;
@@ -61,10 +80,36 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
             PO_Microwave_Process := false;
     end;
 
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage."PO Details Factbox".Page.SetPO(Rec."No.");
+    end;
+
     var
         PO_Microwave_Process: Boolean;
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         PalletHeader: Record "Pallet Header";
         PalletList: Page "Pallet List";
         PalletFilter: Text[1024];
+}
+
+pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
+{
+    actions
+    {
+        addlast(processing)
+        {
+            action("PO Details")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPODetials('');
+                end;
+            }
+        }
+    }
 }
