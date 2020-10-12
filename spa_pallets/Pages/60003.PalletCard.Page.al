@@ -126,6 +126,18 @@ page 60003 "Pallet Card"
             group(Functions)
             {
                 Image = Action;
+                action(ClosePalletTestBtn)//DELETE ME
+                {
+                    ApplicationArea = All;
+                    Visible = EnableTESTPROD1;
+                    trigger OnAction()
+                    begin
+                        "Exist in warehouse shipment" := false;
+                        "Pallet Status" := "Pallet Status"::Closed;
+                        Modify();
+                    end;
+
+                }
                 action("Close Pallet")
                 {
                     ApplicationArea = All;
@@ -311,6 +323,7 @@ page 60003 "Pallet Card"
     }
     trigger OnOpenPage()
     begin
+        EnableTESTPROD1 := UserId() = 'PRODWARE1';
         if rec."Pallet Status" = rec."Pallet Status"::open then begin
             ShowReopen := false;
             ShowClose := true;
@@ -392,6 +405,7 @@ page 60003 "Pallet Card"
     end;
 
     var
+        EnableTESTPROD1: Boolean;//DELETE ME
         ConsumeablesMgmt: Codeunit "Consumables Management";
         PalletFunctions: Codeunit "Pallet Functions";
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";

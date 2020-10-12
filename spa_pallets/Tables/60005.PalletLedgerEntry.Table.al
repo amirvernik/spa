@@ -93,7 +93,7 @@ table 60005 "Pallet Ledger Entry"
 
     keys
     {
-        key(PK; "Entry No.", "Pallet ID")
+        key(PK; "Entry No.")//, "Pallet ID")
         {
             Clustered = true;
         }
