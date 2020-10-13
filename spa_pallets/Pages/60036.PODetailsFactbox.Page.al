@@ -42,6 +42,10 @@ page 60036 "PO Details Factbox"
                     ApplicationArea = All;
 
                 }
+                field("Pallet Type"; "Pallet Type")
+                {
+                    ApplicationArea = All;
+                }
                 field("Sales Order No."; Rec."Sales Order No.")
                 {
                     ApplicationArea = All;
@@ -135,6 +139,7 @@ page 60036 "PO Details Factbox"
     procedure SetPO(PONumber: Code[20]);//; POLine: Integer);
     var
         LPalletLine: Record "Pallet Line";
+        LPalletHeader: Record "Pallet Header";
         LWarehousePallet: Record "Warehouse Pallet";
         LPostedWarehousePallet: Record "Posted Warehouse Pallet";
         LPurchaseLine: Record "Purchase Line";
@@ -159,6 +164,8 @@ page 60036 "PO Details Factbox"
                         Rec."Purchase Order Line No." := LPurchaseLine."Line No.";
                         Rec."Pallet ID" := LPalletLine."Pallet ID";
                         Rec."Pallet Line No." := LPalletLine."Line No.";
+                        LPalletHeader.Get(LPalletLine."Pallet ID");
+                        Rec."Pallet Type" := LPalletHeader."Pallet Type";
                         LPostedWarehousePallet.Reset();
                         LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                         LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");

@@ -48,9 +48,8 @@ table 60024 "PO Details Factbox"
 
         field(10; "Sales Order No."; code[20])
         {
-
-
         }
+        field(11; "Pallet Type"; Text[20]) { }
     }
 
     keys

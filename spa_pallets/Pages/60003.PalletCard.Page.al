@@ -126,7 +126,7 @@ page 60003 "Pallet Card"
             group(Functions)
             {
                 Image = Action;
-                action(ClosePalletTestBtn)//DELETE ME
+                /*action(ClosePalletTestBtn)//DELETE ME
                 {
                     ApplicationArea = All;
                     Visible = EnableTESTPROD1;
@@ -137,7 +137,7 @@ page 60003 "Pallet Card"
                         Modify();
                     end;
 
-                }
+                }*/
                 action("Close Pallet")
                 {
                     ApplicationArea = All;

@@ -241,10 +241,13 @@ codeunit 60003 "Pallet Ledger Functions"
 
     begin
         if SalesShipmentLine."No." <> '' then begin
+
             LineNumber := GetLastEntry();
             PostedWarehousePallet.reset;
             PostedWarehousePallet.setrange("Sales Order No.", SalesLine."Document No.");
             PostedWarehousePallet.setrange("Sales Order Line No.", SalesLine."Line No.");
+            PostedWarehousePallet.SetRange("Whse Shipment No.", SalesShipmentLine."Document No.");
+            PostedWarehousePallet.SetRange("Whse Shipment Line No.", SalesShipmentLine."Line No.");
             if PostedWarehousePallet.findset then
                 repeat
                     if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin

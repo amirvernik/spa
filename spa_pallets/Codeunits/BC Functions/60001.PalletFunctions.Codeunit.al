@@ -466,6 +466,7 @@ codeunit 60001 "Pallet Functions"
     procedure ExportToExcelPODetials(PONumber: Code[20]);
     var
         LPalletLine: Record "Pallet Line";
+        LPalletHeader: Record "Pallet Header";
         LPurchaseLine: Record "Purchase Line";
         LWarehousePallet: Record "Warehouse Pallet";
         LPostedWarehousePallet: Record "Posted Warehouse Pallet";
@@ -485,6 +486,7 @@ codeunit 60001 "Pallet Functions"
         ExcelBuffer.AddColumn('Purchase Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet Type', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -509,7 +511,8 @@ codeunit 60001 "Pallet Functions"
                         ExcelBuffer.AddColumn(format(LPalletLine."Purchase Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         ExcelBuffer.AddColumn(LPalletLine."Pallet ID", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-
+                        LPalletHeader.Get(LPalletLine."Pallet ID");
+                        ExcelBuffer.AddColumn(format(LPalletHeader."Pallet Status"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         LPostedWarehousePallet.Reset();
                         LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                         LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
