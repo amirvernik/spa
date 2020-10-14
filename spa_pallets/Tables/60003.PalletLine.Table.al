@@ -146,6 +146,11 @@ table 60003 "Pallet Line"
         {
 
         }
+        key(POL; "Purchase Order No.", "Purchase Order Line No.")
+        {
+
+        }
+
 
     }
     trigger OnInsert()

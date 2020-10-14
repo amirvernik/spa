@@ -26,6 +26,17 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
                     LPalletFunctionCodeunit.ExportToExcelPODetials(Rec."No.");
                 end;
             }
+            action("PO Items Statistic")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatistic(rec."No.");
+                end;
+            }
             action("RM Pallets")
             {
                 ApplicationArea = All;
@@ -102,6 +113,36 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
                     LPalletFunctionCodeunit.ExportToExcelPODetials('');
                 end;
             }
+            action("PO Items Statistic")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatistic('');
+                end;
+            }
         }
     }
+}
+
+pageextension 60044 ModPurchaseStatistic extends "Purchase Order Statistics"
+{
+    layout
+    {
+        addafter(General)
+        {
+            part("Purchase Items Statistic"; "Purchase Items Statistic")
+            {
+                ApplicationArea = all;
+            }
+        }
+    }
+
+    trigger OnOpenPage();
+    begin
+        CurrPage."Purchase Items Statistic".Page.fillIn("No.");
+    end;
 }
