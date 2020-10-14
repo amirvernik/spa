@@ -50,6 +50,7 @@ table 60024 "PO Details Factbox"
         {
         }
         field(11; "Pallet Type"; Text[20]) { }
+        field(12; "RM Pallet"; Boolean) { }
     }
 
     keys

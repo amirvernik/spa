@@ -484,6 +484,7 @@ codeunit 60001 "Pallet Functions"
         ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Type', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('RM Pallet', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -509,7 +510,8 @@ codeunit 60001 "Pallet Functions"
                         ExcelBuffer.AddColumn(LPalletLine."Pallet ID", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         LPalletHeader.Get(LPalletLine."Pallet ID");
-                        ExcelBuffer.AddColumn(format(LPalletHeader."Pallet Status"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn(LPalletHeader."Pallet Type", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn(format(LPalletHeader."Raw Material Pallet"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         LPostedWarehousePallet.Reset();
                         LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                         LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
@@ -688,7 +690,7 @@ codeunit 60001 "Pallet Functions"
                     end;
                 end;
             until LPurchaseHeader.Next() = 0;
-        LPath := StrSubstNo('PO Items Statistic') + Format(Today());
+        LPath := StrSubstNo('Grading Statistics') + Format(Today());
         ExcelBuffer.CreateNewBook(LPath);
         ExcelBuffer.WriteSheet(LPath, CompanyName, UserId);
         ExcelBuffer.CloseBook();

@@ -30,6 +30,8 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
             {
                 ApplicationArea = All;
                 Image = ExportToExcel;
+                Caption = 'Grading Statistics';
+
                 trigger OnAction();
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
@@ -117,6 +119,7 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
             {
                 ApplicationArea = All;
                 Image = ExportToExcel;
+                Caption = 'Grading Statistics';
                 trigger OnAction();
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
@@ -136,6 +139,7 @@ pageextension 60044 ModPurchaseStatistic extends "Purchase Order Statistics"
         {
             part("Purchase Items Statistic"; "Purchase Items Statistic")
             {
+                Caption = 'Grading Statistics';
                 ApplicationArea = all;
             }
         }

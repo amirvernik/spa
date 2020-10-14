@@ -1,6 +1,7 @@
 
 page 60037 "Purchase Items Statistic"
 {
+    Caption = 'Grading Statistics';
     PageType = ListPart;
     ApplicationArea = All;
     UsageCategory = Lists;

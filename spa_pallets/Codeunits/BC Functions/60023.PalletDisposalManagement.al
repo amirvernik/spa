@@ -59,6 +59,10 @@ codeunit 60023 "Pallet Disposal Management"
         RecGItemJournalLine: Record "Item Journal Line";
         LineNumber: Integer;
     begin
+        PMSelect.Reset();
+        PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+        if PMSelect.FindSet() then PMSelect.DeleteAll();
+
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if PackingMaterials.findset then
@@ -75,6 +79,7 @@ codeunit 60023 "Pallet Disposal Management"
 
         PMSelect.reset;
         PMSelect.setrange(Select, true);
+        PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if PMSelect.findset then
             repeat
                 PalletSetup.get();
