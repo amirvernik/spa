@@ -15,7 +15,8 @@ codeunit 60026 "UI Pallet Dispose Functions"
         QtyToAdjust: Decimal;
         QtyToAdjustText: Text;
         TempPackingMaterialsSelect: Record "Packing Materials Select" temporary;
-
+        ItemJournalLine: Record "Item Journal Line";
+        PalletSetup: Record "Pallet Process Setup";
     begin
         IF pFunction <> 'DisposePallet' THEN
             EXIT;
@@ -58,10 +59,18 @@ codeunit 60026 "UI Pallet Dispose Functions"
             end;
             pContent := '';
 
+            PalletSetup.get;
+            ItemJournalLine.reset;
+            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+            ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+            ItemJournalLine.SetRange("Document No.", PalletHeader."Pallet ID");
+            if ItemJournalLine.findset then
+                ItemJournalLine.DeleteAll();
+
             PalletDisposalFunctions.CheckDisposalSetup(PalletHeader);
             PalletDisposalFunctions.DisposePackingMaterialsUI(PalletHeader, TempPackingMaterialsSelect);
             PalletDisposalFunctions.DisposePalletItems(PalletHeader);
-            PalletDisposalFunctions.PostDisposalBatch;
+            PalletDisposalFunctions.PostDisposalBatch(PalletHeader."Pallet ID");
             PalletDisposalFunctions.ChangeDisposalStatus(PalletHeader, 'WEBUI');
             pContent := 'Success';
         end

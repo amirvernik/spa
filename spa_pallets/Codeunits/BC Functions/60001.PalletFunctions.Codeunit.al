@@ -375,6 +375,7 @@ codeunit 60001 "Pallet Functions"
         LineNumber: Integer;
         PackingMaterials: Record "Packing Material Line";
     begin
+        PMSelect.Reset();
         if PMSelect.findset then
             pmselect.deleteall;
 

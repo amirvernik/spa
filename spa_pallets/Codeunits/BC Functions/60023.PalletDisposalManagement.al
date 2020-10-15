@@ -6,16 +6,25 @@ codeunit 60023 "Pallet Disposal Management"
         DPWI: Codeunit DisposePalletWorkflowInit;
         DPW: Codeunit "Dispose Pallet Workflow";
         myRec: Variant;
+        ItemJournalLine: Record "Item Journal Line";
     begin
         if DPWI.IsDisposePalletEnabled(pPalletHeader) = true then begin
             myRec := pPalletHeader;
             DPW.SetStatusToPendingApprovalDisposePallet(myRec);
         end
         else begin
+            PalletSetup.get;
+            ItemJournalLine.reset;
+            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+            ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+            ItemJournalLine.SetRange("Document No.", pPalletHeader."Pallet ID");
+            if ItemJournalLine.findset then
+                ItemJournalLine.DeleteAll();
+
             CheckDisposalSetup(pPalletHeader);
             DisposePackingMaterials(pPalletHeader);
             DisposePalletItems(pPalletHeader);
-            PostDisposalBatch;
+            PostDisposalBatch(pPalletHeader."Pallet ID");
             ChangeDisposalStatus(pPalletHeader, 'BC');
         end;
 
@@ -60,7 +69,6 @@ codeunit 60023 "Pallet Disposal Management"
         LineNumber: Integer;
     begin
         PMSelect.Reset();
-        PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if PMSelect.FindSet() then PMSelect.DeleteAll();
 
         PackingMaterials.reset;
@@ -118,7 +126,9 @@ codeunit 60023 "Pallet Disposal Management"
         ItemJournalLine: Record "Item Journal Line";
         LineNumber: Integer;
     begin
+
         pPackingSelect.reset;
+        pPackingSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if pPackingSelect.findset then
             repeat
                 PalletSetup.get();
@@ -232,7 +242,7 @@ codeunit 60023 "Pallet Disposal Management"
     end;
 
     //Post Disposal Batch
-    procedure PostDisposalBatch()
+    procedure PostDisposalBatch(pPalletNumber: Code[20])
     var
         ItemJournalLine: Record "Item Journal Line";
     begin
@@ -240,6 +250,7 @@ codeunit 60023 "Pallet Disposal Management"
         ItemJournalLine.reset;
         ItemJournalLine.setrange("Journal Template Name", 'ITEM');
         ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+        ItemJournalLine.SetRange("Document No.", pPalletNumber);
         if ItemJournalLine.findset then
             CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
     end;

@@ -104,6 +104,8 @@ codeunit 60031 "Dispose Pallet Workflow"
     var
         RecRef: RecordRef;
         ApprovalEntry: Record "Approval Entry";
+        PalletSetup: Record "Pallet Process Setup";
+        ItemJournalLine: Record "Item Journal Line";
     begin
         RecRef.GetTable(Variant);
         case RecRef.Number() of
@@ -122,10 +124,19 @@ codeunit 60031 "Dispose Pallet Workflow"
                     RecRef.SetTable(PalletHeaderRec);
                     PalletHeaderRec."Disposal Status" := PalletDisposalApprovalStatus::Released;
                     PalletHeaderRec.Modify(true);
+
+                    PalletSetup.get;
+                    ItemJournalLine.reset;
+                    ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                    ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+                    ItemJournalLine.SetRange("Document No.", PalletHeaderRec."Pallet ID");
+                    if ItemJournalLine.findset then
+                        ItemJournalLine.DeleteAll();
+
                     PDMngt.CheckDisposalSetup(PalletHeaderRec);
                     PDMngt.DisposePackingMaterials(PalletHeaderRec);
                     PDMngt.DisposePalletItems(PalletHeaderRec);
-                    PDMngt.PostDisposalBatch();
+                    PDMngt.PostDisposalBatch(PalletHeaderRec."Pallet ID");
                     Variant := PalletHeaderRec;
                 end;
         end;
