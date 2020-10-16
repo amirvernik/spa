@@ -129,8 +129,9 @@ codeunit 60015 "UI Transfer Functions"
                             ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Reclass Batch");
                             ItemJournalLine.setrange(ItemJournalLine."Document No.", PalletHeader."Pallet ID");
                             if ItemJournalLine.findset() then
-                                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
-
+                                repeat
+                                    CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+                                until ItemJournalLine.Next() = 0;
                             if PalletHeader2.get(PalletID) then begin
                                 PalletHeader2."Location Code" := ToLocation;
                                 PalletHeader2.modify;

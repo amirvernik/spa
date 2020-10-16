@@ -501,24 +501,23 @@ codeunit 60024 "Change Quality Management"
     end;
 
     //Post Negative Item Ledger Entry
-    procedure PostItemLedger()
+    procedure PostItemLedger(pPalletNumber: Code[20])
     var
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         ItemJournalLine: Record "Item Journal Line";
     begin
         PurchaseProcessSetup.get();
-        ItemJournalLine.reset;
-        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
-        ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
-        ItemJournalLine.setrange(Quantity, 0);
-        if ItemJournalLine.findset then
-            ItemJournalLine.DeleteAll();
+
 
         ItemJournalLine.reset;
         ItemJournalLine.setrange("Journal Template Name", 'ITEM');
         ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+        ItemJournalLine.SetRange("Document No.", pPalletNumber);
+        ItemJournalLine.SetFilter(Quantity, '<>%1', 0);
         if ItemJournalLine.findset then
-            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Batch", ItemJournalLine);
+            repeat
+                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+            until ItemJournalLine.Next() = 0;
     end;
 
     //Recreate Pallet reservations  

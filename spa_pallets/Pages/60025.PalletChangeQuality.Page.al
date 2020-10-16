@@ -144,7 +144,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
                     // ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
-                    ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items  
+                    ChangeQualityMgmt.PostItemLedger(rec."Pallet ID"); //Post Pos Item Journals to New Items  
                     ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials                                      
                     ChangeQualityMgmt.RecreateReservations(rec."Pallet ID");
                     ChangeQualityMgmt.RemoveZeroPalletLine(rec); // Remove Pallet Lines with Zero Quantities

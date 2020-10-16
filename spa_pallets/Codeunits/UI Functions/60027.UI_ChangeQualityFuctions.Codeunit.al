@@ -67,15 +67,15 @@ codeunit 60027 "UI Change Quality Functions"
             if TrackingItemNumber = '' then begin
 
                 ChangeQualityMgmt.NegAdjChangeQuality(PalletLineChangeQuality); //Negative Change Quality   ***
-                ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items      +++            
+                ChangeQualityMgmt.PostItemLedger(PalletID); //Post Neg Item Journals to New Items      +++            
                 ChangeQualityMgmt.ChangeQuantitiesOnPalletline(PalletLineChangeQuality); //Change Quantities on Pallet Line                                                                                        //ChangeQualityMgmt.ChangePalletReservation(PalletLineChangeQuality); //Change Pallet Reservation Line                    
                 ChangeQualityMgmt.ChangePalletReservation(PalletLineChangeQuality);
                 ChangeQualityMgmt.PalletLedgerAdjustOld(PalletLineChangeQuality); //Adjust Pallet Ledger Entries - Old Items                   
                 ChangeQualityMgmt.AddNewItemsToPallet(PalletLineChangeQuality); //Add New Lines                    
                 ChangeQualityMgmt.PosAdjNewItems(PalletLineChangeQuality); //Positive Adj to New Lines ***
-                ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items   +++                  
+                ChangeQualityMgmt.PostItemLedger(PalletID); //Post Pos Item Journals to New Items   +++                  
                 ChangeQualityMgmt.NegAdjToNewPacking(PalletLineChangeQuality); //Neg ADjustment to New Packing Materials ***
-                ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items     +++                                   
+                ChangeQualityMgmt.PostItemLedger(PalletID); //Post Pos Item Journals to New Items     +++                                   
                 ChangeQualityMgmt.AddPackingMaterialsToExisting(PalletLineChangeQuality); //Add Packing Materials to Existing Packing Materials
                 ChangeQualityMgmt.RecreateReservations(palletId);
                 ChangeQualityMgmt.RemoveZeroPalletLine(PalletLineChangeQuality); // Remove Lines With Zero quantitites
