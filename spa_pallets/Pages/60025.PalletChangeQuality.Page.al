@@ -205,27 +205,27 @@ page 60025 "Pallet Change Quality"
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
-
+        PalletLineChangeQuality.SetRange("Pallet ID", pPalletID);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
 
         PalletChangeQuality.reset;
         PalletChangeQuality.setrange("User Created", UserId);
+        PalletChangeQuality.SetRange("Pallet ID", pPalletID);
         if PalletChangeQuality.findset then
             PalletChangeQuality.DeleteAll();
 
         PalletLine.reset;
         PalletLine.setrange("Pallet ID", pPalletID);
         PalletLine.SetRange("Line No.", pPalletLine);
-        if PalletLine.findset then
-            repeat
-                PalletLineChangeQuality.init;
-                PalletLineChangeQuality.TransferFields(PalletLine);
-                PalletLineChangeQuality."User ID" := UserId;
-                PalletLineChangeQuality.Quantity := PalletLine.Quantity - PalletLine."QTY Consumed";
-                PalletLineChangeQuality."Replaced Qty" := PalletLine.Quantity;
-                PalletLineChangeQuality.insert;
-            until palletline.next = 0;
+        if PalletLine.FindFirst() then begin
+            PalletLineChangeQuality.init;
+            PalletLineChangeQuality.TransferFields(PalletLine);
+            PalletLineChangeQuality."User ID" := UserId;
+            PalletLineChangeQuality.Quantity := PalletLine.Quantity - PalletLine."QTY Consumed";
+            PalletLineChangeQuality."Replaced Qty" := PalletLine.Quantity;
+            if not PalletLineChangeQuality.insert then PalletLineChangeQuality.Modify();
+        end;
     end;
 
     var
