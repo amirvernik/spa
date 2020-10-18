@@ -97,6 +97,7 @@ table 60005 "Pallet Ledger Entry"
         {
             Clustered = true;
         }
+        key(PS; "Pallet ID") { }
     }
 
     var

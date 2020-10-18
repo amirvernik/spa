@@ -99,12 +99,14 @@ codeunit 60027 "UI Change Quality Functions"
 
     begin
         PalletLineChange.reset;
-        PalletLineChange.SetRange("User Created", UserId);
+        //PalletLineChange.SetRange("User Created", UserId);
+        PalletLineChange.SetRange("Pallet ID", pPalletID);
         if PalletLineChange.findset then
             PalletLineChange.DeleteAll();
 
         PalletLineChangeQuality.reset;
-        PalletLineChangeQuality.setrange("User ID", UserId);
+        //PalletLineChangeQuality.setrange("User ID", UserId);
+        PalletLineChangeQuality.SetRange("Pallet ID", pPalletID);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
 
@@ -118,7 +120,7 @@ codeunit 60027 "UI Change Quality Functions"
                 PalletLineChangeQuality."User ID" := UserId;
                 PalletLineChangeQuality.Quantity := PalletLine.Quantity - PalletLine."QTY Consumed";
                 PalletLineChangeQuality."Replaced Qty" := PalletLineChangeQuality.Quantity - qtyToRemove;
-                PalletLineChangeQuality.insert;
+                if not PalletLineChangeQuality.insert then PalletLineChangeQuality.Modify();
 
                 PalletLineChange.init;
                 PalletLineChange."Pallet ID" := PalletLine."Pallet ID";
@@ -133,7 +135,7 @@ codeunit 60027 "UI Change Quality Functions"
                 PalletLineChange."Unit of Measure" := newUM;
                 PalletLineChange."New Quantity" := qtyToAdd;
                 PalletLineChange."User Created" := userid;
-                PalletLineChange.insert;
+                if not PalletLineChange.insert then PalletLineChange.Modify();
 
 
             until palletline.next = 0;

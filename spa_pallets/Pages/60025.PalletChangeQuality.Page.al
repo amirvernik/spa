@@ -204,13 +204,13 @@ page 60025 "Pallet Change Quality"
 
     begin
         PalletLineChangeQuality.reset;
-        PalletLineChangeQuality.SetRange("User ID", UserId);
+        //PalletLineChangeQuality.SetRange("User ID", UserId);
         PalletLineChangeQuality.SetRange("Pallet ID", pPalletID);
         if PalletLineChangeQuality.findset then
             PalletLineChangeQuality.DeleteAll();
 
         PalletChangeQuality.reset;
-        PalletChangeQuality.setrange("User Created", UserId);
+        //PalletChangeQuality.setrange("User Created", UserId);
         PalletChangeQuality.SetRange("Pallet ID", pPalletID);
         if PalletChangeQuality.findset then
             PalletChangeQuality.DeleteAll();
