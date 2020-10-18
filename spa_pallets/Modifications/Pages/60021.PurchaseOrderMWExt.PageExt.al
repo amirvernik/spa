@@ -23,7 +23,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPODetials(Rec."No.");
+                    LPalletFunctionCodeunit.ExportToExcelPODetials(Rec."No.", Rec);
                 end;
             }
             action("PO Items Statistic")
@@ -36,7 +36,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatistic(rec."No.");
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatistic(rec."No.", Rec);
                 end;
             }
             action("RM Pallets")
@@ -112,7 +112,7 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPODetials('');
+                    LPalletFunctionCodeunit.ExportToExcelPODetials('', Rec);
                 end;
             }
             action("PO Items Statistic")
@@ -124,7 +124,7 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatistic('');
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatistic('', Rec);
                 end;
             }
         }
