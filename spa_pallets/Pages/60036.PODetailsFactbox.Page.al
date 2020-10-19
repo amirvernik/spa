@@ -147,6 +147,7 @@ page 60036 "PO Details Factbox"
         LWarehousePallet: Record "Warehouse Pallet";
         LPostedWarehousePallet: Record "Posted Warehouse Pallet";
         LPurchaseLine: Record "Purchase Line";
+        LPurchaseLineArchive: Record "Purchase Line Archive";
     begin
         Rec.Reset();
         Rec.SetRange("User Created", UserId);
@@ -155,7 +156,7 @@ page 60036 "PO Details Factbox"
         LPurchaseLine.Reset();
         LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
         LPurchaseLine.SetRange("Document No.", PONumber);
-        if LPurchaseLine.FindSet() then
+        if LPurchaseLine.FindSet() then begin
             repeat
                 LPalletLine.Reset();
                 LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
@@ -199,11 +200,59 @@ page 60036 "PO Details Factbox"
                     if not Rec.Insert() then Rec.Modify();
                 end;
             until LPurchaseLine.Next() = 0;
+        end else begin
+            LPurchaseLineArchive.Reset();
+            LPurchaseLineArchive.SetRange("Document Type", LPurchaseLineArchive."Document Type"::Order);
+            LPurchaseLineArchive.SetRange("Document No.", PONumber);
+            if LPurchaseLineArchive.FindSet() then
+                repeat
+                    LPalletLine.Reset();
+                    LPalletLine.SetRange("Purchase Order No.", LPurchaseLineArchive."Document No.");
+                    LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLineArchive."Line No.");
+                    IF LPalletLine.FindSet() then begin
+                        repeat
+                            Rec.Init();
+                            Rec."User Created" := UserId;
+                            Rec."Purchase Order No." := PONumber;
+                            Rec."Purchase Order Line No." := LPurchaseLineArchive."Line No.";
+                            Rec."Pallet ID" := LPalletLine."Pallet ID";
+                            Rec."Pallet Line No." := LPalletLine."Line No.";
+                            LPalletHeader.Get(LPalletLine."Pallet ID");
+                            Rec."Pallet Type" := LPalletHeader."Pallet Type";
+                            Rec."RM Pallet" := LPalletHeader."Raw Material Pallet";
+                            LPostedWarehousePallet.Reset();
+                            LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                            LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                            If LPostedWarehousePallet.FindLast() then begin
+                                Rec."Posted Whse Shipment No." := LPostedWarehousePallet."Whse Shipment No.";
+                                Rec."Posted Whse Shipment Line No." := LPostedWarehousePallet."Whse Shipment Line No.";
+                                Rec."Sales Order No." := LPostedWarehousePallet."Sales Order No.";
+                            end else begin
+                                LWarehousePallet.Reset();
+                                LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                                LWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                                If LWarehousePallet.FindLast() then begin
+                                    Rec."Posted Whse Shipment No." := LWarehousePallet."Whse Shipment No.";
+                                    Rec."Posted Whse Shipment Line No." := LWarehousePallet."Whse Shipment Line No.";
+                                    Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
+                                end;
+                            end;
+                            if not Rec.Insert() then Rec.Modify();
+
+                        until LPalletLine.Next() = 0;
+                    end else begin
+                        Rec.Init();
+                        Rec."Purchase Order No." := LPurchaseLineArchive."Document No.";
+                        Rec."Purchase Order Line No." := LPurchaseLineArchive."Line No.";
+                        Rec."Pallet ID" := '';
+                        if not Rec.Insert() then Rec.Modify();
+                    end;
+                until LPurchaseLineArchive.Next() = 0;
+        end;
 
         Rec.SetRange("User Created", UserId);
         Rec.SetRange("Purchase Order No.", PONumber);
         Rec.Ascending;
-        // Rec.SetRange("Purchase Order Line No.", POLine);
         CurrPage.Update(false);
 
     end;

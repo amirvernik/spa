@@ -150,3 +150,89 @@ pageextension 60044 ModPurchaseStatistic extends "Purchase Order Statistics"
         CurrPage."Purchase Items Statistic".Page.fillIn("No.");
     end;
 }
+
+
+
+pageextension 60045 PurchaseOrderArchiveExt extends "Purchase Order Archive"
+{
+    layout
+    {
+        addfirst(factboxes)
+        {
+            part("PO Details Factbox"; "PO Details Factbox") //Pallet Inforamtion
+            {
+                ApplicationArea = All;
+            }
+        }
+    }
+
+    actions
+    {
+        addlast(processing)
+        {
+            action("Pallet Information")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPODetialsArchive(Rec."No.", Rec);
+                end;
+            }
+            action("PO Items Statistic")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                Caption = 'Grading Statistics';
+
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatisticArchive(rec."No.", Rec);
+                end;
+            }
+        }
+    }
+    trigger OnAfterGetCurrRecord()
+    begin
+        CurrPage."PO Details Factbox".Page.SetPO(Rec."No.");
+    end;
+
+
+}
+
+pageextension 60046 Mode_PurchaseListArchive extends "Purchase Order Archives"
+{
+    actions
+    {
+        addlast(processing)
+        {
+            action("Pallet Information")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPODetialsArchive('', Rec);
+                end;
+            }
+            action("PO Items Statistic")
+            {
+                ApplicationArea = All;
+                Image = ExportToExcel;
+                Caption = 'Grading Statistics';
+                trigger OnAction();
+                var
+                    LPalletFunctionCodeunit: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatisticArchive('', Rec);
+                end;
+            }
+        }
+    }
+}

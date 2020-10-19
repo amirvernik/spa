@@ -710,6 +710,255 @@ codeunit 60001 "Pallet Functions"
         ExcelBuffer.OpenExcel();
     end;
 
+
+    procedure ExportToExcelPODetialsArchive(PONumber: Code[20]; var PORec: Record "Purchase Header Archive");
+    var
+        LPalletLine: Record "Pallet Line";
+        LPalletHeader: Record "Pallet Header";
+        LPurchaseLine: Record "Purchase Line Archive";
+        LPurchaseHeader: Record "Purchase Header Archive";
+        LWarehousePallet: Record "Warehouse Pallet";
+        LPostedWarehousePallet: Record "Posted Warehouse Pallet";
+        ExcelBuffer: Record "Excel Buffer" temporary;
+        LInStr: InStream;
+        LOutStr: OutStream;
+        LPath: Text;
+    begin
+        CLEARALL;
+        IF ExcelBuffer.FINDSET THEN
+            ExcelBuffer.DELETEALL;
+
+        ExcelBuffer.AddColumn('Purchase Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Purchase Order Version', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Purchase Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet Type', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('RM Pallet', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Warehose Shipment Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Posted Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Posted Warehose Shipment Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.NewRow;
+
+        LPurchaseHeader.Reset();
+        LPurchaseHeader.SetRange("Document Type", LPurchaseHeader."Document Type"::Order);
+        if PONumber <> '' then
+            LPurchaseHeader.SetRange("No.", PONumber)
+        else
+            LPurchaseHeader.CopyFilters(PORec);
+        if LPurchaseHeader.FindSet() then
+            repeat
+                LPurchaseLine.Reset();
+                LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
+                LPurchaseLine.SetRange("Document No.", LPurchaseHeader."No.");
+                if LPurchaseLine.FindSet() then
+                    repeat
+                        LPalletLine.Reset();
+                        LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
+                        LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
+                        IF LPalletLine.FindSet() then begin
+                            repeat
+                                ExcelBuffer.AddColumn(LPalletLine."Purchase Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LPurchaseHeader."Version No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LPalletLine."Purchase Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(LPalletLine."Pallet ID", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                LPalletHeader.Get(LPalletLine."Pallet ID");
+                                ExcelBuffer.AddColumn(LPalletHeader."Pallet Type", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LPalletHeader."Raw Material Pallet"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                LPostedWarehousePallet.Reset();
+                                LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                                LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                                If LPostedWarehousePallet.FindLast() then begin
+                                    ExcelBuffer.AddColumn(LPostedWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn(LPostedWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                end else begin
+                                    LWarehousePallet.Reset();
+                                    LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                                    LWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                                    If LWarehousePallet.FindLast() then begin
+                                        ExcelBuffer.AddColumn(LWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                        ExcelBuffer.AddColumn(format(LWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                        ExcelBuffer.AddColumn(LWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                        ExcelBuffer.AddColumn(format(LWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    end;
+                                end;
+
+                                ExcelBuffer.NewRow;
+                            until LPalletLine.Next() = 0;
+                        end else begin
+                            ExcelBuffer.AddColumn(LPurchaseLine."Document No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn(format(LPurchaseLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.NewRow;
+                        end;
+                    until LPurchaseLine.Next() = 0;
+            until LPurchaseHeader.Next() = 0;
+
+        LPath := StrSubstNo('PO - %1', PONumber) + Format(Today());
+        ExcelBuffer.CreateNewBook(LPath);
+        ExcelBuffer.WriteSheet(LPath, CompanyName, UserId);
+        ExcelBuffer.CloseBook();
+        ExcelBuffer.OpenExcel();
+
+    end;
+
+    procedure ExportToExcelPurchaseItemsStatisticArchive(PONumber: Code[20]; var PORec: Record "Purchase Header Archive");
+    var
+        Rec: Record "Purchase Items Statistic";
+        ExcelBuffer: Record "Excel Buffer" temporary;
+        LInStr: InStream;
+        LOutStr: OutStream;
+        LPath: Text;
+        LPurchaseLine: Record "Purchase Line Archive";
+        LPostedWarhousePallet: Record "Posted Warehouse Pallet";
+        LPalletLine: Record "Pallet Line";
+        LItemAttribute: Record "Item Attribute";
+        LItemAttributeValue: Record "Item Attribute Value";
+        LItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+        LSizeItemAttributeID: Integer;
+        LGradeItemAttributeID: Integer;
+        LSizeItemAttributeValue: Text;
+        LGradeItemAttributeValue: Text;
+        LRecPurchaseItemsStatistic: Record "Purchase Items Statistic";
+        LPurchaseHeader: Record "Purchase Header Archive";
+        LTotal: Decimal;
+        LCurrentGrade: Text;
+        LPreviousGrade: Text;
+    begin
+        Rec.Reset();
+        Rec.SetRange("User", UserId);
+        if Rec.FindSet() then Rec.DeleteAll();
+        CLEARALL;
+        IF ExcelBuffer.FINDSET THEN
+            ExcelBuffer.DELETEALL;
+
+        LItemAttribute.Reset();
+        LItemAttribute.SetRange(Name, 'Size');
+        LItemAttribute.FindFirst();
+        LSizeItemAttributeID := LItemAttribute.ID;
+        LItemAttribute.SetRange(Name, 'Grade');
+        LItemAttribute.FindFirst();
+        LGradeItemAttributeID := LItemAttribute.ID;
+
+        LPurchaseHeader.Reset();
+        LPurchaseHeader.SetRange("Document Type", LPurchaseHeader."Document Type"::Order);
+        if PONumber <> '' then
+            LPurchaseHeader.SetRange("No.", PONumber)
+        else begin
+            LPurchaseHeader.CopyFilters(PORec);
+        end;
+        if LPurchaseHeader.FindSet() then
+            repeat
+                LTotal := 0;
+                LPurchaseLine.Reset();
+                LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
+                LPurchaseLine.SetRange("Document No.", LPurchaseHeader."No.");
+                LPurchaseLine.SetRange(Type, LPurchaseLine.Type::Item);
+                if LPurchaseLine.FindSet() then begin
+                    repeat
+                        LPalletLine.Reset();
+                        LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
+                        LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
+                        LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
+                        if LPalletLine.FindSet() then
+                            repeat
+                                LPostedWarhousePallet.Reset();
+                                LPostedWarhousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
+                                LPostedWarhousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
+                                if LPostedWarhousePallet.FindSet() then begin
+                                    LPostedWarhousePallet.CalcSums(Quantity);
+                                    LSizeItemAttributeValue := '';
+                                    LGradeItemAttributeValue := '';
+                                    if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LSizeItemAttributeID) then begin
+                                        if LItemAttributeValue.Get(LSizeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID") then
+                                            LSizeItemAttributeValue := LItemAttributeValue.Value;
+                                    end;
+
+                                    if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LGradeItemAttributeID) then begin
+                                        LItemAttributeValue.Get(LGradeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID");
+                                        LGradeItemAttributeValue := LItemAttributeValue.Value;
+                                    end;
+
+                                    IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, PONumber, UserId) then begin
+                                        Rec.Init();
+                                        Rec."User" := UserId;
+                                        Rec."Purchase Number" := LPurchaseHeader."No.";
+                                        Rec.Grade := LGradeItemAttributeValue;
+                                        Rec.Size := LSizeItemAttributeValue;
+                                        Rec.TotalSize := LPostedWarhousePallet.Quantity;
+                                        if not Rec.Insert() then Rec.Modify();
+                                    end else begin
+                                        Rec.TotalSize += LPostedWarhousePallet.Quantity;
+                                        Rec.Modify();
+                                    end;
+                                end;
+                            until LPalletLine.Next() = 0;
+                    until LPurchaseLine.Next() = 0;
+
+                    Rec.Reset();
+                    Rec.SetRange(User, UserId);
+                    Rec.SetRange("Purchase Number", LPurchaseHeader."No.");
+                    if Rec.FindSet() then
+                        repeat
+                            LRecPurchaseItemsStatistic.Reset();
+                            LRecPurchaseItemsStatistic.SetRange(User, UserId);
+                            LRecPurchaseItemsStatistic.SetRange(Grade, Rec.Grade);
+                            LRecPurchaseItemsStatistic.SetRange("Purchase Number", LPurchaseHeader."No.");
+                            if LRecPurchaseItemsStatistic.FindSet() then
+                                repeat
+                                    Rec.TotalGrade += LRecPurchaseItemsStatistic.TotalSize;
+                                until LRecPurchaseItemsStatistic.Next() = 0;
+                            LTotal += Rec.TotalSize;
+
+                            Rec.Modify();
+                        until Rec.Next() = 0;
+
+                    Rec.Reset();
+                    Rec.SetRange(User, UserId);
+                    Rec.SetRange("Purchase Number", LPurchaseHeader."No.");
+                    if Rec.FindSet() then begin
+                        ExcelBuffer.NewRow();
+                        ExcelBuffer.AddColumn('Purchase Order No. ' + LPurchaseHeader."No." + ' Version: ' + Format(LPurchaseHeader."Version No."), FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.NewRow();
+                        ExcelBuffer.NewRow();
+                        ExcelBuffer.AddColumn('Grade', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn('Size', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn('Total Size', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn('Total Grade', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.AddColumn('Proportion(%)', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                        ExcelBuffer.NewRow;
+                        Rec.Ascending;
+                        LCurrentGrade := '';
+                        repeat
+                            Rec.Proportion := Rec.TotalSize / LTotal * 100;
+                            Rec.Modify();
+                            ExcelBuffer.AddColumn(Rec.Grade, FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn(Rec.Size, FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                            ExcelBuffer.AddColumn(Rec.TotalSize, FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Number);
+                            ExcelBuffer.AddColumn(Rec.TotalGrade, FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Number);
+                            ExcelBuffer.AddColumn(Rec.Proportion, FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Number);
+                            ExcelBuffer.NewRow();
+                        until Rec.Next() = 0;
+                    end;
+                end;
+            until LPurchaseHeader.Next() = 0;
+
+        LPath := StrSubstNo('Grading Statistics') + Format(Today());
+        ExcelBuffer.CreateNewBook(LPath);
+        ExcelBuffer.WriteSheet(LPath, CompanyName, UserId);
+        ExcelBuffer.CloseBook();
+        ExcelBuffer.OpenExcel();
+    end;
+
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         ItemLedgerFunctions: Codeunit "Item Ledger Functions";
