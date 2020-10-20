@@ -87,7 +87,7 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
 
     trigger OnAfterGetCurrRecord()
     begin
-        CurrPage."PO Details Factbox".Page.SetPO(Rec."No.");
+        CurrPage."PO Details Factbox".Page.SetPO(Rec."No.", 0);
     end;
 
     var
@@ -178,7 +178,7 @@ pageextension 60045 PurchaseOrderArchiveExt extends "Purchase Order Archive"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPODetialsArchive(Rec."No.", Rec);
+                    LPalletFunctionCodeunit.ExportToExcelPODetialsArchive(Rec."No.", Rec, Rec."Version No.");
                 end;
             }
             action("PO Items Statistic")
@@ -191,14 +191,14 @@ pageextension 60045 PurchaseOrderArchiveExt extends "Purchase Order Archive"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatisticArchive(rec."No.", Rec);
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatisticArchive(rec."No.", Rec, Rec."Version No.");
                 end;
             }
         }
     }
     trigger OnAfterGetCurrRecord()
     begin
-        CurrPage."PO Details Factbox".Page.SetPO(Rec."No.");
+        CurrPage."PO Details Factbox".Page.SetPO(Rec."No.", Rec."Version No.");
     end;
 
 
@@ -218,7 +218,7 @@ pageextension 60046 Mode_PurchaseListArchive extends "Purchase Order Archives"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPODetialsArchive('', Rec);
+                    LPalletFunctionCodeunit.ExportToExcelPODetialsArchive('', Rec, 0);
                 end;
             }
             action("PO Items Statistic")
@@ -230,7 +230,7 @@ pageextension 60046 Mode_PurchaseListArchive extends "Purchase Order Archives"
                 var
                     LPalletFunctionCodeunit: Codeunit "Pallet Functions";
                 begin
-                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatisticArchive('', Rec);
+                    LPalletFunctionCodeunit.ExportToExcelPurchaseItemsStatisticArchive('', Rec, 0);
                 end;
             }
         }

@@ -26,4 +26,8 @@ enum 60000 "Pallet Status"
     {
         caption = 'Partially consumed';
     }
+    value(6; Canceled)
+    {
+        Caption = 'Canceled';
+    }
 }

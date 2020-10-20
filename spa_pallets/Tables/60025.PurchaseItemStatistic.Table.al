@@ -33,6 +33,8 @@ table 60025 "Purchase Items Statistic"
             DataClassification = ToBeClassified;
         }
         field(8; Done; Boolean) { }
+        field(9; "PO Line Amount"; Decimal) { }
+
     }
 
     keys

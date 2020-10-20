@@ -15,8 +15,55 @@ codeunit 60007 "Return Order Management"
         if PalletLedgerEntry.findfirst then
             ToSalesLine."Pallet/s Exist" := true;
         ToSalesLine.modify;
-
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopySalesLineFromReturnRcptLineBuffer', '', true, true)]
+    local procedure OnAfterCopySalesLinesToDoc_ReturnRcptLine(FromReturnReceiptLine: Record "Return Receipt Line"; var ToSalesLine: Record "Sales Line")
+    begin
+        ToSalesLine."SPA Order No." := FromReturnReceiptLine."Return Order No.";
+        ToSalesLine."SPA Order Line No." := FromReturnReceiptLine."Return Order Line No.";
+        PalletLedgerEntry.reset;
+        PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::"Sales Return Order");
+        PalletLedgerEntry.setrange(PalletLedgerEntry."Order No.", FromReturnReceiptLine."Return Order No.");
+        PalletLedgerEntry.setrange(PalletLedgerEntry."Order Line No.", FromReturnReceiptLine."Return Order Line No.");
+        PalletLedgerEntry.setrange("Order Type", 'Return Order');
+        if PalletLedgerEntry.findfirst then
+            ToSalesLine."Pallet/s Exist" := true;
+        ToSalesLine.modify;
+    end;
+
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopySalesLineFromSalesCrMemoLineBuffer', '', true, true)]
+    local procedure OnAfterCopySalesLinesToDoc_SalesCrMemoLineBuffer(FromSalesCrMemoLine: Record "Sales Cr.Memo Line"; var ToSalesLine: Record "Sales Line")
+    begin
+        ToSalesLine."SPA Order No." := FromSalesCrMemoLine."Order No.";
+        ToSalesLine."SPA Order Line No." := FromSalesCrMemoLine."Order Line No.";
+        PalletLedgerEntry.reset;
+        // PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::);
+        PalletLedgerEntry.setrange(PalletLedgerEntry."Order No.", FromSalesCrMemoLine."Order No.");
+        PalletLedgerEntry.setrange(PalletLedgerEntry."Order Line No.", FromSalesCrMemoLine."Order Line No.");
+        PalletLedgerEntry.setrange("Order Type", 'Sales Order');
+        if PalletLedgerEntry.findfirst then
+            ToSalesLine."Pallet/s Exist" := true;
+        ToSalesLine.modify;
+    end;
+
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Copy Document Mgt.", 'OnAfterCopySalesLineFromSalesLineBuffer', '', true, true)]
+    local procedure OnAfterCopySalesLinesToDoc_FromSalesInvLine(FromSalesInvLine: Record "Sales Invoice Line"; var ToSalesLine: Record "Sales Line")
+    begin
+        ToSalesLine."SPA Order No." := FromSalesInvLine."Order No.";
+        ToSalesLine."SPA Order Line No." := FromSalesInvLine."Order Line No.";
+        PalletLedgerEntry.reset;
+        // PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::);
+        PalletLedgerEntry.setrange(PalletLedgerEntry."Order No.", FromSalesInvLine."Order No.");
+        PalletLedgerEntry.setrange(PalletLedgerEntry."Order Line No.", FromSalesInvLine."Order Line No.");
+        PalletLedgerEntry.setrange("Order Type", 'Sales Order');
+        if PalletLedgerEntry.findfirst then
+            ToSalesLine."Pallet/s Exist" := true;
+        ToSalesLine.modify;
+    end;
+
 
     //On After Return Rcpt Line Insert
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterReturnRcptLineInsert', '', true, true)]

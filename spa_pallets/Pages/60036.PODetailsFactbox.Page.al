@@ -140,7 +140,7 @@ page 60036 "PO Details Factbox"
         }
     }
 
-    procedure SetPO(PONumber: Code[20]);//; POLine: Integer);
+    procedure SetPO(PONumber: Code[20]; pVer: Integer);//; POLine: Integer);
     var
         LPalletLine: Record "Pallet Line";
         LPalletHeader: Record "Pallet Header";
@@ -204,6 +204,8 @@ page 60036 "PO Details Factbox"
             LPurchaseLineArchive.Reset();
             LPurchaseLineArchive.SetRange("Document Type", LPurchaseLineArchive."Document Type"::Order);
             LPurchaseLineArchive.SetRange("Document No.", PONumber);
+            if pVer <> 0 then
+                LPurchaseLineArchive.SetRange("Version No.", pVer);
             if LPurchaseLineArchive.FindSet() then
                 repeat
                     LPalletLine.Reset();

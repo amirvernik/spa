@@ -77,6 +77,21 @@ page 60004 "Pallet List"
     {
         area(Processing)
         {
+            action("Cancel Pallet")
+            {
+                ApplicationArea = All;
+                image = Cancel;
+                Promoted = true;
+                PromotedCategory = Process;
+                // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
+
+                trigger OnAction()
+                begin
+                    validate("Pallet Status", "Pallet Status"::Canceled);
+                    if not Modify() then;
+                end;
+            }
+
             action("Close Pallet")
             {
                 ApplicationArea = All;
@@ -87,7 +102,7 @@ page 60004 "Pallet List"
 
                 trigger OnAction()
                 begin
-                    PalletFunctions.ClosePallet(rec,'BC');
+                    PalletFunctions.ClosePallet(rec, 'BC');
                 end;
             }
             action("Dispose Pallet")
@@ -153,47 +168,44 @@ page 60004 "Pallet List"
     }
     trigger OnOpenPage()
     begin
-        if rec."Pallet Status" = rec."Pallet Status"::open then begin
-            ShowReopen := false;
-            ShowClose := true;
-            ShowShip := false;
-            ShowDisposed := false;
-        end;
-        if rec."Pallet Status" = rec."Pallet Status"::Closed then begin
-            ShowReopen := true;
-            ShowClose := false;
-            ShowShip := true;
-            ShowDisposed := true;
-        end;
-        if rec."Pallet Status" = rec."Pallet Status"::Shipped then begin
-            ShowReopen := true;
-            ShowClose := false;
-            ShowShip := false;
-            ShowDisposed := false;
-        end;
 
+        // SetFilter("Pallet Status", '<>%1', "Pallet Status"::Canceled);
     end;
 
-    trigger OnAfterGetRecord()
+    trigger OnAfterGetCurrRecord()
     begin
-        if rec."Pallet Status" = rec."Pallet Status"::open then begin
-            ShowReopen := false;
-            ShowClose := true;
-            ShowShip := false;
-            ShowDisposed := false;
+        case rec."Pallet Status" of
+            rec."Pallet Status"::open:
+                begin
+                    ShowReopen := false;
+                    ShowClose := true;
+                    ShowShip := false;
+                    ShowDisposed := false;
+                end;
+            rec."Pallet Status"::Closed:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowShip := true;
+                    ShowDisposed := true;
+                end;
+            rec."Pallet Status"::Shipped:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowShip := false;
+                    ShowDisposed := false;
+                end;
+            rec."Pallet Status"::Canceled:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowShip := false;
+                    ShowDisposed := false;
+                end;
+
         end;
-        if rec."Pallet Status" = rec."Pallet Status"::Closed then begin
-            ShowReopen := true;
-            ShowClose := false;
-            ShowShip := true;
-            ShowDisposed := true;
-        end;
-        if rec."Pallet Status" = rec."Pallet Status"::Shipped then begin
-            ShowReopen := true;
-            ShowClose := false;
-            ShowShip := false;
-            ShowDisposed := false;
-        end;
+
         if "Pallet Type" = 'mw' then
             PalletTypeText := 'Microwave'
         else

@@ -126,7 +126,7 @@ page 60003 "Pallet Card"
             group(Functions)
             {
                 Image = Action;
-                /*action(ClosePalletTestBtn)//DELETE ME
+                action(ClosePalletTestBtn)//DELETE ME
                 {
                     ApplicationArea = All;
                     Visible = EnableTESTPROD1;
@@ -137,7 +137,22 @@ page 60003 "Pallet Card"
                         Modify();
                     end;
 
-                }*/
+                }
+                action("Cancel Pallet")
+                {
+                    ApplicationArea = All;
+                    image = Cancel;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
+
+                    trigger OnAction()
+                    begin
+                        validate("Pallet Status", "Pallet Status"::Canceled);
+                        if not Modify() then;
+                    end;
+                }
+
                 action("Close Pallet")
                 {
                     ApplicationArea = All;
