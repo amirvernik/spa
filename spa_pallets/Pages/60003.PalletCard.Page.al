@@ -145,11 +145,24 @@ page 60003 "Pallet Card"
                     Promoted = true;
                     PromotedCategory = Process;
                     // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
-
+                    Enabled = ShowCancel;
                     trigger OnAction()
+                    var
+                        Err11: Label 'Can`t cancel a pallet that has pallet ledger entries';
+                        Err10: Label 'Canceled status is allowed only for open status pallet';
+                        LPalletLedgerEntry: Record "Pallet Ledger Entry";
                     begin
-                        validate("Pallet Status", "Pallet Status"::Canceled);
-                        if not Modify() then;
+                        if ("Pallet Status" = "Pallet Status"::Open) and not ("Exist in warehouse shipment") then begin
+                            LPalletLedgerEntry.Reset();
+                            LPalletLedgerEntry.SetRange("Pallet ID", "Pallet ID");
+                            if LPalletLedgerEntry.FindFirst() then
+                                Error(Err11)
+                            else begin
+                                validate("Pallet Status", "Pallet Status"::Canceled);
+                                if not Modify() then;
+                            end;
+                        end else
+                            Error(Err10);
                     end;
                 }
 
@@ -339,28 +352,7 @@ page 60003 "Pallet Card"
     trigger OnOpenPage()
     begin
         EnableTESTPROD1 := UserId() = 'PRODWARE1';
-        if rec."Pallet Status" = rec."Pallet Status"::open then begin
-            ShowReopen := false;
-            ShowClose := true;
-            ShowDisposed := false;
-        end;
-        if rec."Pallet Status" = rec."Pallet Status"::Closed then begin
-            ShowReopen := true;
-            ShowClose := false;
-            ShowDisposed := true;
-        end;
 
-        if rec."Pallet Status" = rec."Pallet Status"::"Partially consumed" then begin
-            ShowReopen := false;
-            ShowClose := false;
-            ShowDisposed := false;
-        end;
-
-        if rec."Pallet Status" = rec."Pallet Status"::Consumed then begin
-            ShowReopen := false;
-            ShowClose := false;
-            ShowDisposed := false;
-        end;
 
         //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
@@ -381,28 +373,35 @@ page 60003 "Pallet Card"
 
     trigger OnAfterGetRecord()
     begin
-        if rec."Pallet Status" = rec."Pallet Status"::open then begin
-            ShowReopen := false;
-            ShowClose := true;
-            ShowDisposed := false;
-        end;
-        if rec."Pallet Status" = rec."Pallet Status"::Closed then begin
-            ShowReopen := true;
-            ShowClose := false;
-            ShowDisposed := true;
-        end;
 
-        if rec."Pallet Status" = rec."Pallet Status"::"Partially consumed" then begin
-            ShowReopen := false;
-            ShowClose := false;
-            ShowDisposed := false;
+        case rec."Pallet Status" of
+            rec."Pallet Status"::open:
+                begin
+                    ShowReopen := false;
+                    ShowClose := true;
+                    ShowDisposed := false;
+                    ShowCancel := true;
+                end;
+            rec."Pallet Status"::Closed:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowDisposed := true;
+                end;
+            rec."Pallet Status"::Shipped:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowDisposed := false;
+                end;
+            rec."Pallet Status"::Canceled:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowDisposed := false;
+                    ShowCancel := false;
+                end;
         end;
-        if rec."Pallet Status" = rec."Pallet Status"::Consumed then begin
-            ShowReopen := false;
-            ShowClose := false;
-            ShowDisposed := false;
-        end;
-
         //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
             ShowDisposePalletWorkFlow := true;
@@ -429,6 +428,7 @@ page 60003 "Pallet Card"
         varinat: Variant;
         ShowClose: Boolean;
         ShowReopen: Boolean;
+        ShowCancel: Boolean;
         PackingExists: Boolean;
         ShowDisposed: Boolean;
         ShowChanged: Boolean;

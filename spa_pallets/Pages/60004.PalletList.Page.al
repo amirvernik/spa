@@ -83,12 +83,24 @@ page 60004 "Pallet List"
                 image = Cancel;
                 Promoted = true;
                 PromotedCategory = Process;
-                // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
-
+                Enabled = ShowCancel;
                 trigger OnAction()
+                var
+                    Err11: Label 'Can`t cancel a pallet that has pallet ledger entries';
+                    Err10: Label 'Canceled status is allowed only for open status pallet';
+                    LPalletLedgerEntry: Record "Pallet Ledger Entry";
                 begin
-                    validate("Pallet Status", "Pallet Status"::Canceled);
-                    if not Modify() then;
+                    if ("Pallet Status" = "Pallet Status"::Open) and not ("Exist in warehouse shipment") then begin
+                        LPalletLedgerEntry.Reset();
+                        LPalletLedgerEntry.SetRange("Pallet ID", "Pallet ID");
+                        if LPalletLedgerEntry.FindFirst() then
+                            Error(Err11)
+                        else begin
+                            validate("Pallet Status", "Pallet Status"::Canceled);
+                            if not Modify() then;
+                        end;
+                    end else
+                        Error(Err10);
                 end;
             }
 
@@ -174,6 +186,7 @@ page 60004 "Pallet List"
 
     trigger OnAfterGetCurrRecord()
     begin
+        ShowCancel := true;
         case rec."Pallet Status" of
             rec."Pallet Status"::open:
                 begin
@@ -181,6 +194,7 @@ page 60004 "Pallet List"
                     ShowClose := true;
                     ShowShip := false;
                     ShowDisposed := false;
+                    ShowCancel := true;
                 end;
             rec."Pallet Status"::Closed:
                 begin
@@ -202,6 +216,7 @@ page 60004 "Pallet List"
                     ShowClose := false;
                     ShowShip := false;
                     ShowDisposed := false;
+                    ShowCancel := false;
                 end;
 
         end;
@@ -221,6 +236,7 @@ page 60004 "Pallet List"
         PalletDisposalMgmt: Codeunit "Pallet Disposal Management";
         ShowClose: Boolean;
         ShowShip: Boolean;
+        ShowCancel: Boolean;
         ShowReopen: Boolean;
         ShowDisposed: Boolean;
         PalletTypeText: Text;

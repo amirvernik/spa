@@ -1152,6 +1152,57 @@ codeunit 60010 "UI Pallet Functions"
         exit(GMTplus);
     END;
 
+
+
+    //Cancel Pallet - UI
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure CancelPallet(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        JsonBuffer: Record "JSON Buffer" temporary;
+        PalletID: code[20];
+        PalletHeader: Record "Pallet Header";
+        LPalletLedgerEntry: Record "Pallet Ledger Entry";
+        JsonObj: JsonObject;
+        JsonArr: JsonArray;
+        JsonObjItems: JsonObject;
+        JsonArrItems: JsonArray;
+        Err10: Label 'Canceled status is allowed only for open status pallet';
+        Err11: Label 'Can`t cancel a pallet that has pallet ledger entries';
+    begin
+        IF pFunction <> 'CancelPallet' THEN
+            EXIT;
+
+        JsonBuffer.ReadFromText(pContent);
+
+        JSONBuffer.RESET;
+        JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
+        IF JSONBuffer.FINDSET THEN
+            REPEAT
+                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN
+                    IF STRPOS(JSONBuffer.Path, 'palletid') > 0 THEN
+                        PalletID := JSONBuffer.Value;
+            until JsonBuffer.next = 0;
+
+        if PalletHeader.GET(PalletID) then begin
+            if (PalletHeader."Pallet Status" = "PalletHeader"."Pallet Status"::Open) and not (PalletHeader."Exist in warehouse shipment") then begin
+                LPalletLedgerEntry.Reset();
+                LPalletLedgerEntry.SetRange("Pallet ID", PalletID);
+                if LPalletLedgerEntry.FindFirst() then
+                    pContent := Err11
+                else begin
+                    PalletHeader.validate("Pallet Status", "Pallet Status"::Canceled);
+                    if not PalletHeader.Modify() then;
+                    pContent := 'Success';
+                end;
+            end else
+                pContent := Err10;
+        end
+        else
+            pContent := StrSubstNo('Pallet %1 not Exist', PalletID);
+    end;
+
+
+
 }
 
 
