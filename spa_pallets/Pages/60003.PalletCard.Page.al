@@ -4,6 +4,7 @@ page 60003 "Pallet Card"
     PageType = Card;
     SourceTable = "Pallet Header";
     Caption = 'Pallet Card';
+    DeleteAllowed = false;
 
     layout
     {
@@ -152,7 +153,7 @@ page 60003 "Pallet Card"
                         Err10: Label 'Canceled status is allowed only for open status pallet';
                         LPalletLedgerEntry: Record "Pallet Ledger Entry";
                     begin
-                        if ("Pallet Status" = "Pallet Status"::Open) and not ("Exist in warehouse shipment") then begin
+                        if ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment")) then begin
                             LPalletLedgerEntry.Reset();
                             LPalletLedgerEntry.SetRange("Pallet ID", "Pallet ID");
                             if LPalletLedgerEntry.FindFirst() then
@@ -189,7 +190,8 @@ page 60003 "Pallet Card"
 
                     trigger OnAction()
                     begin
-                        PalletFunctions.ChoosePackingMaterials(rec);
+                        if rec."Pallet Status" <> rec."Pallet Status"::Canceled then
+                            PalletFunctions.ChoosePackingMaterials(rec);
                         PalletFunctions.ReOpenPallet(rec);
                     end;
                 }
@@ -402,6 +404,7 @@ page 60003 "Pallet Card"
                     ShowCancel := false;
                 end;
         end;
+        if "Exist in warehouse shipment" then ShowReopen := false;
         //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
             ShowDisposePalletWorkFlow := true;

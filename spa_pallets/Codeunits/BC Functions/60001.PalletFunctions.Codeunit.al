@@ -172,10 +172,7 @@ codeunit 60001 "Pallet Functions"
                     PalletLines."Remaining Qty" := 0;
                     palletlines."QTY Consumed" := 0;
                     PalletLines.modify;
-                until PalletLines.next =
-
-
-0;
+                until PalletLines.next = 0;
 
             TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
             ItemLedgerFunctions.PosItemLedgerEntry(pPalletHeader); //Positive on Item Journal Packing Material

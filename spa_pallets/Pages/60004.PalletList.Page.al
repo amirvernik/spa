@@ -9,6 +9,7 @@ page 60004 "Pallet List"
     CardPageId = "Pallet Card";
     Editable = false;
     SourceTableView = order(descending);
+    DeleteAllowed = false;
 
     layout
     {
@@ -83,7 +84,7 @@ page 60004 "Pallet List"
                 image = Cancel;
                 Promoted = true;
                 PromotedCategory = Process;
-                Enabled = ShowCancel;
+                Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
                 trigger OnAction()
                 var
                     Err11: Label 'Can`t cancel a pallet that has pallet ledger entries';
@@ -152,7 +153,8 @@ page 60004 "Pallet List"
                 var
                     packingma: Record "Packing Material Line";
                 begin
-                    PalletFunctions.ChoosePackingMaterials(rec);
+                    if rec."Pallet Status" <> rec."Pallet Status"::Canceled then
+                        PalletFunctions.ChoosePackingMaterials(rec);
                     PalletFunctions.ReOpenPallet(rec);
                 end;
             }
@@ -186,7 +188,7 @@ page 60004 "Pallet List"
 
     trigger OnAfterGetCurrRecord()
     begin
-        ShowCancel := true;
+
         case rec."Pallet Status" of
             rec."Pallet Status"::open:
                 begin
@@ -194,7 +196,7 @@ page 60004 "Pallet List"
                     ShowClose := true;
                     ShowShip := false;
                     ShowDisposed := false;
-                    ShowCancel := true;
+
                 end;
             rec."Pallet Status"::Closed:
                 begin
@@ -216,11 +218,11 @@ page 60004 "Pallet List"
                     ShowClose := false;
                     ShowShip := false;
                     ShowDisposed := false;
-                    ShowCancel := false;
                 end;
 
         end;
 
+        if "Exist in warehouse shipment" then ShowReopen := false;
         if "Pallet Type" = 'mw' then
             PalletTypeText := 'Microwave'
         else

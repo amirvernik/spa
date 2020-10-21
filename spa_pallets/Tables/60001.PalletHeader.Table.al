@@ -34,14 +34,7 @@ table 60001 "Pallet Header"
         {
             Caption = 'Pallet Status';
             DataClassification = ToBeClassified;
-            trigger OnValidate();
-            begin
-                if (Rec."Pallet Status" = Rec."Pallet Status"::Canceled) and ((xRec."Pallet Status" <> xRec."Pallet Status"::Open)
-                or ("Exist in warehouse shipment")) then begin
-                    Rec."Pallet Status" := xRec."Pallet Status";
-                    Error(Err10);
-                end;
-            end;
+
         }
         field(5; "Creation Date"; date)
         {
