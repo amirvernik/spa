@@ -483,7 +483,7 @@ codeunit 60001 "Pallet Functions"
         ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Type', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-        ExcelBuffer.AddColumn('RM Pallet', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet Status', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -516,7 +516,7 @@ codeunit 60001 "Pallet Functions"
                                 ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 LPalletHeader.Get(LPalletLine."Pallet ID");
                                 ExcelBuffer.AddColumn(LPalletHeader."Pallet Type", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                ExcelBuffer.AddColumn(format(LPalletHeader."Raw Material Pallet"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LPalletHeader."Pallet Status"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 LPostedWarehousePallet.Reset();
                                 LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                                 LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
@@ -567,8 +567,6 @@ codeunit 60001 "Pallet Functions"
         LOutStr: OutStream;
         LPath: Text;
         LPurchaseLine: Record "Purchase Line";
-        LPostedWarhousePallet: Record "Posted Warehouse Pallet";
-        LPalletLine: Record "Pallet Line";
         LItemAttribute: Record "Item Attribute";
         LItemAttributeValue: Record "Item Attribute Value";
         LItemAttributeValueMapping: Record "Item Attribute Value Mapping";
@@ -605,7 +603,6 @@ codeunit 60001 "Pallet Functions"
             LPurchaseHeader.SetRange("No.", PONumber)
         else
             LPurchaseHeader.CopyFilters(PORec);
-
         if LPurchaseHeader.FindSet() then
             repeat
                 LTotal := 0;
@@ -613,10 +610,13 @@ codeunit 60001 "Pallet Functions"
                 LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                 LPurchaseLine.SetRange("Document No.", LPurchaseHeader."No.");
                 LPurchaseLine.SetRange(Type, LPurchaseLine.Type::Item);
+                LPurchaseLine.SetFilter("Quantity Received", '<>%1', 0);
+                LPurchaseLine.SetFilter("Line Discount %", '<>%1', 100);
                 if LPurchaseLine.FindSet() then begin
                     repeat
                         LSizeItemAttributeValue := '';
                         LGradeItemAttributeValue := '';
+                        LQuantityLine := 0;
                         if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LSizeItemAttributeID) then begin
                             if LItemAttributeValue.Get(LSizeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID") then
                                 LSizeItemAttributeValue := LItemAttributeValue.Value;
@@ -627,43 +627,28 @@ codeunit 60001 "Pallet Functions"
                             LGradeItemAttributeValue := LItemAttributeValue.Value;
                         end;
 
-                        LPalletLine.Reset();
-                        LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
-                        LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
-                        LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
-                        if LPalletLine.FindSet() then
-                            repeat
-                                LQuantityLine := 0;
-                                LPostedWarhousePallet.Reset();
-                                LPostedWarhousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
-                                LPostedWarhousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
-                                if LPostedWarhousePallet.FindSet() then begin
-                                    repeat
-                                        //LPostedWarhousePallet.CalcSums(Quantity);
-                                        LItemUnitofMeasure.Reset();
-                                        LItemUnitofMeasure.SetRange("Item No.", LPalletLine."Item No.");
-                                        LItemUnitofMeasure.SetRange(Code, 'KG');
-                                        LItemUnitofMeasure.FindFirst();
-                                        LQuantityLine += LPostedWarhousePallet.Quantity * LItemUnitofMeasure."Qty. per Unit of Measure";
-                                    until LPostedWarhousePallet.Next() = 0;
+                        if LGradeItemAttributeValue <> '' then begin
+                            //LPostedWarhousePallet.CalcSums(Quantity);
+                            LItemUnitofMeasure.Reset();
+                            LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
+                            LItemUnitofMeasure.SetRange(Code, 'KG');
+                            LItemUnitofMeasure.FindFirst();
+                            LQuantityLine += LPurchaseLine."Quantity Received" * LItemUnitofMeasure."Qty. per Unit of Measure";
 
-                                    IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
-                                        Rec.Init();
-                                        Rec."User" := UserId;
-                                        Rec."Purchase Number" := LPurchaseHeader."No.";
-                                        Rec.Grade := LGradeItemAttributeValue;
-                                        Rec.Size := LSizeItemAttributeValue;
-                                        Rec.TotalSize := LQuantityLine;
-                                        if not Rec.Insert() then Rec.Modify();
-                                    end else begin
-                                        Rec.TotalSize += LQuantityLine;
-                                        Rec.Modify();
-                                    end;
-                                end;
-                            until LPalletLine.Next() = 0;
-                        IF Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
-                            Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LPurchaseLine."Quantity Received";
-                            Rec.Modify();
+                            IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
+                                Rec.Init();
+                                Rec."User" := UserId;
+                                Rec."Purchase Number" := LPurchaseHeader."No.";
+                                Rec.Grade := LGradeItemAttributeValue;
+                                Rec.Size := LSizeItemAttributeValue;
+                                Rec.TotalSize := LQuantityLine;
+                                Rec."PO Line Amount" := LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                if not Rec.Insert() then Rec.Modify();
+                            end else begin
+                                Rec.TotalSize += LQuantityLine;
+                                Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                Rec.Modify();
+                            end;
                         end;
                     until LPurchaseLine.Next() = 0;
 
@@ -681,7 +666,6 @@ codeunit 60001 "Pallet Functions"
                                     Rec.TotalGrade += LRecPurchaseItemsStatistic.TotalSize;
                                 until LRecPurchaseItemsStatistic.Next() = 0;
                             LTotal += Rec.TotalSize;
-
                             Rec.Modify();
                         until Rec.Next() = 0;
 
@@ -691,11 +675,6 @@ codeunit 60001 "Pallet Functions"
                     if Rec.FindSet() then begin
                         ExcelBuffer.NewRow();
                         ExcelBuffer.AddColumn('Purchase Order No. ' + LPurchaseHeader."No.", FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        /*ExcelBuffer.NewRow();
-                        ExcelBuffer.AddColumn('Amount Including VAT: ', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn(LPurchaseHeader."Amount Including VAT", FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Number);
-                        ExcelBuffer.AddColumn(LPurchaseHeader."Currency Code", FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        */
                         ExcelBuffer.NewRow();
                         ExcelBuffer.NewRow();
                         ExcelBuffer.AddColumn('Grade', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -753,7 +732,7 @@ codeunit 60001 "Pallet Functions"
         ExcelBuffer.AddColumn('Pallet ID', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Pallet Type', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-        ExcelBuffer.AddColumn('RM Pallet', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+        ExcelBuffer.AddColumn('Pallet Status', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Sales Order Line No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
         ExcelBuffer.AddColumn('Warehose Shipment No.', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -789,7 +768,7 @@ codeunit 60001 "Pallet Functions"
                                 ExcelBuffer.AddColumn(format(LPalletLine."Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 LPalletHeader.Get(LPalletLine."Pallet ID");
                                 ExcelBuffer.AddColumn(LPalletHeader."Pallet Type", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                ExcelBuffer.AddColumn(format(LPalletHeader."Raw Material Pallet"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                ExcelBuffer.AddColumn(format(LPalletHeader."Pallet Status"), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 LPostedWarehousePallet.Reset();
                                 LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                                 LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
@@ -889,12 +868,14 @@ codeunit 60001 "Pallet Functions"
                 LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                 LPurchaseLine.SetRange("Document No.", LPurchaseHeader."No.");
                 LPurchaseLine.SetRange(Type, LPurchaseLine.Type::Item);
+                LPurchaseLine.SetFilter("Quantity Received", '<>%1', 0);
                 LPurchaseLine.SetFilter("Line Discount %", '<>%1', 100);
                 LPurchaseLine.SetRange("Version No.", LPurchaseHeader."Version No.");
                 if LPurchaseLine.FindSet() then begin
                     repeat
                         LSizeItemAttributeValue := '';
                         LGradeItemAttributeValue := '';
+                        LQuantityLine := 0;
                         if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LSizeItemAttributeID) then begin
                             if LItemAttributeValue.Get(LSizeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID") then
                                 LSizeItemAttributeValue := LItemAttributeValue.Value;
@@ -904,44 +885,27 @@ codeunit 60001 "Pallet Functions"
                             LItemAttributeValue.Get(LGradeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID");
                             LGradeItemAttributeValue := LItemAttributeValue.Value;
                         end;
+                        if LGradeItemAttributeValue <> '' then begin
+                            LItemUnitofMeasure.Reset();
+                            LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
+                            LItemUnitofMeasure.SetRange(Code, 'KG');
+                            LItemUnitofMeasure.FindFirst();
+                            LQuantityLine += LPurchaseLine."Quantity Received" * LItemUnitofMeasure."Qty. per Unit of Measure";
 
-                        LPalletLine.Reset();
-                        LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
-                        LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
-                        LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
-                        if LPalletLine.FindSet() then
-                            repeat
-                                LQuantityLine := 0;
-                                LPostedWarhousePallet.Reset();
-                                LPostedWarhousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
-                                LPostedWarhousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
-                                if LPostedWarhousePallet.FindSet() then begin
-                                    repeat
-                                        //LPostedWarhousePallet.CalcSums(Quantity);
-                                        LItemUnitofMeasure.Reset();
-                                        LItemUnitofMeasure.SetRange("Item No.", LPalletLine."Item No.");
-                                        LItemUnitofMeasure.SetRange(Code, 'KG');
-                                        LItemUnitofMeasure.FindFirst();
-                                        LQuantityLine += LPostedWarhousePallet.Quantity * LItemUnitofMeasure."Qty. per Unit of Measure";
-                                    until LPostedWarhousePallet.Next() = 0;
-
-                                    IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
-                                        Rec.Init();
-                                        Rec."User" := UserId;
-                                        Rec."Purchase Number" := LPurchaseHeader."No.";
-                                        Rec.Grade := LGradeItemAttributeValue;
-                                        Rec.Size := LSizeItemAttributeValue;
-                                        Rec.TotalSize := LQuantityLine;
-                                        if not Rec.Insert() then Rec.Modify();
-                                    end else begin
-                                        Rec.TotalSize += LQuantityLine;
-                                        Rec.Modify();
-                                    end;
-                                end;
-                            until LPalletLine.Next() = 0;
-                        IF Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
-                            Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LPurchaseLine."Quantity Received";
-                            Rec.Modify();
+                            IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
+                                Rec.Init();
+                                Rec."User" := UserId;
+                                Rec."Purchase Number" := LPurchaseHeader."No.";
+                                Rec.Grade := LGradeItemAttributeValue;
+                                Rec.Size := LSizeItemAttributeValue;
+                                Rec.TotalSize := LQuantityLine;
+                                Rec."PO Line Amount" := LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                if not Rec.Insert() then Rec.Modify();
+                            end else begin
+                                Rec.TotalSize += LQuantityLine;
+                                Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                Rec.Modify();
+                            end;
                         end;
                     until LPurchaseLine.Next() = 0;
 
@@ -969,11 +933,6 @@ codeunit 60001 "Pallet Functions"
                     if Rec.FindSet() then begin
                         ExcelBuffer.NewRow();
                         ExcelBuffer.AddColumn('Purchase Order No. ' + LPurchaseHeader."No." + ' Version: ' + Format(LPurchaseHeader."Version No."), FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        /*ExcelBuffer.NewRow();
-                        ExcelBuffer.AddColumn('Amount Including VAT: ', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.AddColumn(LPurchaseHeader."Amount Including VAT", FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Number);
-                        ExcelBuffer.AddColumn(LPurchaseHeader."Currency Code", FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                        ExcelBuffer.NewRow();*/
                         ExcelBuffer.NewRow();
                         ExcelBuffer.AddColumn('Grade', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                         ExcelBuffer.AddColumn('Size', FALSE, '', TRUE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -1004,6 +963,91 @@ codeunit 60001 "Pallet Functions"
         ExcelBuffer.CloseBook();
         ExcelBuffer.OpenExcel();
     end;
+
+    procedure CancelPallet(pPalletHeader: Record "Pallet Header");
+    var
+        ConfirmCancelPallet: Label 'Are you sure you want to cancel this pallet? pallet id: %1';
+        Err10: Label 'Canceled status is allowed only for open or close status pallet and if the pallet not exist in warehouse shipment';
+        LPalletLedgerEntry: Record "Pallet Ledger Entry";
+        LPurchaseHeader: Record "Purchase Header";
+        LPurchaseLine: Record "Purchase Line";
+        LPalletLine: Record "Pallet Line";
+        LCommentsonPurchLine: Record "Purch. Comment Line";
+        LCommentsonPurchLineLineNo: Integer;
+        RecLItemJournalLine: Record "Item Journal Line";
+        PalletSetup: Record "Pallet Process Setup";
+        DocmentStatusMgmt: Codeunit "Release Purchase Document";
+        isReleased: Boolean;
+    begin
+        if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed]) and not (pPalletHeader."Exist in warehouse shipment") then begin
+            if Confirm(StrSubstNo(ConfirmCancelPallet, pPalletHeader."Pallet ID")) then begin
+                PalletSetup.get();
+                RecLItemJournalLine.reset;
+                RecLItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                RecLItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                RecLItemJournalLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
+                RecLItemJournalLine.SetFilter(Quantity, '<>%1', 0);
+                if RecLItemJournalLine.findset() then
+                    RecLItemJournalLine.DeleteAll();
+
+                AddMaterials(pPalletHeader); //Add Materials
+                PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader); //Positive on Pallet Ledger
+                ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
+                ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
+                TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
+
+                pPalletHeader.validate("Pallet Status", "Pallet Status"::Canceled);
+                if pPalletHeader.Modify() then begin
+                    LPalletLine.Reset();
+                    LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+                    LPalletLine.SetFilter("Purchase Order No.", '<>%1', '');
+                    LPalletLine.SetFilter("Purchase Order Line No.", '<>%1', 0);
+                    if LPalletLine.FindSet() then
+                        repeat
+                            isReleased := false;
+                            LPurchaseLine.Reset();
+                            LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
+                            LPurchaseLine.SetRange("Document No.", LPalletLine."Purchase Order No.");
+                            LPurchaseLine.SetRange("Line No.", LPalletLine."Purchase Order Line No.");
+                            IF LPurchaseLine.FindFirst() then begin
+                                LPurchaseHeader.Reset();
+                                LPurchaseHeader.SetRange("Document Type", LPurchaseHeader."Document Type"::Order);
+                                LPurchaseHeader.SetRange("No.", LPurchaseLine."Document No.");
+                                LPurchaseHeader.FindFirst();
+                                if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then begin
+                                    LPurchaseHeader.Status := LPurchaseHeader.Status::Open;
+                                    LPurchaseHeader.Modify();
+                                    isReleased := true;
+                                end;
+
+                                LPurchaseLine.validate("Line Discount %", 100);
+                                LPurchaseLine.Modify();
+                                LCommentsonPurchLine.Init();
+                                LCommentsonPurchLine."Document Type" := LCommentsonPurchLine."Document Type"::Order;
+                                LCommentsonPurchLine."No." := LPurchaseLine."Document No.";
+                                LCommentsonPurchLine."Document Line No." := LPurchaseLine."Line No.";
+                                LCommentsonPurchLine."Line No." := 9999;
+                                LCommentsonPurchLine.Date := Today();
+                                LCommentsonPurchLine.Comment := StrSubstNo('Pallet %1 Cancelled', pPalletHeader."Pallet ID");
+                                if not LCommentsonPurchLine.Insert()
+                                then
+                                    LCommentsonPurchLine.Modify();
+
+                                if isReleased then begin
+                                    DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
+                                end;
+
+                            end;
+
+                        until LPalletLine.Next() = 0;
+                end;
+
+            end;
+        end else
+            Error(Err10);
+
+    end;
+
 
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";

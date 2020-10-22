@@ -12,6 +12,10 @@ pageextension 60011 UserSetpExt extends "User Setup"
             {
                 ApplicationArea = all;
             }
+            field("Reopen Cancelled Pallets"; "Reopen Cancelled Pallets")
+            {
+                ApplicationArea = All;
+            }
         }
 
         addafter("User ID")

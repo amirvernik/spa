@@ -44,8 +44,6 @@ page 60037 "Purchase Items Statistic"
     procedure fillIn(PONumber: Code[20]);
     var
         LPurchaseLine: Record "Purchase Line";
-        LPostedWarhousePallet: Record "Posted Warehouse Pallet";
-        LPalletLine: Record "Pallet Line";
         LItemAttribute: Record "Item Attribute";
         LItemAttributeValue: Record "Item Attribute Value";
         LItemAttributeValueMapping: Record "Item Attribute Value Mapping";
@@ -55,79 +53,68 @@ page 60037 "Purchase Items Statistic"
         LGradeItemAttributeValue: Text;
         LRecPurchaseItemsStatistic: Record "Purchase Items Statistic";
         LTotal: Decimal;
+        LQuantityLine: Decimal;
+        LItemUnitofMeasure: Record "Item Unit of Measure";
     begin
         Rec.Reset();
         Rec.SetRange("User", UserId);
         if Rec.FindSet() then Rec.DeleteAll();
+
         LTotal := 0;
-
         LPurchaseLine.Reset();
-
         LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
         if PONumber <> '' then
             LPurchaseLine.SetRange("Document No.", PONumber);
         LPurchaseLine.SetRange(Type, LPurchaseLine.Type::Item);
+        LPurchaseLine.SetFilter("Quantity Received", '<>%1', 0);
+        LPurchaseLine.SetFilter("Line Discount %", '<>%1', 100);
         if LPurchaseLine.FindSet() then begin
-            LItemAttribute.Reset();
-            LItemAttribute.SetRange(Name, 'Size');
-            LItemAttribute.FindFirst();
-            LSizeItemAttributeID := LItemAttribute.ID;
-            LItemAttribute.SetRange(Name, 'Grade');
-            LItemAttribute.FindFirst();
-            LGradeItemAttributeID := LItemAttribute.ID;
             repeat
-                LPalletLine.Reset();
-                LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
-                LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
-                LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
-                if LPalletLine.FindSet() then
-                    repeat
-                        LPostedWarhousePallet.Reset();
-                        LPostedWarhousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
-                        LPostedWarhousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
-                        if LPostedWarhousePallet.FindSet() then begin
-                            LPostedWarhousePallet.CalcSums(Quantity);
-                            LSizeItemAttributeValue := '';
-                            LGradeItemAttributeValue := '';
-                            if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LSizeItemAttributeID) then begin
-                                if LItemAttributeValue.Get(LSizeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID") then
-                                    LSizeItemAttributeValue := LItemAttributeValue.Value;
-                            end;
+                LSizeItemAttributeValue := '';
+                LGradeItemAttributeValue := '';
+                LQuantityLine := 0;
+                if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LSizeItemAttributeID) then begin
+                    if LItemAttributeValue.Get(LSizeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID") then
+                        LSizeItemAttributeValue := LItemAttributeValue.Value;
+                end;
 
-                            if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LGradeItemAttributeID) then begin
-                                LItemAttributeValue.Get(LGradeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID");
-                                LGradeItemAttributeValue := LItemAttributeValue.Value;
-                            end;
+                if LItemAttributeValueMapping.Get(27, LPurchaseLine."No.", LGradeItemAttributeID) then begin
+                    LItemAttributeValue.Get(LGradeItemAttributeID, LItemAttributeValueMapping."Item Attribute Value ID");
+                    LGradeItemAttributeValue := LItemAttributeValue.Value;
+                end;
+                if LGradeItemAttributeValue <> '' then begin
+                    LItemUnitofMeasure.Reset();
+                    LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
+                    LItemUnitofMeasure.SetRange(Code, 'KG');
+                    LItemUnitofMeasure.FindFirst();
+                    LQuantityLine += LPurchaseLine."Quantity Received" * LItemUnitofMeasure."Qty. per Unit of Measure";
 
-                            IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, PONumber, UserId) then begin
-                                Rec.Init();
-                                Rec."User" := UserId;
-                                if PONumber <> '' then
-                                    Rec."Purchase Number" := PONumber;
-                                Rec.Grade := LGradeItemAttributeValue;
-                                Rec.Size := LSizeItemAttributeValue;
-                                Rec.TotalSize := LPostedWarhousePallet.Quantity;
-                                if not Rec.Insert() then Rec.Modify();
-                            end else begin
-                                Rec.TotalSize += LPostedWarhousePallet.Quantity;
-                                Rec.Modify();
-                            end;
-                        end;
-                    until LPalletLine.Next() = 0;
+                    IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
+                        Rec.Init();
+                        Rec."User" := UserId;
+                        Rec."Purchase Number" := LPurchaseLine."Document No.";
+                        Rec.Grade := LGradeItemAttributeValue;
+                        Rec.Size := LSizeItemAttributeValue;
+                        Rec.TotalSize := LQuantityLine;
+                        Rec."PO Line Amount" := LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                        if not Rec.Insert() then Rec.Modify();
+                    end else begin
+                        Rec.TotalSize += LQuantityLine;
+                        Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                        Rec.Modify();
+                    end;
+                end;
             until LPurchaseLine.Next() = 0;
             Commit();
-
             Rec.Reset();
             Rec.SetRange(User, UserId);
-            if PONumber <> '' then
-                Rec.SetRange("Purchase Number", PONumber);
+            Rec.SetRange("Purchase Number", LPurchaseLine."Document No.");
             if Rec.FindSet() then
                 repeat
                     LRecPurchaseItemsStatistic.Reset();
                     LRecPurchaseItemsStatistic.SetRange(User, UserId);
                     LRecPurchaseItemsStatistic.SetRange(Grade, Rec.Grade);
-                    IF PONumber <> '' then
-                        LRecPurchaseItemsStatistic.SetRange("Purchase Number", PONumber);
+                    LRecPurchaseItemsStatistic.SetRange("Purchase Number", LPurchaseLine."Document No.");
                     if LRecPurchaseItemsStatistic.FindSet() then
                         repeat
                             Rec.TotalGrade += LRecPurchaseItemsStatistic.TotalSize;
@@ -136,6 +123,7 @@ page 60037 "Purchase Items Statistic"
 
                     Rec.Modify();
                 until Rec.Next() = 0;
+
 
             Rec.Reset();
             Rec.SetRange(User, UserId);

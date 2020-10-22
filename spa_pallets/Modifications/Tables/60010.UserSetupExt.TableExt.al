@@ -22,6 +22,10 @@ tableextension 60010 UserSetupExt extends "User Setup"
             DataClassification = ToBeClassified;
             ExtendedDatatype = Masked;
         }
+        field(60004; "Reopen Cancelled Pallets"; Boolean)
+        {
+            DataClassification = ToBeClassified;
+        }
 
     }
 

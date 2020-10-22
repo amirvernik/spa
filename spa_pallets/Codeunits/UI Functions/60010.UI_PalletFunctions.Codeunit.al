@@ -820,7 +820,7 @@ codeunit 60010 "UI Pallet Functions"
                     JsonObjItems.add('Variety', PalletLine."Variant Code");
                     JsonObjItems.add('Item Description', PalletLine.Description);
                     JsonObjItems.add('Location', PalletLine."Location Code");
-                    JsonObjItems.add('Lot', PalletLine."Variant Code");
+                    JsonObjItems.add('Lot', PalletLine."Lot Number");
                     JsonObjItems.add('Unit of Measure', PalletLine."Unit of Measure");
                     JsonObjItems.add('Item Qty', format(palletline.Quantity));
                     JsonObjItems.add('Line No', format(palletline."Line No."));

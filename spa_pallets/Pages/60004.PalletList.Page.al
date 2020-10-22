@@ -87,21 +87,9 @@ page 60004 "Pallet List"
                 Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
                 trigger OnAction()
                 var
-                    Err11: Label 'Can`t cancel a pallet that has pallet ledger entries';
-                    Err10: Label 'Canceled status is allowed only for open status pallet';
-                    LPalletLedgerEntry: Record "Pallet Ledger Entry";
+                    LPalletFunctions: Codeunit "Pallet Functions";
                 begin
-                    if ("Pallet Status" = "Pallet Status"::Open) and not ("Exist in warehouse shipment") then begin
-                        LPalletLedgerEntry.Reset();
-                        LPalletLedgerEntry.SetRange("Pallet ID", "Pallet ID");
-                        if LPalletLedgerEntry.FindFirst() then
-                            Error(Err11)
-                        else begin
-                            validate("Pallet Status", "Pallet Status"::Canceled);
-                            if not Modify() then;
-                        end;
-                    end else
-                        Error(Err10);
+                    LPalletFunctions.CancelPallet(Rec);
                 end;
             }
 
@@ -182,13 +170,12 @@ page 60004 "Pallet List"
     }
     trigger OnOpenPage()
     begin
-
-        // SetFilter("Pallet Status", '<>%1', "Pallet Status"::Canceled);
     end;
 
     trigger OnAfterGetCurrRecord()
+    var
+        LUserSetup: Record "User Setup";
     begin
-
         case rec."Pallet Status" of
             rec."Pallet Status"::open:
                 begin
@@ -223,6 +210,10 @@ page 60004 "Pallet List"
         end;
 
         if "Exist in warehouse shipment" then ShowReopen := false;
+        if "Pallet Status" = "Pallet Status"::Canceled then
+            if LUserSetup.Get(UserId) then
+                if not LUserSetup."Reopen Cancelled Pallets" then
+                    ShowReopen := false;
         if "Pallet Type" = 'mw' then
             PalletTypeText := 'Microwave'
         else

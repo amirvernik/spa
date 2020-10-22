@@ -146,24 +146,12 @@ page 60003 "Pallet Card"
                     Promoted = true;
                     PromotedCategory = Process;
                     // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
-                    Enabled = ShowCancel;
+                    Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
                     trigger OnAction()
                     var
-                        Err11: Label 'Can`t cancel a pallet that has pallet ledger entries';
-                        Err10: Label 'Canceled status is allowed only for open status pallet';
-                        LPalletLedgerEntry: Record "Pallet Ledger Entry";
+                        LPalletFunctions: Codeunit "Pallet Functions";
                     begin
-                        if ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment")) then begin
-                            LPalletLedgerEntry.Reset();
-                            LPalletLedgerEntry.SetRange("Pallet ID", "Pallet ID");
-                            if LPalletLedgerEntry.FindFirst() then
-                                Error(Err11)
-                            else begin
-                                validate("Pallet Status", "Pallet Status"::Canceled);
-                                if not Modify() then;
-                            end;
-                        end else
-                            Error(Err10);
+                        LPalletFunctions.CancelPallet(Rec);
                     end;
                 }
 
@@ -374,6 +362,8 @@ page 60003 "Pallet Card"
     end;
 
     trigger OnAfterGetRecord()
+    var
+        LUserSetup: Record "User Setup";
     begin
 
         case rec."Pallet Status" of
@@ -405,6 +395,10 @@ page 60003 "Pallet Card"
                 end;
         end;
         if "Exist in warehouse shipment" then ShowReopen := false;
+        if "Pallet Status" = "Pallet Status"::Canceled then
+            if LUserSetup.Get(UserId) then
+                if not LUserSetup."Reopen Cancelled Pallets" then
+                    ShowReopen := false;
         //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
             ShowDisposePalletWorkFlow := true;

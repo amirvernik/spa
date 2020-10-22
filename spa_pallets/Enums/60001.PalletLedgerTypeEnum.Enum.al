@@ -62,4 +62,8 @@ enum 60001 "Pallet Ledger Type"
     {
         caption = 'UnConsume Value Add';
     }
+    value(15; "Pallet Cancelled")
+    {
+        Caption = 'Pallet Cancelled';
+    }
 }

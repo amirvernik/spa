@@ -70,6 +70,38 @@ codeunit 60003 "Pallet Ledger Functions"
             until palletlines.next = 0;
     end;
 
+    procedure PalletCancelledPalletLedger(var PalletHeader: Record "Pallet Header")
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        PalletLedgerEntry.LockTable();
+        LineNumber := GetLastEntry();
+        PalletLines.reset;
+        PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
+        if palletlines.FindSet() then
+            repeat
+                PalletLedgerEntry.Init();
+                PalletLedgerEntry."Entry No." := LineNumber;
+                PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Pallet Cancelled";
+                PalletLedgerEntry."Pallet ID" := PalletHeader."Pallet ID";
+                PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                PalletLedgerEntry."Document No." := PalletLines."Pallet ID";
+                PalletLedgerEntry.validate("Posting Date", Today);
+                PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
+                PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
+                PalletLedgerEntry."Item Description" := PalletLines.Description;
+                PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
+                PalletLedgerEntry.validate(Quantity, palletlines.Quantity);
+                PalletLedgerEntry."User ID" := userid;
+                if PalletLedgerEntry.Quantity <> 0 then
+                    if not PalletLedgerEntry.Insert() then PalletLedgerEntry.Modify();
+                LineNumber += 1;
+            until palletlines.next = 0;
+    end;
+
+
     //Negative Pallet Ledger Entry from a Pallet - Transfer Order (Shipment)
     procedure NegPalletLedgerTransfer(var pTransferShipLine: record "Transfer Shipment Line");
     begin

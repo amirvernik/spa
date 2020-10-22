@@ -148,6 +148,7 @@ pageextension 60044 ModPurchaseStatistic extends "Purchase Order Statistics"
     trigger OnOpenPage();
     begin
         CurrPage."Purchase Items Statistic".Page.fillIn("No.");
+        CurrPage.Update(false);
     end;
 }
 

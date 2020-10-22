@@ -46,7 +46,7 @@ page 60036 "PO Details Factbox"
                 {
                     ApplicationArea = All;
                 }
-                field("RM Pallet"; "RM Pallet")
+                field("Pallet Status"; "Pallet Status")
                 {
                     ApplicationArea = All;
                 }
@@ -172,6 +172,7 @@ page 60036 "PO Details Factbox"
                         LPalletHeader.Get(LPalletLine."Pallet ID");
                         Rec."Pallet Type" := LPalletHeader."Pallet Type";
                         Rec."RM Pallet" := LPalletHeader."Raw Material Pallet";
+                        Rec."Pallet Status" := LPalletHeader."Pallet Status";
                         LPostedWarehousePallet.Reset();
                         LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                         LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
@@ -222,6 +223,7 @@ page 60036 "PO Details Factbox"
                             LPalletHeader.Get(LPalletLine."Pallet ID");
                             Rec."Pallet Type" := LPalletHeader."Pallet Type";
                             Rec."RM Pallet" := LPalletHeader."Raw Material Pallet";
+                            Rec."Pallet Status" := LPalletHeader."Pallet Status";
                             LPostedWarehousePallet.Reset();
                             LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                             LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
