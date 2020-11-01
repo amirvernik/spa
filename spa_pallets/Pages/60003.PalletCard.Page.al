@@ -139,6 +139,31 @@ page 60003 "Pallet Card"
                     end;
 
                 }
+
+                action("Fix Shipped")//DELETE ME
+                {
+                    ApplicationArea = All;
+                    Visible = EnableTESTPROD1;
+                    trigger OnAction()
+                    var
+                        PostedWarehousePallet: Record "Posted Warehouse Pallet";
+                        PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+                    begin
+                        PostedWarehousePallet.Reset();
+                        PostedWarehousePallet.SetRange("Pallet ID", "Pallet ID");
+                        if PostedWarehousePallet.FindSet() then
+                            repeat
+                                PostedWhseShipmentLine.Reset();
+                                PostedWhseShipmentLine.SetRange("No.", PostedWarehousePallet."Whse Shipment No.");
+                                PostedWhseShipmentLine.SetRange("Line No.", PostedWarehousePallet."Whse Shipment Line No.");
+                                if PostedWhseShipmentLine.FindSet() then
+                                    repeat
+                                        PalletLedgerFunctions.PalletLedgerEntryWarehouseShipment(PostedWhseShipmentLine);
+                                    until PostedWhseShipmentLine.Next() = 0;
+                            until PostedWarehousePallet.Next() = 0;
+                    end;
+
+                }
                 action("Cancel Pallet")
                 {
                     ApplicationArea = All;

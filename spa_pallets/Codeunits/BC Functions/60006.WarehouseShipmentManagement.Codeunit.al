@@ -260,7 +260,7 @@ codeunit 60006 "Warehouse Shipment Management"
         WarehousePallet: Record "Warehouse Pallet";
         PostedWhseShipNo: code[20];
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
-
+        PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
     begin
         //Move to Posted Pallet  - Working      
         WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentHeader."No.");
@@ -271,14 +271,15 @@ codeunit 60006 "Warehouse Shipment Management"
                 PostedWarehousePallet.insert(true);
                 WarehousePallet.delete;
             until WarehousePallet.next = 0;
+
     end;
 
     //On AFter Insert Sales Shipment Line 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterSalesShptLineInsert', '', true, true)]
-    local procedure OnAfterSalesShptLineInsert(var SalesShipmentLine: Record "Sales Shipment Line"; SalesLine: Record "Sales Line")
+    [EventSubscriber(ObjectType::Table, database::"Posted Whse. Shipment Line", 'OnAfterInsertEvent', '', true, true)]
+    local procedure OnBeforePostedWhseShptLineInsert(RunTrigger: Boolean; var Rec: Record "Posted Whse. Shipment Line")
+    var
     begin
-        PalletLedgerFunctions.PalletLedgerEntryWarehouseShipment(SalesShipmentLine, SalesLine);
-
+        PalletLedgerFunctions.PalletLedgerEntryWarehouseShipment(Rec);
     end;
 
     //If warehouse Shipment for sales return Order - On Before Post Shipment

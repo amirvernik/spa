@@ -267,19 +267,19 @@ codeunit 60003 "Pallet Ledger Functions"
     end;
 
     //Posted Warehouse Shipments
-    procedure PalletLedgerEntryWarehouseShipment(var SalesShipmentLine: Record "Sales Shipment Line"; SalesLine: Record "Sales Line")
+    procedure PalletLedgerEntryWarehouseShipment(var PostedWhseShipmentLine: Record "Posted Whse. Shipment Line")
     var
         PalletHeader: Record "Pallet Header";
 
     begin
-        if SalesShipmentLine."No." <> '' then begin
+        if PostedWhseShipmentLine."Item No." <> '' then begin
 
             LineNumber := GetLastEntry();
             PostedWarehousePallet.reset;
             PostedWarehousePallet.setrange("Sales Order No.", SalesLine."Document No.");
             PostedWarehousePallet.setrange("Sales Order Line No.", SalesLine."Line No.");
-            PostedWarehousePallet.SetRange("Whse Shipment No.", SalesShipmentLine."Document No.");
-            PostedWarehousePallet.SetRange("Whse Shipment Line No.", SalesShipmentLine."Line No.");
+            PostedWarehousePallet.SetRange("Whse Shipment No.", PostedWhseShipmentLine."No.");
+            PostedWarehousePallet.SetRange("Whse Shipment Line No.", PostedWhseShipmentLine."Line No.");
             if PostedWarehousePallet.findset then
                 repeat
                     if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
@@ -290,11 +290,11 @@ codeunit 60003 "Pallet Ledger Functions"
                     PalletLedgerEntry.Init();
                     PalletLedgerEntry."Entry No." := LineNumber;
                     PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Sales Shipment";
-                    PalletLedgerEntry."Document No." := SalesShipmentLine."Document No.";
-                    PalletLedgerEntry."Document Line No." := SalesShipmentLine."Line No.";
+                    PalletLedgerEntry."Document No." := PostedWhseShipmentLine."No.";
+                    PalletLedgerEntry."Document Line No." := PostedWhseShipmentLine."Line No.";
                     PalletLedgerEntry."Order Type" := 'Sales Order';
-                    PalletLedgerEntry."Order No." := SalesShipmentLine."Order No.";
-                    PalletLedgerEntry."Order Line No." := SalesShipmentLine."Order Line No.";
+                    PalletLedgerEntry."Order No." := PostedWhseShipmentLine."Source No.";
+                    PalletLedgerEntry."Order Line No." := PostedWhseShipmentLine."Source Line No.";
                     PalletLedgerEntry."Pallet ID" := PostedWarehousePallet."Pallet ID";
                     PalletLedgerEntry."Pallet Line No." := PostedWarehousePallet."Pallet Line No.";
                     PalletLedgerEntry.validate("Posting Date", Today);
