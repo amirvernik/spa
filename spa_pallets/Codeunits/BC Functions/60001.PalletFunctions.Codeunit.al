@@ -628,12 +628,14 @@ codeunit 60001 "Pallet Functions"
                         end;
 
                         if LGradeItemAttributeValue <> '' then begin
-                            //LPostedWarhousePallet.CalcSums(Quantity);
-                            LItemUnitofMeasure.Reset();
-                            LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
-                            LItemUnitofMeasure.SetRange(Code, 'KG');
-                            LItemUnitofMeasure.FindFirst();
-                            LQuantityLine += LPurchaseLine."Quantity Received" * LItemUnitofMeasure."Qty. per Unit of Measure";
+                            LQuantityLine := LPurchaseLine."Quantity Received";
+                            if LPurchaseLine."Unit of Measure Code" <> 'KG' then begin
+                                LItemUnitofMeasure.Reset();
+                                LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
+                                LItemUnitofMeasure.SetRange(Code, 'KG');
+                                LItemUnitofMeasure.FindFirst();
+                                LQuantityLine *= LItemUnitofMeasure."Qty. per Unit of Measure";
+                            end;
 
                             IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
                                 Rec.Init();
@@ -642,11 +644,11 @@ codeunit 60001 "Pallet Functions"
                                 Rec.Grade := LGradeItemAttributeValue;
                                 Rec.Size := LSizeItemAttributeValue;
                                 Rec.TotalSize := LQuantityLine;
-                                Rec."PO Line Amount" := LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                Rec."PO Line Amount" := (LPurchaseLine."Unit Cost (LCY)" * LQuantityLine);
                                 if not Rec.Insert() then Rec.Modify();
                             end else begin
                                 Rec.TotalSize += LQuantityLine;
-                                Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                Rec."PO Line Amount" += (LPurchaseLine."Unit Cost (LCY)" * LQuantityLine);
                                 Rec.Modify();
                             end;
                         end;
@@ -886,12 +888,14 @@ codeunit 60001 "Pallet Functions"
                             LGradeItemAttributeValue := LItemAttributeValue.Value;
                         end;
                         if LGradeItemAttributeValue <> '' then begin
-                            LItemUnitofMeasure.Reset();
-                            LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
-                            LItemUnitofMeasure.SetRange(Code, 'KG');
-                            LItemUnitofMeasure.FindFirst();
-                            LQuantityLine += LPurchaseLine."Quantity Received" * LItemUnitofMeasure."Qty. per Unit of Measure";
-
+                            LQuantityLine := LPurchaseLine."Quantity Received";
+                            if LPurchaseLine."Unit of Measure Code" <> 'KG' then begin
+                                LItemUnitofMeasure.Reset();
+                                LItemUnitofMeasure.SetRange("Item No.", LPurchaseLine."No.");
+                                LItemUnitofMeasure.SetRange(Code, 'KG');
+                                LItemUnitofMeasure.FindFirst();
+                                LQuantityLine *= LItemUnitofMeasure."Qty. per Unit of Measure";
+                            end;
                             IF not Rec.Get(LGradeItemAttributeValue, LSizeItemAttributeValue, LPurchaseLine."Document No.", UserId) then begin
                                 Rec.Init();
                                 Rec."User" := UserId;
@@ -899,11 +903,11 @@ codeunit 60001 "Pallet Functions"
                                 Rec.Grade := LGradeItemAttributeValue;
                                 Rec.Size := LSizeItemAttributeValue;
                                 Rec.TotalSize := LQuantityLine;
-                                Rec."PO Line Amount" := LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                Rec."PO Line Amount" := (LPurchaseLine."Unit Cost (LCY)" * LQuantityLine);
                                 if not Rec.Insert() then Rec.Modify();
                             end else begin
                                 Rec.TotalSize += LQuantityLine;
-                                Rec."PO Line Amount" += LPurchaseLine."Unit Cost (LCY)" * LQuantityLine;
+                                Rec."PO Line Amount" += (LPurchaseLine."Unit Cost (LCY)" * LQuantityLine);
                                 Rec.Modify();
                             end;
                         end;
@@ -978,22 +982,117 @@ codeunit 60001 "Pallet Functions"
         PalletSetup: Record "Pallet Process Setup";
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
         isReleased: Boolean;
+        ItemJournalLine: Record "Item Journal Line";
+        PurchaseProcessSetup: Record "SPA Purchase Process Setup";
+        LineNumber: Integer;
+        RecGReservationEntry: Record "Reservation Entry";
+        ReservationEntry: Record "Reservation Entry";
+        ReservationEntry2: Record "Reservation Entry";
+        MaxEntry: Integer;
+        RecItem: Record Item;
+        InventorySetup: Record "Inventory Setup";
+        PostItemJnlLine: Boolean;
     begin
         if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed]) and not (pPalletHeader."Exist in warehouse shipment") then begin
             if Confirm(StrSubstNo(ConfirmCancelPallet, pPalletHeader."Pallet ID")) then begin
                 PalletSetup.get();
-                RecLItemJournalLine.reset;
-                RecLItemJournalLine.setrange("Journal Template Name", 'ITEM');
-                RecLItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
-                RecLItemJournalLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
-                RecLItemJournalLine.SetFilter(Quantity, '<>%1', 0);
-                if RecLItemJournalLine.findset() then
-                    RecLItemJournalLine.DeleteAll();
 
-                AddMaterials(pPalletHeader); //Add Materials
-                PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader); //Positive on Pallet Ledger
-                ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
-                ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
+                PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader);
+
+                ItemJournalLine.reset;
+                ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                ItemJournalLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+                if ItemJournalLine.FindSet() then
+                    ItemJournalLine.DeleteAll();
+
+                LPalletLine.Reset();
+                LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+                LPalletLine.SetFilter("Lot Number", '<>%1', '');
+                if LPalletLine.FindSet() then begin
+                    PurchaseProcessSetup.get;
+                    ItemJournalLine.reset;
+                    ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                    ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                    if ItemJournalLine.findlast then
+                        LineNumber := ItemJournalLine."Line No." + 10000
+                    else
+                        LineNumber := 10000;
+                    repeat
+                        RecItem.Get(LPalletLine."Item No.");
+                        CASE RecItem."Prevent Negative Inventory" OF
+                            RecItem."Prevent Negative Inventory"::Yes:
+                                PostItemJnlLine := true;
+                            RecItem."Prevent Negative Inventory"::No:
+                                PostItemJnlLine := FALSE;
+                            RecItem."Prevent Negative Inventory"::Default:
+                                BEGIN
+                                    InventorySetup.GET;
+                                    PostItemJnlLine := InventorySetup."Prevent Negative Inventory";
+                                END;
+                        END;
+
+                        if not PostItemJnlLine then begin
+                            RecGReservationEntry.reset;
+                            RecGReservationEntry.SetCurrentKey("Lot No.");
+                            RecGReservationEntry.SetRange("Source Type", 39);
+                            RecGReservationEntry.setrange("Source Subtype", 1);
+                            RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
+                            if RecGReservationEntry.findset() then begin
+
+                                ItemJournalLine.init;
+                                ItemJournalLine."Journal Template Name" := 'ITEM';
+                                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                                ItemJournalLine."Line No." := LineNumber;
+                                ItemJournalLine.insert;
+                                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
+                                ItemJournalLine.validate("Posting Date", Today);
+                                ItemJournalLine."Document No." := LPalletLine."Pallet ID";
+                                ItemJournalLine.Description := LPalletLine.Description;
+                                ItemJournalLine.validate("Item No.", LPalletLine."Item No.");
+                                ItemJournalLine.validate("Variant Code", LPalletLine."Variant Code");
+                                ItemJournalLine."Lot No." := LPalletLine."Lot Number";
+                                ItemJournalLine.validate("Location Code", LPalletLine."Location Code");
+                                ItemJournalLine.Validate("Unit of Measure Code", LPalletLine."Unit of Measure");
+                                ItemJournalLine.validate(Quantity, LPalletLine."Quantity");
+                                ItemJournalLine."Pallet ID" := LPalletLine."Pallet ID";
+                                ItemJournalLine.modify;
+
+                                ReservationEntry2.reset;
+                                if ReservationEntry2.findlast then
+                                    maxEntry := ReservationEntry2."Entry No." + 1;
+
+                                ReservationEntry.init;
+                                ReservationEntry."Entry No." := MaxEntry;
+                                ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
+                                ReservationEntry."Creation Date" := Today;
+                                ReservationEntry."Created By" := UserId;
+                                ReservationEntry."Expected Receipt Date" := Today;
+                                ReservationEntry."Source Type" := 83;
+                                ReservationEntry."Source Subtype" := ItemJournalLine."Entry Type";
+                                ReservationEntry."Source ID" := 'ITEM';
+                                ReservationEntry."Source Ref. No." := LineNumber;
+                                ReservationEntry."Source Batch Name" := PalletSetup."Disposal Batch";
+                                ReservationEntry.validate("Location Code", LPalletLine."Location Code");
+                                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
+                                ReservationEntry."Lot No." := LPalletLine."Lot Number";
+                                ReservationEntry.validate("Item No.", LPalletLine."Item No.");
+                                if LPalletLine."Variant Code" <> '' then
+                                    ReservationEntry.validate("Variant Code", LPalletLine."Variant Code");
+                                ReservationEntry.validate("Quantity (Base)", -LPalletLine.Quantity);
+                                ReservationEntry.validate(Quantity, -LPalletLine.Quantity);
+
+                                ReservationEntry.insert;
+                                lineNumber += 1000;
+
+                                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+                            end;
+                        end;
+                    until LPalletLine.Next() = 0;
+
+                    // ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
+
+                end;
                 TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
 
                 pPalletHeader.validate("Pallet Status", "Pallet Status"::Canceled);
@@ -1001,19 +1100,11 @@ codeunit 60001 "Pallet Functions"
                     LPalletLine.Reset();
                     LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
                     LPalletLine.SetFilter("Purchase Order No.", '<>%1', '');
-                    LPalletLine.SetFilter("Purchase Order Line No.", '<>%1', 0);
                     if LPalletLine.FindSet() then
                         repeat
                             isReleased := false;
-                            LPurchaseLine.Reset();
-                            LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
-                            LPurchaseLine.SetRange("Document No.", LPalletLine."Purchase Order No.");
-                            LPurchaseLine.SetRange("Line No.", LPalletLine."Purchase Order Line No.");
-                            IF LPurchaseLine.FindFirst() then begin
-                                LPurchaseHeader.Reset();
-                                LPurchaseHeader.SetRange("Document Type", LPurchaseHeader."Document Type"::Order);
-                                LPurchaseHeader.SetRange("No.", LPurchaseLine."Document No.");
-                                LPurchaseHeader.FindFirst();
+                            IF LPurchaseLine.Get(LPurchaseLine."Document Type"::Order, LPalletLine."Purchase Order No.", LPalletLine."Purchase Order Line No.") then begin
+                                LPurchaseHeader.get(LPurchaseHeader."Document Type"::Order, LPurchaseLine."Document No.");
                                 if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then begin
                                     LPurchaseHeader.Status := LPurchaseHeader.Status::Open;
                                     LPurchaseHeader.Modify();
@@ -1034,7 +1125,8 @@ codeunit 60001 "Pallet Functions"
                                     LCommentsonPurchLine.Modify();
 
                                 if isReleased then begin
-                                    DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
+                                    LPurchaseHeader.Status := LPurchaseHeader.Status::Released;
+                                    LPurchaseHeader.Modify();
                                 end;
 
                             end;

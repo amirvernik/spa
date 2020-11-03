@@ -8,6 +8,10 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
             {
                 ApplicationArea = All;
             }
+            /* part(ItemAttributesFactbox; "Item Attributes Factbox")
+             {
+                 ApplicationArea = Basic, Suite;
+             }*/
         }
     }
 
@@ -70,6 +74,8 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
         PO_Microwave_Process := true;
         if not rec."Microwave Process PO" then
             PO_Microwave_Process := false;
+
+
     end;
 
     trigger OnAfterGetRecord()

@@ -118,6 +118,7 @@ page 60006 "Pallet Card Subpage"
         }
     }
 
+
     actions
     {
         area(Processing)
@@ -154,6 +155,7 @@ page 60006 "Pallet Card Subpage"
                     Image = ItemTracking;
                     Promoted = true;
                     PromotedCategory = Process;
+                    Enabled = PalletCancelled;
 
                     trigger OnAction();
                     var
@@ -163,7 +165,9 @@ page 60006 "Pallet Card Subpage"
                         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
                         Err001: Label 'There are no Lot to Select for Item %1, Location %2';
                         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+
                     begin
+
                         if LotSelection.findset then
                             LotSelection.deleteall;
 
@@ -191,8 +195,6 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection."Variant code" := ItemLedgerEntry."Variant Code";
                                     LotSelection."Expiration Date" := ItemLedgerEntry."Expiration Date";
                                     LotSelection."Quantity Available" := ItemLedgerEntry.Quantity;
-                                    // -
-                                    //  PalletReservationFunctions.FctGetLotQtyReservered(ItemLedgerEntry."Lot No.");
                                     LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
                                     PurchaseReceiptLine.Reset();
                                     PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");
@@ -254,5 +256,17 @@ page 60006 "Pallet Card Subpage"
             }
         }
     }
+    trigger OnAfterGetCurrRecord();
+    var
+        LPalletHeader: Record "Pallet Header";
+    begin
+        LPalletHeader.Get("Pallet ID");
+        if LPalletHeader."Pallet Status" <> LPalletHeader."Pallet Status"::Canceled then
+            PalletCancelled := false
+        else
+            PalletCancelled := true;
+    end;
 
+    var
+        PalletCancelled: Boolean;
 }

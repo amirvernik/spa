@@ -164,21 +164,6 @@ page 60003 "Pallet Card"
                     end;
 
                 }
-                action("Cancel Pallet")
-                {
-                    ApplicationArea = All;
-                    image = Cancel;
-                    Promoted = true;
-                    PromotedCategory = Process;
-                    // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
-                    Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
-                    trigger OnAction()
-                    var
-                        LPalletFunctions: Codeunit "Pallet Functions";
-                    begin
-                        LPalletFunctions.CancelPallet(Rec);
-                    end;
-                }
 
                 action("Close Pallet")
                 {
@@ -221,6 +206,21 @@ page 60003 "Pallet Card"
                     begin
                         if confirm(PalletDisposalConf) then
                             PalletDisposalMgmt.DisposePallet(rec);
+                    end;
+                }
+                action("Cancel Pallet")
+                {
+                    ApplicationArea = All;
+                    image = Cancel;
+                    Promoted = true;
+                    PromotedCategory = Process;
+                    // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
+                    Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
+                    trigger OnAction()
+                    var
+                        LPalletFunctions: Codeunit "Pallet Functions";
+                    begin
+                        LPalletFunctions.CancelPallet(Rec);
                     end;
                 }
 

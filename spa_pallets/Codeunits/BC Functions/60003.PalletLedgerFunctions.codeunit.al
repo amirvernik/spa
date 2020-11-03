@@ -74,7 +74,7 @@ codeunit 60003 "Pallet Ledger Functions"
     var
         ItemUnitOfMeasure: Record "Item Unit of Measure";
     begin
-        PalletLedgerEntry.LockTable();
+        //PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLines.reset;
         PalletLines.setrange("Pallet ID", PalletHeader."Pallet ID");
@@ -158,8 +158,7 @@ codeunit 60003 "Pallet Ledger Functions"
                 PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
                 PalletLedgerEntry.validate(Quantity, palletlines.Quantity);
                 PalletLedgerEntry."User ID" := userid;
-                if PalletLedgerEntry.Quantity <> 0 then
-                    PalletLedgerEntry.Insert();
+                PalletLedgerEntry.Insert();
                 LineNumber += 1;
             until palletlines.next = 0;
     end;
@@ -193,6 +192,7 @@ codeunit 60003 "Pallet Ledger Functions"
                     PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
                     PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
                     PalletLedgerEntry."User ID" := userid;
+                    PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
                     if PalletLedgerEntry.Quantity <> 0 then
                         PalletLedgerEntry.Insert();
                     LineNumber += 1;
@@ -226,7 +226,9 @@ codeunit 60003 "Pallet Ledger Functions"
         //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
         PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
         PalletLedgerEntry.validate(Quantity, -1 * ItemLedgerEntry."Packing Material Qty");
+        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
         PalletLedgerEntry."User ID" := userid;
+        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
         if PalletLedgerEntry.Quantity <> 0 then
             PalletLedgerEntry.Insert();
     end;
@@ -262,6 +264,7 @@ codeunit 60003 "Pallet Ledger Functions"
         else
             PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
         PalletLedgerEntry."User ID" := userid;
+        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
         if PalletLedgerEntry.Quantity <> 0 then
             PalletLedgerEntry.Insert();
     end;
@@ -276,16 +279,14 @@ codeunit 60003 "Pallet Ledger Functions"
 
             LineNumber := GetLastEntry();
             PostedWarehousePallet.reset;
-            PostedWarehousePallet.setrange("Sales Order No.", SalesLine."Document No.");
-            PostedWarehousePallet.setrange("Sales Order Line No.", SalesLine."Line No.");
             PostedWarehousePallet.SetRange("Whse Shipment No.", PostedWhseShipmentLine."No.");
             PostedWarehousePallet.SetRange("Whse Shipment Line No.", PostedWhseShipmentLine."Line No.");
             if PostedWarehousePallet.findset then
                 repeat
-                    if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
-                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::closed;
-                        palletheader.modify;
-                    end;
+                    // if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
+                    //    PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::closed;
+                    //     palletheader.modify;
+                    // end;
 
                     PalletLedgerEntry.Init();
                     PalletLedgerEntry."Entry No." := LineNumber;

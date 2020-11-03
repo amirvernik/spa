@@ -1155,7 +1155,7 @@ codeunit 60010 "UI Pallet Functions"
 
 
     //Cancel Pallet - UI
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    /*EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
     local procedure CancelPallet(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         JsonBuffer: Record "JSON Buffer" temporary;
@@ -1199,9 +1199,45 @@ codeunit 60010 "UI Pallet Functions"
         end
         else
             pContent := StrSubstNo('Pallet %1 not Exist', PalletID);
+    end;*/
+
+
+
+    //Consugnment note report - UI
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
+    local procedure ConsignmentNote(VAR pFunction: Text[50]; VAR pContent: Text)
+    VAR
+        ConsugnmentNoteReport: Report "Consignment Note";
+        LPostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+        LTempBlob: Codeunit "Temp Blob";
+        LRecRef: RecordRef;
+        LOutStr: OutStream;
+        LNo: Code[20];
+        LLineNo: Integer;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        Password: text[10];
+        FileMgt: Codeunit "File Management";
+    begin
+        IF pFunction <> 'ConsignmentNote' THEN
+            EXIT;
+
+        LNo := '';
+        LLineNo := 0;
+        LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
+        JsonObj.ReadFrom(pContent);
+        JsonObj.SelectToken('no', JsonTkn);
+        LNo := JsonTkn.AsValue().AsText();
+        JsonObj.SelectToken('lineno', JsonTkn);
+        Evaluate(LLineNo, JsonTkn.AsValue().AsText());
+
+        LPostedWhseShipmentLine.Get(LNo, LLineNo);
+        LRecRef.GetTable(LPostedWhseShipmentLine);
+        Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
+
+        pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consugnment Note %1 %2.pdf', LNo, LLineNo), true);
+
     end;
-
-
 
 }
 

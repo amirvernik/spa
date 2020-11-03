@@ -78,20 +78,6 @@ page 60004 "Pallet List"
     {
         area(Processing)
         {
-            action("Cancel Pallet")
-            {
-                ApplicationArea = All;
-                image = Cancel;
-                Promoted = true;
-                PromotedCategory = Process;
-                Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
-                trigger OnAction()
-                var
-                    LPalletFunctions: Codeunit "Pallet Functions";
-                begin
-                    LPalletFunctions.CancelPallet(Rec);
-                end;
-            }
 
             action("Close Pallet")
             {
@@ -106,29 +92,7 @@ page 60004 "Pallet List"
                     PalletFunctions.ClosePallet(rec, 'BC');
                 end;
             }
-            action("Dispose Pallet")
-            {
-                ApplicationArea = All;
-                image = NegativeLines;
-                Promoted = true;
-                PromotedCategory = Process;
-                Enabled = ShowDisposed;
 
-                trigger OnAction()
-                begin
-                    PalletDisposalMgmt.DisposePallet(rec);
-                end;
-            }
-
-            action("Mark Shipped")
-            {
-                ApplicationArea = All;
-                image = ReleaseShipment;
-                Promoted = true;
-                PromotedCategory = Process;
-                Enabled = ShowShip;
-
-            }
             action("ReOpen Pallet")
             {
                 ApplicationArea = All;
@@ -146,6 +110,35 @@ page 60004 "Pallet List"
                     PalletFunctions.ReOpenPallet(rec);
                 end;
             }
+            action("Dispose Pallet")
+            {
+                ApplicationArea = All;
+                image = NegativeLines;
+                Promoted = true;
+                PromotedCategory = Process;
+                Enabled = ShowDisposed;
+
+                trigger OnAction()
+                begin
+                    PalletDisposalMgmt.DisposePallet(rec);
+                end;
+            }
+            action("Cancel Pallet")
+            {
+                ApplicationArea = All;
+                image = Cancel;
+                Promoted = true;
+                PromotedCategory = Process;
+                Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
+                trigger OnAction()
+                var
+                    LPalletFunctions: Codeunit "Pallet Functions";
+                begin
+                    LPalletFunctions.CancelPallet(Rec);
+                end;
+            }
+
+
             action("Print Pallet")
             {
                 ApplicationArea = All;
@@ -165,7 +158,15 @@ page 60004 "Pallet List"
                 end;
 
             }
+            action("Mark Shipped")
+            {
+                ApplicationArea = All;
+                image = ReleaseShipment;
+                Promoted = true;
+                PromotedCategory = Process;
+                Enabled = ShowShip;
 
+            }
         }
     }
     trigger OnOpenPage()
