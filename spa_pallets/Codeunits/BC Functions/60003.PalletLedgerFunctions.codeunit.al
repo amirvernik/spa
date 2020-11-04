@@ -240,33 +240,39 @@ codeunit 60003 "Pallet Ledger Functions"
     begin
         PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
-        PalletLedgerEntry.Init();
-        PalletLedgerEntry."Entry No." := LineNumber;
-        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Return Packing Materials";
-        PalletLedgerEntry."Pallet ID" := ItemLedgerEntry."Pallet ID";
-        PalletLedgerEntry."Document No." := ItemLedgerEntry."Pallet ID";
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-        PalletLedgerEntry.validate("Posting Date", Today);
-        PalletLedgerEntry.validate("Item No.", ItemLedgerEntry."Item No.");
-        if item.get(ItemLedgerEntry."Item No.") then
-            PalletLedgerEntry."Item Description" := item.Description;
-        PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
-        PalletLedgerEntry.validate("Location Code", ItemLedgerEntry."Location Code");
-        //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
-        //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
-        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
-        ItemUOM.reset;
-        ItemUOM.setrange("Item No.", ItemLedgerEntry."Item No.");
-        ItemUOM.setrange(code, ItemLedgerEntry."Packing Material UOM");
-        if ItemUOM.findfirst then
-            //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
-            PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity * ItemUOM."Qty. per Unit of Measure")
-        else
-            PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
-        PalletLedgerEntry."User ID" := userid;
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-        if PalletLedgerEntry.Quantity <> 0 then
-            PalletLedgerEntry.Insert();
+        PalletLines.reset;
+        PalletLines.setrange("Pallet ID", ItemLedgerEntry."Pallet ID");
+        if palletlines.FindSet() then
+            repeat
+                PalletLedgerEntry.Init();
+                PalletLedgerEntry."Entry No." := LineNumber;
+                PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Return Packing Materials";
+                PalletLedgerEntry."Pallet ID" := ItemLedgerEntry."Pallet ID";
+                PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                PalletLedgerEntry."Document No." := ItemLedgerEntry."Pallet ID";
+                PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                PalletLedgerEntry.validate("Posting Date", Today);
+                PalletLedgerEntry.validate("Item No.", ItemLedgerEntry."Item No.");
+                if item.get(ItemLedgerEntry."Item No.") then
+                    PalletLedgerEntry."Item Description" := item.Description;
+                PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
+                PalletLedgerEntry.validate("Location Code", ItemLedgerEntry."Location Code");
+                //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
+                //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+                PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
+                ItemUOM.reset;
+                ItemUOM.setrange("Item No.", ItemLedgerEntry."Item No.");
+                ItemUOM.setrange(code, ItemLedgerEntry."Packing Material UOM");
+                if ItemUOM.findfirst then
+                    //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
+                    PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity * ItemUOM."Qty. per Unit of Measure")
+                else
+                    PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+                PalletLedgerEntry."User ID" := userid;
+                PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                if PalletLedgerEntry.Quantity <> 0 then
+                    PalletLedgerEntry.Insert();
+            until PalletLines.Next() = 0;
     end;
 
     //Posted Warehouse Shipments

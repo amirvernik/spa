@@ -69,8 +69,9 @@ codeunit 60023 "Pallet Disposal Management"
         LineNumber: Integer;
     begin
         PMSelect.Reset();
+        PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if PMSelect.FindSet() then PMSelect.DeleteAll();
-
+        Commit();
         PackingMaterials.reset;
         PackingMaterials.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if PackingMaterials.findset then
@@ -83,7 +84,11 @@ codeunit 60023 "Pallet Disposal Management"
                 PMSelect."Unit of Measure" := PackingMaterials."Unit of Measure Code";
                 pmselect.insert;
             until PackingMaterials.next = 0;
-        page.runmodal(page::"Packing Materials Select", PMSelect);
+
+        PMSelect.Reset();
+        PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+        if PMSelect.FindSet() then;
+        page.RunModal(page::"Packing Materials Select", PMSelect);
 
         PMSelect.reset;
         PMSelect.setrange(Select, true);
@@ -119,6 +124,7 @@ codeunit 60023 "Pallet Disposal Management"
                 lineNumber += 10000;
             until PMSelect.next = 0;
     end;
+
 
     //Dispose Packing Materials UI
     procedure DisposePackingMaterialsUI(var pPalletHeader: Record "Pallet Header"; var pPackingSelect: Record "Packing Materials Select")
@@ -250,7 +256,7 @@ codeunit 60023 "Pallet Disposal Management"
         ItemJournalLine.reset;
         ItemJournalLine.setrange("Journal Template Name", 'ITEM');
         ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
-        ItemJournalLine.SetRange("Document No.", pPalletNumber);
+        ItemJournalLine.SetRange("Pallet ID", pPalletNumber);
         if ItemJournalLine.findset then
             repeat
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
