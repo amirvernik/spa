@@ -7,27 +7,30 @@ codeunit 60023 "Pallet Disposal Management"
         DPW: Codeunit "Dispose Pallet Workflow";
         myRec: Variant;
         ItemJournalLine: Record "Item Journal Line";
+        Err10: Label 'Canceled status is allowed only for open or close status pallet and if the pallet not exist in warehouse shipment';
     begin
-        if DPWI.IsDisposePalletEnabled(pPalletHeader) = true then begin
-            myRec := pPalletHeader;
-            DPW.SetStatusToPendingApprovalDisposePallet(myRec);
-        end
-        else begin
-            PalletSetup.get;
-            ItemJournalLine.reset;
-            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
-            ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
-            ItemJournalLine.SetRange("Document No.", pPalletHeader."Pallet ID");
-            if ItemJournalLine.findset then
-                ItemJournalLine.DeleteAll();
+        if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed]) and not (pPalletHeader."Exist in warehouse shipment") then begin
+            if DPWI.IsDisposePalletEnabled(pPalletHeader) = true then begin
+                myRec := pPalletHeader;
+                DPW.SetStatusToPendingApprovalDisposePallet(myRec);
+            end
+            else begin
+                PalletSetup.get;
+                ItemJournalLine.reset;
+                ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");
+                ItemJournalLine.SetRange("Document No.", pPalletHeader."Pallet ID");
+                if ItemJournalLine.findset then
+                    ItemJournalLine.DeleteAll();
 
-            CheckDisposalSetup(pPalletHeader);
-            DisposePackingMaterials(pPalletHeader);
-            DisposePalletItems(pPalletHeader);
-            PostDisposalBatch(pPalletHeader."Pallet ID");
-            ChangeDisposalStatus(pPalletHeader, 'BC');
-        end;
-
+                CheckDisposalSetup(pPalletHeader);
+                DisposePackingMaterials(pPalletHeader);
+                DisposePalletItems(pPalletHeader);
+                PostDisposalBatch(pPalletHeader."Pallet ID");
+                ChangeDisposalStatus(pPalletHeader, 'BC');
+            end;
+        end else
+            Error(Err10);
     end;
 
     //Check Disposal Setup
@@ -89,13 +92,14 @@ codeunit 60023 "Pallet Disposal Management"
         PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if PMSelect.FindSet() then;
         page.RunModal(page::"Packing Materials Select", PMSelect);
+        PalletSetup.get();
 
         PMSelect.reset;
         PMSelect.setrange(Select, true);
         PMSelect.SetRange("Pallet ID", pPalletHeader."Pallet ID");
         if PMSelect.findset then
             repeat
-                PalletSetup.get();
+
                 RecGItemJournalLine.reset;
                 RecGItemJournalLine.setrange("Journal Template Name", 'ITEM');
                 RecGItemJournalLine.setrange("Journal Batch Name", PalletSetup."Disposal Batch");

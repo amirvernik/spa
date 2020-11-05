@@ -75,8 +75,9 @@ codeunit 60014 "Tracking Line Functions"
         if palletline.findset then
             repeat
                 RecGReservationEntry.reset;
-                RecGReservationEntry.SetRange("Source Type", 39);
-                RecGReservationEntry.setrange("Source Subtype", 1);
+                //RecGReservationEntry.SetRange("Source Type", 39);
+                //RecGReservationEntry.setrange("Source Subtype", 1);
+                RecGReservationEntry.SetRange("Item No.", PalletLine."Item No.");
                 RecGReservationEntry.setrange("Lot No.", PalletLine."Lot Number");
                 if RecGReservationEntry.findset() then
                     repeat

@@ -997,7 +997,7 @@ codeunit 60001 "Pallet Functions"
             if Confirm(StrSubstNo(ConfirmCancelPallet, pPalletHeader."Pallet ID")) then begin
                 PalletSetup.get();
 
-                PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader);
+
 
                 ItemJournalLine.reset;
                 ItemJournalLine.setrange("Journal Template Name", 'ITEM');
@@ -1019,75 +1019,63 @@ codeunit 60001 "Pallet Functions"
                     else
                         LineNumber := 10000;
                     repeat
-                        RecItem.Get(LPalletLine."Item No.");
-                        CASE RecItem."Prevent Negative Inventory" OF
-                            RecItem."Prevent Negative Inventory"::Yes:
-                                PostItemJnlLine := true;
-                            RecItem."Prevent Negative Inventory"::No:
-                                PostItemJnlLine := FALSE;
-                            RecItem."Prevent Negative Inventory"::Default:
-                                BEGIN
-                                    InventorySetup.GET;
-                                    PostItemJnlLine := InventorySetup."Prevent Negative Inventory";
-                                END;
-                        END;
+                        RecGReservationEntry.reset;
+                        RecGReservationEntry.SetCurrentKey("Lot No.");
+                        //RecGReservationEntry.SetRange("Source Type", 39);
+                        //RecGReservationEntry.setrange("Source Subtype", 1);
+                        RecGReservationEntry.SetRange("Item No.", LPalletLine."Item No.");
+                        RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
+                        RecGReservationEntry.findset();
 
-                        if not PostItemJnlLine then begin
-                            RecGReservationEntry.reset;
-                            RecGReservationEntry.SetCurrentKey("Lot No.");
-                            RecGReservationEntry.SetRange("Source Type", 39);
-                            RecGReservationEntry.setrange("Source Subtype", 1);
-                            RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
-                            if RecGReservationEntry.findset() then begin
+                        ItemJournalLine.init;
+                        ItemJournalLine."Journal Template Name" := 'ITEM';
+                        ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                        ItemJournalLine."Line No." := LineNumber;
+                        ItemJournalLine.insert;
+                        ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
+                        ItemJournalLine.validate("Posting Date", Today);
+                        ItemJournalLine."Document No." := LPalletLine."Pallet ID";
+                        ItemJournalLine.Description := LPalletLine.Description;
+                        ItemJournalLine.validate("Item No.", LPalletLine."Item No.");
+                        ItemJournalLine.validate("Variant Code", LPalletLine."Variant Code");
+                        ItemJournalLine."Lot No." := LPalletLine."Lot Number";
+                        ItemJournalLine.validate("Location Code", LPalletLine."Location Code");
+                        ItemJournalLine.Validate("Unit of Measure Code", LPalletLine."Unit of Measure");
+                        ItemJournalLine.validate(Quantity, LPalletLine."Quantity");
+                        ItemJournalLine."Pallet ID" := LPalletLine."Pallet ID";
+                        ItemJournalLine.modify;
 
-                                ItemJournalLine.init;
-                                ItemJournalLine."Journal Template Name" := 'ITEM';
-                                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                                ItemJournalLine."Line No." := LineNumber;
-                                ItemJournalLine.insert;
-                                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
-                                ItemJournalLine.validate("Posting Date", Today);
-                                ItemJournalLine."Document No." := LPalletLine."Pallet ID";
-                                ItemJournalLine.Description := LPalletLine.Description;
-                                ItemJournalLine.validate("Item No.", LPalletLine."Item No.");
-                                ItemJournalLine.validate("Variant Code", LPalletLine."Variant Code");
-                                ItemJournalLine."Lot No." := LPalletLine."Lot Number";
-                                ItemJournalLine.validate("Location Code", LPalletLine."Location Code");
-                                ItemJournalLine.Validate("Unit of Measure Code", LPalletLine."Unit of Measure");
-                                ItemJournalLine.validate(Quantity, LPalletLine."Quantity");
-                                ItemJournalLine."Pallet ID" := LPalletLine."Pallet ID";
-                                ItemJournalLine.modify;
+                        ReservationEntry2.reset;
+                        if ReservationEntry2.findlast then
+                            maxEntry := ReservationEntry2."Entry No." + 1;
 
-                                ReservationEntry2.reset;
-                                if ReservationEntry2.findlast then
-                                    maxEntry := ReservationEntry2."Entry No." + 1;
+                        ReservationEntry.init;
+                        ReservationEntry."Entry No." := MaxEntry;
+                        ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
+                        ReservationEntry."Creation Date" := Today;
+                        ReservationEntry."Created By" := UserId;
+                        ReservationEntry."Expected Receipt Date" := Today;
+                        ReservationEntry."Source Type" := 83;
+                        ReservationEntry."Source Subtype" := ItemJournalLine."Entry Type";
+                        ReservationEntry."Source ID" := 'ITEM';
+                        ReservationEntry."Source Ref. No." := LineNumber;
+                        ReservationEntry."Source Batch Name" := PalletSetup."Disposal Batch";
+                        ReservationEntry.validate("Location Code", LPalletLine."Location Code");
+                        ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
+                        ReservationEntry."Lot No." := LPalletLine."Lot Number";
+                        ReservationEntry.validate("Item No.", LPalletLine."Item No.");
+                        if LPalletLine."Variant Code" <> '' then
+                            ReservationEntry.validate("Variant Code", LPalletLine."Variant Code");
+                        ReservationEntry.validate("Quantity (Base)", -LPalletLine.Quantity);
+                        ReservationEntry.validate(Quantity, -LPalletLine.Quantity);
 
-                                ReservationEntry.init;
-                                ReservationEntry."Entry No." := MaxEntry;
-                                ReservationEntry."Reservation Status" := ReservationEntry."Reservation Status"::Prospect;
-                                ReservationEntry."Creation Date" := Today;
-                                ReservationEntry."Created By" := UserId;
-                                ReservationEntry."Expected Receipt Date" := Today;
-                                ReservationEntry."Source Type" := 83;
-                                ReservationEntry."Source Subtype" := ItemJournalLine."Entry Type";
-                                ReservationEntry."Source ID" := 'ITEM';
-                                ReservationEntry."Source Ref. No." := LineNumber;
-                                ReservationEntry."Source Batch Name" := PalletSetup."Disposal Batch";
-                                ReservationEntry.validate("Location Code", LPalletLine."Location Code");
-                                ReservationEntry."Item Tracking" := ReservationEntry."Item Tracking"::"Lot No.";
-                                ReservationEntry."Lot No." := LPalletLine."Lot Number";
-                                ReservationEntry.validate("Item No.", LPalletLine."Item No.");
-                                if LPalletLine."Variant Code" <> '' then
-                                    ReservationEntry.validate("Variant Code", LPalletLine."Variant Code");
-                                ReservationEntry.validate("Quantity (Base)", -LPalletLine.Quantity);
-                                ReservationEntry.validate(Quantity, -LPalletLine.Quantity);
+                        ReservationEntry.insert;
+                        lineNumber += 1000;
 
-                                ReservationEntry.insert;
-                                lineNumber += 1000;
-
-                                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
-                            end;
-                        end;
+                        CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+                        PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader, MaxEntry);
+                    // end;
+                    //end;
                     until LPalletLine.Next() = 0;
 
                     // ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal

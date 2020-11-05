@@ -81,6 +81,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
+                RecGItemJournalLine.Validate("Pallet ID", pPalletHeader."Pallet ID");
                 //RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
                 ItemUOM.reset;
                 ItemUOM.setrange("Item No.", PackingMaterials."Item No.");
@@ -108,8 +109,8 @@ codeunit 60002 "Item Ledger Functions"
         RecGItemJournalLine.reset;
         RecGItemJournalLine.setrange("Journal Template Name", 'ITEM');
         RecGItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
-        RecGItemJournalLine.setrange("Pallet ID", PalletHeader."Pallet ID");
         RecGItemJournalLine.SetFilter(Quantity, '<>%1', 0);
+        RecGItemJournalLine.SetRange("Pallet ID", PalletHeader."Pallet ID");
         if RecGItemJournalLine.findset() then
             repeat
 

@@ -70,7 +70,7 @@ codeunit 60003 "Pallet Ledger Functions"
             until palletlines.next = 0;
     end;
 
-    procedure PalletCancelledPalletLedger(var PalletHeader: Record "Pallet Header")
+    procedure PalletCancelledPalletLedger(var PalletHeader: Record "Pallet Header"; EntryNo: Integer)
     var
         ItemUnitOfMeasure: Record "Item Unit of Measure";
     begin
@@ -94,6 +94,7 @@ codeunit 60003 "Pallet Ledger Functions"
                 PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
                 PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
                 PalletLedgerEntry.validate(Quantity, palletlines.Quantity);
+                PalletLedgerEntry.Validate("Item Ledger Entry No.", EntryNo);
                 PalletLedgerEntry."User ID" := userid;
                 if PalletLedgerEntry.Quantity <> 0 then
                     if not PalletLedgerEntry.Insert() then PalletLedgerEntry.Modify();
@@ -199,6 +200,39 @@ codeunit 60003 "Pallet Ledger Functions"
                 end;
             until palletlines.next = 0;
     end;
+
+    /*
+        //Pallet Ledger Entry Dispose
+        procedure PalletLedgerEntryDesp(pPalletID)
+
+        begin
+            PalletLedgerEntry.LockTable();
+            LineNumber := GetLastEntry();
+            PalletLines.reset;
+            PalletLines.setrange("Pallet ID", pPalletID);
+            if palletlines.FindSet() then
+                repeat
+                    PalletLedgerEntry.Init();
+                    PalletLedgerEntry."Entry No." := LineNumber;
+                    PalletLedgerEntry.
+                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::;
+                    PalletLedgerEntry."Pallet ID" := pPalletID;
+                    PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
+                    PalletLedgerEntry."Document No." := PalletLines."Pallet ID";
+                    PalletLedgerEntry.validate("Posting Date", Today);
+                    PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
+                    PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
+                    PalletLedgerEntry."Item Description" := PalletLines.Description;
+                    PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                    PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                    PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
+                    PalletLedgerEntry.validate(Quantity, PalletLines.Quantity);
+                    PalletLedgerEntry."User ID" := userid;
+                    PalletLedgerEntry.Insert();
+                    LineNumber += 1;
+                until palletlines.next = 0;
+        end;
+    */
 
     //Pallet Ledger Entry Item Journal - Negative
     procedure NegPalletLedgerEntryItem(var ItemLedgerEntry: Record "Item Ledger Entry")
