@@ -17,6 +17,7 @@ codeunit 60026 "UI Pallet Dispose Functions"
         TempPackingMaterialsSelect: Record "Packing Materials Select" temporary;
         ItemJournalLine: Record "Item Journal Line";
         PalletSetup: Record "Pallet Process Setup";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
     begin
         IF pFunction <> 'DisposePallet' THEN
             EXIT;
@@ -71,7 +72,9 @@ codeunit 60026 "UI Pallet Dispose Functions"
             PalletDisposalFunctions.DisposePackingMaterialsUI(PalletHeader, TempPackingMaterialsSelect);
             PalletDisposalFunctions.DisposePalletItems(PalletHeader);
             PalletDisposalFunctions.PostDisposalBatch(PalletHeader."Pallet ID");
+            PalletLedgerFunctions.PalletDisposeledPalletLedger(PalletHeader);
             PalletDisposalFunctions.ChangeDisposalStatus(PalletHeader, 'WEBUI');
+
             pContent := 'Success';
         end
         else

@@ -4,10 +4,17 @@ codeunit 60023 "Pallet Disposal Management"
     procedure DisposePallet(var pPalletHeader: Record "Pallet Header")
     var
         DPWI: Codeunit DisposePalletWorkflowInit;
+        LPalletLines: Record "Pallet Line";
+        LPurchaseLine: Record "Purchase Line";
+        LPurchaseHedear: Record "Purchase Header";
         DPW: Codeunit "Dispose Pallet Workflow";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         myRec: Variant;
         ItemJournalLine: Record "Item Journal Line";
-        Err10: Label 'Canceled status is allowed only for open or close status pallet and if the pallet not exist in warehouse shipment';
+        ErrDispose: Label 'There is another pallet that is related to the relevant PO line, therefore this pallet can not be disposed.';
+        LPurchaseLines: Record "Purchase Line";
+        isReleased: Boolean;
+        Err10: Label 'Disposed status is allowed only for open or close status pallet and if the pallet not exist in warehouse shipment';
     begin
         if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed]) and not (pPalletHeader."Exist in warehouse shipment") then begin
             if DPWI.IsDisposePalletEnabled(pPalletHeader) = true then begin
@@ -15,6 +22,33 @@ codeunit 60023 "Pallet Disposal Management"
                 DPW.SetStatusToPendingApprovalDisposePallet(myRec);
             end
             else begin
+                isReleased := false;
+                LPalletLines.Reset();
+                LPalletLines.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+                LPalletLines.SetFilter("Purchase Order No.", '<>%1', '');
+                if LPalletLines.FindSet() then
+                    repeat
+                        if LPurchaseLine.Get(LPurchaseLine."Document Type"::Order, LPalletLines."Purchase Order No.", LPalletLines."Purchase Order Line No.") then begin
+                            if LPurchaseLine.Quantity <> LPalletLines.Quantity then begin
+                                LPurchaseHedear.Get(LPurchaseLine."Document Type"::Order, LPalletLines."Purchase Order No.");
+                                if LPurchaseHedear.Status <> LPurchaseHedear.Status::Open then begin
+                                    LPurchaseHedear.Status := LPurchaseHedear.Status::Open;
+                                    LPurchaseHedear.Modify();
+                                    isReleased := true;
+                                end;
+                                LPurchaseLine.Validate("Line Discount %", 100);
+                                LPurchaseLine.Modify();
+                                if isReleased then begin
+                                    LPurchaseHedear.Status := LPurchaseHedear.Status::Released;
+                                    LPurchaseHedear.Modify();
+                                end;
+                            end else begin
+                                Error(ErrDispose);
+                                exit;
+                            end;
+                        end;
+                    until LPalletLines.Next() = 0;
+
                 PalletSetup.get;
                 ItemJournalLine.reset;
                 ItemJournalLine.setrange("Journal Template Name", 'ITEM');
@@ -27,7 +61,9 @@ codeunit 60023 "Pallet Disposal Management"
                 DisposePackingMaterials(pPalletHeader);
                 DisposePalletItems(pPalletHeader);
                 PostDisposalBatch(pPalletHeader."Pallet ID");
+                PalletLedgerFunctions.PalletDisposeledPalletLedger(pPalletHeader);
                 ChangeDisposalStatus(pPalletHeader, 'BC');
+
             end;
         end else
             Error(Err10);
@@ -186,6 +222,7 @@ codeunit 60023 "Pallet Disposal Management"
         ItemRec: Record Item;
         PalletSetup: Record "Pallet Process Setup";
         maxEntry: integer;
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
     begin
         PalletLine.reset;
         PalletLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
@@ -249,6 +286,8 @@ codeunit 60023 "Pallet Disposal Management"
                         lineNumber += 10000;
                     end;
             until PalletLine.next = 0;
+
+
     end;
 
     //Post Disposal Batch

@@ -384,6 +384,35 @@ page 60003 "Pallet Card"
         else
             PackingExists := false;
 
+        case rec."Pallet Status" of
+            rec."Pallet Status"::open:
+                begin
+                    ShowReopen := false;
+                    ShowClose := true;
+                    ShowDisposed := false;
+                    ShowCancel := true;
+                end;
+            rec."Pallet Status"::Closed:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowDisposed := true;
+                end;
+            rec."Pallet Status"::Shipped:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowDisposed := false;
+                end;
+            rec."Pallet Status"::Canceled:
+                begin
+                    ShowReopen := true;
+                    ShowClose := false;
+                    ShowDisposed := false;
+                    ShowCancel := false;
+                end;
+        end;
+
     end;
 
     trigger OnAfterGetRecord()

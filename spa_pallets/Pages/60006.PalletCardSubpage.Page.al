@@ -261,7 +261,7 @@ page 60006 "Pallet Card Subpage"
         LPalletHeader: Record "Pallet Header";
     begin
         LPalletHeader.Get("Pallet ID");
-        if LPalletHeader."Pallet Status" <> LPalletHeader."Pallet Status"::Canceled then
+        if LPalletHeader."Pallet Status" = LPalletHeader."Pallet Status"::Canceled then
             PalletCancelled := false
         else
             PalletCancelled := true;

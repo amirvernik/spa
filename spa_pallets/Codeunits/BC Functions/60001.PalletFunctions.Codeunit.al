@@ -756,6 +756,7 @@ codeunit 60001 "Pallet Functions"
                 LPurchaseLine.Reset();
                 LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                 LPurchaseLine.SetRange("Document No.", LPurchaseHeader."No.");
+                LPurchaseLine.SetRange("Version No.", LPurchaseHeader."Version No.");
                 if LPurchaseLine.FindSet() then
                     repeat
                         LPalletLine.Reset();
@@ -972,6 +973,7 @@ codeunit 60001 "Pallet Functions"
     var
         ConfirmCancelPallet: Label 'Are you sure you want to cancel this pallet? pallet id: %1';
         Err10: Label 'Canceled status is allowed only for open or close status pallet and if the pallet not exist in warehouse shipment';
+        Err11: Label 'The pallet can not be cancelled as it is allocated to an open document (shipment, transfer order atc.)';
         LPalletLedgerEntry: Record "Pallet Ledger Entry";
         LPurchaseHeader: Record "Purchase Header";
         LPurchaseLine: Record "Purchase Line";
@@ -997,8 +999,6 @@ codeunit 60001 "Pallet Functions"
             if Confirm(StrSubstNo(ConfirmCancelPallet, pPalletHeader."Pallet ID")) then begin
                 PalletSetup.get();
 
-
-
                 ItemJournalLine.reset;
                 ItemJournalLine.setrange("Journal Template Name", 'ITEM');
                 ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
@@ -1009,6 +1009,23 @@ codeunit 60001 "Pallet Functions"
                 LPalletLine.Reset();
                 LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
                 LPalletLine.SetFilter("Lot Number", '<>%1', '');
+                if LPalletLine.FindSet() then
+                    repeat
+                        RecGReservationEntry.reset;
+                        RecGReservationEntry.SetCurrentKey("Lot No.");
+                        //RecGReservationEntry.SetRange("Source Type", 39);
+                        //RecGReservationEntry.setrange("Source Subtype", 1);
+                        RecGReservationEntry.SetRange("Item No.", LPalletLine."Item No.");
+                        RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
+                        if RecGReservationEntry.findset() then begin
+                            Error(Err11);
+                            Exit;
+                        end;
+                    until LPalletLine.Next() = 0;
+
+
+                LPalletLine.Reset();
+                LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
                 if LPalletLine.FindSet() then begin
                     PurchaseProcessSetup.get;
                     ItemJournalLine.reset;
@@ -1019,14 +1036,6 @@ codeunit 60001 "Pallet Functions"
                     else
                         LineNumber := 10000;
                     repeat
-                        RecGReservationEntry.reset;
-                        RecGReservationEntry.SetCurrentKey("Lot No.");
-                        //RecGReservationEntry.SetRange("Source Type", 39);
-                        //RecGReservationEntry.setrange("Source Subtype", 1);
-                        RecGReservationEntry.SetRange("Item No.", LPalletLine."Item No.");
-                        RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
-                        RecGReservationEntry.findset();
-
                         ItemJournalLine.init;
                         ItemJournalLine."Journal Template Name" := 'ITEM';
                         ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
@@ -1074,12 +1083,7 @@ codeunit 60001 "Pallet Functions"
 
                         CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
                         PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader, MaxEntry);
-                    // end;
-                    //end;
                     until LPalletLine.Next() = 0;
-
-                    // ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
-
                 end;
                 TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO
 

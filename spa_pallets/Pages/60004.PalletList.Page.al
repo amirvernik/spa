@@ -79,6 +79,38 @@ page 60004 "Pallet List"
         area(Processing)
         {
 
+            action("Fix Shipped")//DELETE ME
+            {
+                ApplicationArea = All;
+                Visible = EnableTESTPROD1;
+                trigger OnAction()
+                var
+                    LPalletHeader: Record "Pallet Header";
+                    PostedWarehousePallet: Record "Posted Warehouse Pallet";
+                    PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+                    PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
+                begin
+                    LPalletHeader.Reset();
+                    LPalletHeader.CopyFilters(Rec);
+                    if LPalletHeader.FindSet() then
+                        repeat
+                            PostedWarehousePallet.Reset();
+                            PostedWarehousePallet.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            if PostedWarehousePallet.FindSet() then
+                                repeat
+                                    PostedWhseShipmentLine.Reset();
+                                    PostedWhseShipmentLine.SetRange("No.", PostedWarehousePallet."Whse Shipment No.");
+                                    PostedWhseShipmentLine.SetRange("Line No.", PostedWarehousePallet."Whse Shipment Line No.");
+                                    if PostedWhseShipmentLine.FindSet() then
+                                        repeat
+                                            PalletLedgerFunctions.PalletLedgerEntryWarehouseShipment(PostedWhseShipmentLine);
+                                        until PostedWhseShipmentLine.Next() = 0;
+                                until PostedWarehousePallet.Next() = 0;
+                        until LPalletHeader.Next() = 0;
+                end;
+
+            }
+
             action("Close Pallet")
             {
                 ApplicationArea = All;
@@ -171,6 +203,7 @@ page 60004 "Pallet List"
     }
     trigger OnOpenPage()
     begin
+        EnableTESTPROD1 := UserId() = 'PRODWARE1';
     end;
 
     trigger OnAfterGetCurrRecord()
@@ -234,4 +267,5 @@ page 60004 "Pallet List"
         ShowReopen: Boolean;
         ShowDisposed: Boolean;
         PalletTypeText: Text;
+        EnableTESTPROD1: Boolean;
 }

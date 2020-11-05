@@ -109,6 +109,7 @@ page 60025 "Pallet Change Quality"
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
                     ErrNewItem: Label 'You have not enterd a new item line';
                     PalletChangeQuality: Record "Pallet Change Quality";
+                    ReservationEntry: Record "Reservation Entry";
                 begin
                     //Check if needs to do
                     //ChangeQualityMgmt.CheckChangeItem(Rec);
@@ -135,14 +136,19 @@ page 60025 "Pallet Change Quality"
                         exit;
                     end;
 
-                    ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
-                    // ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+                    ReservationEntry.reset;
+                    ReservationEntry.SetCurrentKey("Lot No.");
+                    ReservationEntry.SetRange("Item No.", Rec."Item No.");
+                    ReservationEntry.setrange("Lot No.", Rec."Lot Number");
+                    if ReservationEntry.findset() then
+                        ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
+                                                                    // ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
                     ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
                     ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
                     ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
                     ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
                     ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
-                    // ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
+                                                           // ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(rec."Pallet ID"); //Post Pos Item Journals to New Items  
                     ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials                                      

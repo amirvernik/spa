@@ -1209,34 +1209,58 @@ codeunit 60010 "UI Pallet Functions"
     VAR
         ConsugnmentNoteReport: Report "Consignment Note";
         LPostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+        LSalesOrder: Record "Sales Header";
+        LSalesOrderArchive: Record "Sales Header Archive";
         LTempBlob: Codeunit "Temp Blob";
         LRecRef: RecordRef;
+        SalesOrderText: Code[20];
         LOutStr: OutStream;
-        LNo: Code[20];
-        LLineNo: Integer;
         JsonObj: JsonObject;
         JsonTkn: JsonToken;
         Password: text[10];
         FileMgt: Codeunit "File Management";
+        boolExists: Boolean;
     begin
         IF pFunction <> 'ConsignmentNote' THEN
             EXIT;
 
-        LNo := '';
-        LLineNo := 0;
-        LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
+        SalesOrderText := '';
         JsonObj.ReadFrom(pContent);
-        JsonObj.SelectToken('no', JsonTkn);
-        LNo := JsonTkn.AsValue().AsText();
-        JsonObj.SelectToken('lineno', JsonTkn);
-        Evaluate(LLineNo, JsonTkn.AsValue().AsText());
+        JsonObj.SelectToken('salesorder', JsonTkn);
+        SalesOrderText := JsonTkn.AsValue().AsText();
 
-        LPostedWhseShipmentLine.Get(LNo, LLineNo);
-        LRecRef.GetTable(LPostedWhseShipmentLine);
-        Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
+        LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
 
-        pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consugnment Note %1 %2.pdf', LNo, LLineNo), true);
+        boolExists := false;
+        LSalesOrder.Reset();
+        LSalesOrder.SetRange("Document Type", LSalesOrder."Document Type"::Order);
+        LSalesOrder.SetRange("No.", SalesOrderText);
+        IF LSalesOrder.FindFirst() then begin
+            LPostedWhseShipmentLine.Reset();
+            LPostedWhseShipmentLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.");
+            LPostedWhseShipmentLine.SetRange("Source No.", SalesOrderText);
+            if LPostedWhseShipmentLine.FindFirst() then
+                boolExists := true;
+        end else begin
+            LSalesOrderArchive.Reset();
+            LSalesOrderArchive.SetRange("Document Type", LSalesOrderArchive."Document Type"::Order);
+            LSalesOrderArchive.SetRange("No.", SalesOrderText);
+            IF LSalesOrderArchive.FindFirst() then begin
+                LPostedWhseShipmentLine.Reset();
+                LPostedWhseShipmentLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.");
+                LPostedWhseShipmentLine.SetRange("Source No.", SalesOrderText);
+                if LPostedWhseShipmentLine.FindFirst() then
+                    boolExists := true;
+            end;
+        end;
 
+        if not boolExists then
+            pContent := 'Error, cannot find  warehouse shipment line'
+        else begin
+            LRecRef.GetTable(LPostedWhseShipmentLine);
+            Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
+            pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consugnment Note %1 .pdf', SalesOrderText), true);
+        end;
     end;
 
 }
