@@ -69,6 +69,12 @@ page 60025 "Pallet Change Quality"
                     Caption = 'New Quantity';
                     Editable = true;
                     ApplicationArea = all;
+                    trigger OnValidate();
+                    begin
+                        if "Replaced Qty" >= Quantity then begin
+                            Error('New Quantity must be less than %1', Quantity);
+                        end;
+                    end;
 
                 }
                 field("Expiration Date"; "Expiration Date")
@@ -108,9 +114,21 @@ page 60025 "Pallet Change Quality"
                     PalletItemChgLine: Record "Pallet Change Quality";
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
                     ErrNewItem: Label 'You have not enterd a new item line';
+                    ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
                     PalletChangeQuality: Record "Pallet Change Quality";
                     ReservationEntry: Record "Reservation Entry";
                 begin
+
+                    ReservationEntry.reset;
+                    ReservationEntry.SetCurrentKey("Lot No.");
+                    ReservationEntry.SetRange("Item No.", Rec."Item No.");
+                    ReservationEntry.setrange("Lot No.", Rec."Lot Number");
+                    if ReservationEntry.findset() then
+                        Error(ErrorReservation);
+
+                    if "Replaced Qty" >= Quantity then
+                        Error('New Quantity must be less than %1', Quantity);
+
                     //Check if needs to do
                     //ChangeQualityMgmt.CheckChangeItem(Rec);
                     PalletChangeQuality.Reset();
@@ -136,16 +154,12 @@ page 60025 "Pallet Change Quality"
                         exit;
                     end;
 
-                    ReservationEntry.reset;
-                    ReservationEntry.SetCurrentKey("Lot No.");
-                    ReservationEntry.SetRange("Item No.", Rec."Item No.");
-                    ReservationEntry.setrange("Lot No.", Rec."Lot Number");
-                    if ReservationEntry.findset() then
-                        ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
-                                                                    // ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+
+                    // ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
+                    // ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
                     ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
                     ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
-                    ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
+                                                                    //ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
                     ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
                     ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
                                                            // ChangeQualityMgmt.PostItemLedger(); //Post Pos Item Journals to New Items                    
