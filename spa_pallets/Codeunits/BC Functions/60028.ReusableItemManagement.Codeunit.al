@@ -70,10 +70,13 @@ codeunit 60028 "ReusableItemManagement"
                     BoolToPost := true;
                 end;
             until PurchRcpLine.next = 0;
-            
+
             if BoolToPost then begin
                 RecGItemJournalLine.setrange("Line No.", FirstLine, LineNumber);
-                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
+                if RecGItemJournalLine.FindSet() then
+                    repeat
+                        CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
+                    until RecGItemJournalLine.Next() = 0;
             end;
         end;
     end;
