@@ -169,8 +169,13 @@ page 60011 "Pallet List Select Whse Ship"
         SalesHeader: Record "Sales Header";
         BoolAll: Boolean;
         BoolOnlyOne: Boolean;
-
+        DateToday: Date;
     begin
+        if SalesHeader."Requested Delivery Date" = 0D then
+            DateToday := Today()
+        else
+            DateToday := SalesHeader."Requested Delivery Date";
+
         SalesHeader.get(SalesHeader."Document Type"::Order, pOrderNo);
         BoolAll := false;
         BoolOnlyOne := false;
@@ -179,7 +184,7 @@ page 60011 "Pallet List Select Whse Ship"
             SalesPrice.setrange("Item No.", salesline."No.");
             SalesPrice.setrange("Variant Code", Salesline."Variant Code");
             SalesPrice.setrange("Ending Date", 0D);
-            SalesPrice.setfilter("Starting Date", '<=%1', today);
+            SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
             SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::"All Customers");
             if SalesPrice.findfirst then
                 BoolAll := true;
@@ -190,7 +195,7 @@ page 60011 "Pallet List Select Whse Ship"
                 SalesPrice.setrange("Item No.", salesline."No.");
                 SalesPrice.setrange("Variant Code", Salesline."Variant Code");
                 SalesPrice.setrange("Ending Date", 0D);
-                SalesPrice.setfilter("Starting Date", '<=%1', today);
+                SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
                 SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::Customer);
                 SalesPrice.setrange(SalesPrice."Sales Code", SalesHeader."Sell-to Customer No.");
                 if SalesPrice.findfirst then

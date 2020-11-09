@@ -28,6 +28,7 @@ codeunit 60028 "ReusableItemManagement"
         PalletSetup: Record "Pallet Process Setup";
         PurchRcpLine: record "Purch. Rcpt. Line";
         ItemLedgerEntry: Record "Item Ledger Entry";
+
         Item: Record Item;
         LineNumber: Integer;
         FirstLine: Integer;

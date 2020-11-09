@@ -110,6 +110,29 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
     {
         addlast(processing)
         {
+            action("Archive Documents")
+            {
+                ApplicationArea = All;
+                Image = Archive;
+
+                trigger OnAction();
+                var
+                    ArchiveManagement: Codeunit ArchiveManagement;
+                    LPurchaseOrder: Record "Purchase Header";
+                    LPurchaseLine: Record "Purchase Line";
+                begin
+                    LPurchaseOrder.Reset();
+                    LPurchaseOrder.SetRange("Document Type", "Document Type"::Order);
+                    if LPurchaseOrder.FindSet() then
+                        repeat
+                            LPurchaseLine.Reset();
+                            LPurchaseLine.SetRange("Document Type", "Document Type"::Order);
+                            LPurchaseLine.SetRange("Document No.", LPurchaseOrder."No.");
+                            if not LPurchaseLine.FindSet() then
+                                ArchiveManagement.ArchivePurchDocument(LPurchaseOrder);
+                        until LPurchaseOrder.Next() = 0;
+                end;
+            }
             action("Pallet Information")
             {
                 ApplicationArea = All;

@@ -292,6 +292,9 @@ codeunit 60016 "UI Whse Shipments Functions"
         LineNumber: Integer;
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
+        LItem: Record Item;
+        PalletSetup: Record "Pallet Process Setup";
+        LItemJournalLine: Record "Item Journal Line";
         QuantityToUpdateShip: Decimal;
         //QuantityRemain: Integer;
         ShipmentNumnber: Code[20];
@@ -421,6 +424,37 @@ codeunit 60016 "UI Whse Shipments Functions"
                                 exit;
                             end;
                         end;
+
+                        PalletSetup.get();
+                        LItemJournalLine.reset;
+                        LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                        LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                        if LItemJournalLine.FindLast() then
+                            LineNumber := LItemJournalLine."Line No." + 10000
+                        else
+                            LineNumber := 10000;
+
+                        If (LItem.get(PalletLine."Item No.") and LItem."Reusable item") then begin
+                            LItemJournalLine.init;
+                            LItemJournalLine."Journal Template Name" := 'ITEM';
+                            LItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+                            LItemJournalLine."Line No." := LineNumber;
+                            LItemJournalLine.insert;
+                            LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Positive Adjmt.";
+                            LItemJournalLine."Posting Date" := Today();
+                            LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
+                            LItemJournalLine.Description := PalletLine.Description;
+                            LItemJournalLine.validate("Item No.", PalletLine."Item No.");
+                            LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
+                            LItemJournalLine.validate("Location Code", PalletLine."Location Code");
+                            LItemJournalLine.validate(Quantity, PalletLine."Quantity");
+                            LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
+                            LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
+                            LItemJournalLine.modify;
+                            LineNumber += 10000;
+                            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+                        end;
+
                     until palletline.next = 0
                 else begin
                     pContent := 'Pallet line does not exists';
@@ -439,9 +473,16 @@ codeunit 60016 "UI Whse Shipments Functions"
         BoolAll: Boolean;
         BoolOnlyOne: Boolean;
 
+
     begin
-        DateToday := PalletFunctionCodeunit.GetCurrTime();
+
         SalesHeader.get(SalesHeader."Document Type"::Order, pOrderNo);
+
+        if SalesHeader."Requested Delivery Date" = 0D then
+            DateToday := PalletFunctionCodeunit.GetCurrTime()
+        else
+            DateToday := SalesHeader."Requested Delivery Date";
+
         BoolAll := false;
         BoolOnlyOne := false;
         if salesline.get(Salesline."Document Type"::Order, pOrderNo, pOrderLine) then begin
