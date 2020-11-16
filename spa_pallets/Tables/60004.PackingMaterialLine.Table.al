@@ -55,6 +55,12 @@ table 60004 "Packing Material Line"
             Caption = 'Reusable Item';
             DataClassification = ToBeClassified;
         }
+        field(30; "Fixed Value"; Boolean)
+        {
+            Caption = 'Fixed Value';
+            DataClassification = ToBeClassified;
+        }
+
     }
 
     keys

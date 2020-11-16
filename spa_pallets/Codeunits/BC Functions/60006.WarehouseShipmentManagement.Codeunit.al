@@ -258,18 +258,56 @@ codeunit 60006 "Warehouse Shipment Management"
         PostedWarehousePallet: Record "Posted Warehouse Pallet";
         PostedWarehousePallet2: Record "Posted Warehouse Pallet";
         WarehousePallet: Record "Warehouse Pallet";
+        LCustomer: Record Customer;
+        CustomerNo: code[20];
+        LSalesHeader: Record "Sales Header";
+        LCustomerPostingGroup: Record "Customer Posting Group";
+        LPurchaseLine: Record "Purchase Line";
+        LPalletLine: Record "Pallet Line";
         PostedWhseShipNo: code[20];
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         PostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
+        LPurchaseHeader: Record "Purchase Header";
+        enumPurchaseStatus: Enum "Purchase Document Status";
+        isReleased: Boolean;
     begin
         //Move to Posted Pallet  - Working      
         WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentHeader."No.");
         if WarehousePallet.findset then
             repeat
+                LSalesHeader.Reset();
+                LSalesHeader.SetRange("Document Type", LSalesHeader."Document Type"::Order);
+                LSalesHeader.SetRange("No.", WarehousePallet."Sales Order No.");
+                if LSalesHeader.FindFirst() then
+                    if LCustomer.Get(LSalesHeader."Sell-to Customer No.") then begin
+                        LCustomerPostingGroup.Reset();
+                        LCustomerPostingGroup.SetRange(code, LCustomer."Customer Posting Group");
+                        LCustomerPostingGroup.SetRange("Pay-Pack", true);
+                        if LCustomerPostingGroup.FindFirst() then
+                            if LPalletLine.Get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
+                                if LPurchaseLine.Get(LPurchaseLine."Document Type"::Order, LPalletLine."Purchase Order No.", LPalletLine."Purchase Order Line No.") and (LPalletLine."Purchase Order No." <> '') then begin
+                                    LPurchaseHeader.get(LPurchaseHeader."Document Type"::Order, LPalletLine."Purchase Order No.");
+                                    isReleased := false;
+                                    if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then begin
+                                        enumPurchaseStatus := LPurchaseHeader.Status;
+                                        LPurchaseHeader.Status := LPurchaseHeader.Status::Open;
+                                        LPurchaseHeader.Modify();
+                                        isReleased := true;
+
+                                    end;
+                                    LPurchaseLine.Validate("Unit Cost", 0);
+                                    LPurchaseLine.Modify();
+                                    if isReleased then begin
+                                        LPurchaseHeader.Status := enumPurchaseStatus;
+                                        LPurchaseHeader.Modify();
+                                    end;
+                                end;
+                    end;
                 PostedWarehousePallet.init;
                 PostedWarehousePallet.TransferFields(WarehousePallet);
                 PostedWarehousePallet.insert(true);
                 WarehousePallet.delete;
+
             until WarehousePallet.next = 0;
 
     end;

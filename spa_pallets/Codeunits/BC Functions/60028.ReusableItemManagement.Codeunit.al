@@ -14,14 +14,14 @@ codeunit 60028 "ReusableItemManagement"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, 90, 'OnAfterPostPurchaseDoc', '', true, true)]
+   /* [EventSubscriber(ObjectType::Codeunit, 90, 'OnAfterPostPurchaseDoc', '', true, true)]
     local procedure OnAfterPostPurchaseDoc(VAR PurchaseHeader: Record "Purchase Header"; VAR GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PurchRcpHdrNo: Code[20]; RetShptHdrNo: Code[20]; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20])
     begin
         if not (PurchaseHeader."Microwave Process PO") then
             exit;
         FillPostItemJournal(PurchRcpHdrNo);
     end;
-
+*/
     procedure FillPostItemJournal(PurchRcpHdrNo: code[20])
     var
         RecGItemJournalLine: Record "Item Journal Line";

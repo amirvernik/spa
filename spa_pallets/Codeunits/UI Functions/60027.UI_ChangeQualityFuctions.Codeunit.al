@@ -67,7 +67,7 @@ codeunit 60027 "UI Change Quality Functions"
             if TrackingItemNumber = '' then begin
 
                 //ChangeQualityMgmt.NegAdjChangeQuality(PalletLineChangeQuality); //Negative Change Quality   ***
-                ChangeQualityMgmt.PostItemLedger(PalletID); //Post Neg Item Journals to New Items      +++            
+                //ChangeQualityMgmt.PostItemLedger(PalletID); //Post Neg Item Journals to New Items      +++            
                 ChangeQualityMgmt.ChangeQuantitiesOnPalletline(PalletLineChangeQuality); //Change Quantities on Pallet Line                                                                                        //ChangeQualityMgmt.ChangePalletReservation(PalletLineChangeQuality); //Change Pallet Reservation Line                    
                 ChangeQualityMgmt.ChangePalletReservation(PalletLineChangeQuality);
                 //ChangeQualityMgmt.PalletLedgerAdjustOld(PalletLineChangeQuality); //Adjust Pallet Ledger Entries - Old Items                   

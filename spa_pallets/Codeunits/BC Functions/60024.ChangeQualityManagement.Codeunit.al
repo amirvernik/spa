@@ -370,11 +370,13 @@ codeunit 60024 "Change Quality Management"
         PalletLineNo: Integer;
         LPOLineNo: Integer;
         LPurchaseHeader: Record "Purchase Header";
+        LPurchaseHeaderArchive: Record "Purchase Header Archive";
         LPurchaseLine: Record "Purchase Line";
         LPurchaseLineNewQty: Record "Purchase Line";
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
         CUPurchasePost: Codeunit "Purch.-Post";
         LisReleased: Boolean;
+        ErrArchived: Label 'The PO was already invoiced, please change item quality manually';
     begin
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
@@ -385,6 +387,7 @@ codeunit 60024 "Change Quality Management"
         if pPalletLineChg.findset then
             repeat
                 if (pPalletLineChg."Purchase Order No." <> '') and (pPalletLineChg."Purchase Order Line No." <> 0) then begin
+
 
                     LPurchaseHeader.Reset();
                     LPurchaseHeader.SetRange("Document Type", LPurchaseHeader."Document Type"::Order);
@@ -434,6 +437,14 @@ codeunit 60024 "Change Quality Management"
                         if LisReleased then
                             DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
 
+                    end else begin
+                        LPurchaseHeaderArchive.Reset();
+                        LPurchaseHeaderArchive.SetRange("Document Type", LPurchaseHeaderArchive."Document Type"::Order);
+                        LPurchaseHeaderArchive.SetRange("No.", pPalletLineChg."Purchase Order No.");
+                        if LPurchaseHeaderArchive.FindFirst() then begin
+                            Error(ErrArchived);
+                            exit;
+                        end;
                     end;
                 end;
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
@@ -736,6 +747,7 @@ codeunit 60024 "Change Quality Management"
         PalletID: Code[20];
         PalletLineNo: Integer;
         ItemLedgerEntry: Record "Item Ledger Entry";
+        LQty: Decimal;
     begin
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
@@ -760,43 +772,27 @@ codeunit 60024 "Change Quality Management"
                                 packingmaterials."Line No." := PalletFunctions.GetLastEntryPacking(PalletHeader);
                                 PackingMaterials.Description := BomComponent.Description;
                                 PackingMaterials."Reusable Item" := BomComponent."Reusable item";
-                                PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
+                                if BomComponent."Fixed Value" then begin
+                                    PackingMaterials.Quantity := BomComponent."Quantity per";
+                                    PackingMaterials."Fixed Value" := true;
+                                end else
+                                    PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
                                 PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
                                 PackingMaterials."Location Code" := PalletLines."Location Code";
                                 PackingMaterials.insert;
                             end
                             else begin
-                                PackingMaterials.Quantity -= BomComponent."Quantity per" * pPalletLineChg."Replaced Qty";
-                                PackingMaterials.modify;
+                                if not (BomComponent."Fixed Value") then begin
+                                    PackingMaterials.Quantity -= BomComponent."Quantity per" * pPalletLineChg."Replaced Qty";
+                                    PackingMaterials.modify;
+                                end else begin
+                                    if pPalletLineChg."Replaced Qty" = PalletLines.Quantity then begin
+                                        PackingMaterials.Quantity -= BomComponent."Quantity per";
+                                        PackingMaterials.modify;
+                                    end;
+                                end;
                             end;
 
-                        /* PalletLedgerEntry.Init();
-                         PalletLedgerEntry."Entry No." := GetLastEntry();
-                         PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
-                         PalletLedgerEntry."Pallet ID" := PackingMaterials."Pallet ID";
-                         PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
-                         PalletLedgerEntry."Document No." := PackingMaterials."Pallet ID";
-                         PalletLedgerEntry.validate("Posting Date", Today);
-                         PalletLedgerEntry.validate("Item No.", PackingMaterials."Item No.");
-                         PalletLedgerEntry."Variant Code" := BomComponent."Variant Code";
-                         PalletLedgerEntry."Item Description" := PackingMaterials.Description;
-                         PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
-                         PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
-                         PalletLedgerEntry.validate("Unit of Measure", BomComponent."Unit of Measure Code");
-                         PalletLedgerEntry.validate(Quantity, -BomComponent."Quantity per" * pPalletLineChg."Replaced Qty");
-                         PalletLedgerEntry."User ID" := userid;
-                         ItemLedgerEntry.Reset();
-                         ItemLedgerEntry.SetRange("Pallet ID", PalletID);
-                         ItemLedgerEntry.SetRange("Item No.", PalletLedgerEntry."Item No.");
-                         ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Positive Adjmt.");
-                         ItemLedgerEntry.SetRange("Unit of Measure Code", PackingMaterials."Unit of Measure Code");
-                         ItemLedgerEntry.SetRange("Posting Date", Today());
-                         if ItemLedgerEntry.FindLast() then begin
-                             PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-                         end;
-                         if PalletLedgerEntry.Quantity <> 0 then
-                             PalletLedgerEntry.Insert();
-*/
                         until BomComponent.next = 0;
                 end;
             until pPalletLineChg.Next() = 0;
@@ -820,13 +816,30 @@ codeunit 60024 "Change Quality Management"
                             packingmaterials."Line No." := PalletFunctions.GetLastEntryPacking(PalletHeader);
                             PackingMaterials.Description := BomComponent.Description;
                             PackingMaterials."Reusable Item" := BomComponent."Reusable item";
-                            PackingMaterials.Quantity := BomComponent."Quantity per" * QualityChangeLine."New Quantity";
+                            if BomComponent."Fixed Value" then begin
+                                PackingMaterials.Quantity := BomComponent."Quantity per";
+                                PackingMaterials."Fixed Value" := true;
+                            end else
+                                PackingMaterials.Quantity := BomComponent."Quantity per" * QualityChangeLine."New Quantity";
                             PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
                             PackingMaterials."Location Code" := PalletLines."Location Code";
                             PackingMaterials.insert;
                         end
                         else begin
-                            PackingMaterials.Quantity += BomComponent."Quantity per" * QualityChangeLine."New Quantity";
+                            if PackingMaterials."Fixed Value" then begin
+                                if BomComponent."Fixed Value" then begin
+                                    if BomComponent."Quantity per" > PackingMaterials.Quantity then
+                                        PackingMaterials.Quantity := BomComponent."Quantity per";
+                                end else
+                                    if BomComponent."Quantity per" * QualityChangeLine."New Quantity" > PackingMaterials.Quantity then
+                                        PackingMaterials.Quantity := BomComponent."Quantity per" * QualityChangeLine."New Quantity";
+                            end else begin
+                                if BomComponent."Fixed Value" then begin
+                                    if BomComponent."Quantity per" > PackingMaterials.Quantity then
+                                        PackingMaterials.Quantity := BomComponent."Quantity per";
+                                end else
+                                    PackingMaterials.Quantity += BomComponent."Quantity per" * QualityChangeLine."New Quantity";
+                            end;
                             PackingMaterials.modify;
                         end;
 

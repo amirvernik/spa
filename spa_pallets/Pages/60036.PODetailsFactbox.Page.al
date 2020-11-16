@@ -148,6 +148,7 @@ page 60036 "PO Details Factbox"
         LPostedWarehousePallet: Record "Posted Warehouse Pallet";
         LPurchaseLine: Record "Purchase Line";
         LPurchaseLineArchive: Record "Purchase Line Archive";
+        LSalesLine: Record "Sales Line";
     begin
         Rec.Reset();
         Rec.SetRange("User Created", UserId);
@@ -179,7 +180,13 @@ page 60036 "PO Details Factbox"
                         If LPostedWarehousePallet.FindLast() then begin
                             Rec."Posted Whse Shipment No." := LPostedWarehousePallet."Whse Shipment No.";
                             Rec."Posted Whse Shipment Line No." := LPostedWarehousePallet."Whse Shipment Line No.";
-                            Rec."Sales Order No." := LPostedWarehousePallet."Sales Order No.";
+                            LSalesLine.Reset();
+                            LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
+                            LSalesLine.SetRange("SPA Order No.", LWarehousePallet."Sales Order No.");
+                            LSalesLine.SetRange("SPA Order Line No.", LWarehousePallet."Sales Order Line No.");
+                            if not LSalesLine.FindFirst() then
+                                Rec."Sales Order No." := LPostedWarehousePallet."Sales Order No.";
+
                         end else begin
                             LWarehousePallet.Reset();
                             LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
@@ -187,11 +194,17 @@ page 60036 "PO Details Factbox"
                             If LWarehousePallet.FindLast() then begin
                                 Rec."Posted Whse Shipment No." := LWarehousePallet."Whse Shipment No.";
                                 Rec."Posted Whse Shipment Line No." := LWarehousePallet."Whse Shipment Line No.";
-                                Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
-                            end;
-                        end;
-                        if not Rec.Insert() then Rec.Modify();
 
+                                LSalesLine.Reset();
+                                LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
+                                LSalesLine.SetRange("SPA Order No.", LWarehousePallet."Sales Order No.");
+                                LSalesLine.SetRange("SPA Order Line No.", LWarehousePallet."Sales Order Line No.");
+                                if not LSalesLine.FindFirst() then
+                                    Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
+
+                            end;
+                            if not Rec.Insert() then Rec.Modify();
+                        end;
                     until LPalletLine.Next() = 0;
                 end else begin
                     Rec.Init();

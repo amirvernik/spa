@@ -80,6 +80,11 @@ table 60001 "Pallet Header"
             CalcFormula = lookup("Warehouse Pallet"."Whse Shipment No." where("Pallet ID" = field("Pallet ID")));
             Editable = false;
         }
+        field(40; Attention; Boolean)
+        {
+            Caption = 'Attention';
+            Editable = false;
+        }
     }
 
     keys

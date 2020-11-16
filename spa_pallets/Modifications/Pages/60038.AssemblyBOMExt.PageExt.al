@@ -9,6 +9,10 @@ pageextension 60038 AssemblyBOMExt extends "Assembly BOM"
                 Editable = true;
                 ApplicationArea = all;
             }
+            field("Fixed Value"; "Fixed Value")
+            {
+                ApplicationArea = All;
+            }
         }
     }
 

@@ -85,6 +85,10 @@ page 60003 "Pallet Card"
                     ApplicationArea = all;
                     editable = false;
                 }
+                field(Attention; Attention)
+                {
+                    ApplicationArea = All;
+                }
             }
 
             part(PalletLines; "Pallet Card Subpage")

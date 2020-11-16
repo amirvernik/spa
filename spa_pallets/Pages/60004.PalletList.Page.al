@@ -71,6 +71,10 @@ page 60004 "Pallet List"
                 {
                     ApplicationArea = all;
                 }
+                field(Attention; Attention)
+                {
+                    ApplicationArea = All;
+                }
             }
         }
     }
@@ -198,6 +202,19 @@ page 60004 "Pallet List"
                 PromotedCategory = Process;
                 Enabled = ShowShip;
 
+            }
+            action("Unmark Attention")
+            {
+                ApplicationArea = All;
+                Image = UnApply;
+                Promoted = true;
+                PromotedCategory = Process;
+                Enabled = Attention;
+                trigger OnAction();
+                begin
+                    Rec.Attention := false;
+                    if not Rec.Modify() then;
+                end;
             }
         }
     }

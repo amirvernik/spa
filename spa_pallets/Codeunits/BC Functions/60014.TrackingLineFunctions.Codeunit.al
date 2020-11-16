@@ -82,6 +82,8 @@ codeunit 60014 "Tracking Line Functions"
                 if RecGReservationEntry.findset() then
                     repeat
                         RecGReservationEntry.delete();
+                        PalletLine."Remaining Qty" := 0;
+                        PalletLine.Modify();
                     until RecGReservationEntry.next = 0;
             until palletline.next = 0;
 

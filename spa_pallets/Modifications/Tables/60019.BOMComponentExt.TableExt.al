@@ -19,6 +19,11 @@ tableextension 60019 BOMComponentExt extends "BOM Component"
             Caption = 'Reusable item';
             DataClassification = ToBeClassified;
         }
+        field(60020; "Fixed Value"; Boolean)
+        {
+            Caption = 'Fixed Value';
+            DataClassification = ToBeClassified;
+        }
     }
 
     var

@@ -406,6 +406,7 @@ codeunit 60003 "Pallet Ledger Functions"
                     if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Closed;
                         PalletHeader."Exist in warehouse shipment" := false;
+                        PalletHeader.Attention := true;
                         PalletHeader.modify;
                     end;
 
