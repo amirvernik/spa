@@ -102,6 +102,8 @@ codeunit 60010 "UI Pallet Functions"
         PalletType: Text;
         VariantCode: Code[20];
         ItemUnitOfMeasure: Record "Item Unit of Measure";
+        boolfindPO: Boolean;
+        RecPurchPrice: Record "Purchase Price";
 
     begin
         IF pFunction <> 'CreatePalletFromJson' THEN
@@ -251,14 +253,22 @@ codeunit 60010 "UI Pallet Functions"
                 PurchaseHeader.setrange(PurchaseHeader."Document Type", PurchaseHeader."Document Type"::Order);
                 purchaseheader.setrange(PurchaseHeader."Batch Number", palletline."Lot Number");
                 //PurchaseHeader.setrange(PurchaseHeader.status, PurchaseHeader.status::Open);
-                if PalletType = 'grade' then
-                    purchaseheader.setrange(PurchaseHeader."Grading Result PO", true);
-                if PalletType = 'mw' then
-                    purchaseheader.setrange(PurchaseHeader."Microwave Process PO", true);
-                PurchaseHeader."Posting Date" := GetCurrTime; //yt14092020
-                PurchaseHeader."Order Date" := GetCurrTime; //yt14092020
-
-                if purchaseheader.findfirst then begin
+                boolfindPO := false;
+                case PalletType of
+                    'grade':
+                        begin
+                            purchaseheader.setrange(PurchaseHeader."Grading Result PO", true);
+                            if PurchaseHeader.FindFirst() then
+                                boolfindPO := true;
+                        end;
+                    'mw':
+                        begin
+                            purchaseheader.setrange(PurchaseHeader."Microwave Process PO", true);
+                            if PurchaseHeader.FindLast() then
+                                boolfindPO := true;
+                        end;
+                end;
+                if boolfindPO then begin
                     if PurchaseHeader.status = PurchaseHeader.status::Released then
                         DocmentStatusMgmt.PerformManualReopen(PurchaseHeader);
 
@@ -276,7 +286,7 @@ codeunit 60010 "UI Pallet Functions"
                     PurchaseLine."Document No." := PurchaseHeader."No.";
                     purchaseline."Document Type" := PurchaseHeader."Document Type";
                     PurchaseLine."Line No." := LineNumber;
-                    PurchaseLine.insert;
+                    PurchaseLine.insert(true);
                     PurchaseLine.type := PurchaseLine.type::Item;
                     purchaseline.validate("No.", PalletLine."Item No.");
                     PurchaseLine.validate("Variant Code", PalletLine."Variant Code");
@@ -284,6 +294,16 @@ codeunit 60010 "UI Pallet Functions"
                     //New Web UI Fields - to Dummy Fields
                     PurchaseLine."Web UI Unit of Measure" := UOM;
                     PurchaseLine."Web UI Quantity" := PalletLine.Quantity;
+
+                    /*  RecPurchPrice.reset;
+                      RecPurchPrice.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
+                      RecPurchPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, GetCurrTime);
+                      RecPurchPrice.setfilter("Starting Date", '<=%1', GetCurrTime);
+                      RecPurchPrice.setfilter("Item No.", PalletLine."Item No.");
+                      RecPurchPrice.setfilter("Variant Code", PalletLine."Variant Code");
+                      RecPurchPrice.SetFilter("Unit of Measure Code", PalletLine."Unit of Measure");
+                      if RecPurchPrice.findfirst then
+                          PurchaseLine.Validate("Unit Cost", RecPurchPrice."Direct Unit Cost");*/
 
                     ItemUnitOfMeasure.reset;
                     ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");

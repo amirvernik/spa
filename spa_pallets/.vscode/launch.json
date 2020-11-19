@@ -33,8 +33,8 @@
         {
             "type": "al",
             "request": "launch",
-            "name": "Microsoft cloud Sandbox-050920",
-            "sandboxName": "Sandbox-050920",
+            "name": "Microsoft cloud Sandbox_081120",
+            "sandboxName": "Sandbox_081120",
             "startupObjectId": 22,
             "startupObjectType": "Page",
             "breakOnError": true,

@@ -19,7 +19,7 @@ pageextension 60033 SalesOrderSubPageExt extends "Sales Order Subform"
                 if rec.Type = rec.type::item then
                     if SalesHeader.get(rec."Document Type", rec."Document No.") then begin
                         SPAFunctions.LookupItemsForCustomers(SalesHeader."Sell-to Customer No.",
-                                                            SalesHeader."Document Date", SalesPrice);
+                                                            SalesHeader."Requested Delivery Date", SalesPrice);
                         ItemGot := SalesPrice."Item No.";
                         DirectCostGot := SalesPrice."Unit Price";
                         UOMGot := SalesPrice."Unit of Measure Code";
@@ -74,7 +74,7 @@ pageextension 60033 SalesOrderSubPageExt extends "Sales Order Subform"
                 if rec.Type = rec.type::Item then
                     if SalesHeader.get(rec."Document Type", rec."Document No.") then begin
                         SPAFunctions.ValidateItemsForCustomers(SalesHeader."Sell-to Customer No.",
-                                                            SalesHeader."Document Date",
+                                                            SalesHeader."Requested Delivery Date",
                                                             rec."No.", SalesPrice);
                         ItemGot := SalesPrice."Item No.";
                         DirectCostGot := SalesPrice."Unit Price";

@@ -10,7 +10,7 @@ codeunit 60038 "Sales Price Management"
         SalesPrice.reset;
         SalesPrice.setrange("Sales Type", SalesPrice."Sales Type"::Customer);
         SalesPrice.setrange("Sales Code", pcustomer);
-        SalesPrice.setrange("Ending Date", 0D);
+        SalesPrice.setfilter("Ending Date", '=%1 | >=%2', pdate);
         SalesPrice.setfilter("Starting Date", '<=%1', pdate);
         if SalesPrice.findset then
             repeat
@@ -31,7 +31,7 @@ codeunit 60038 "Sales Price Management"
             RetSalesPrice.reset;
             RetSalesPrice.setrange("Sales Type", RetSalesPrice."Sales Type"::Customer);
             RetSalesPrice.setrange("Sales Code", pcustomer);
-            RetSalesPrice.setrange("Ending Date", 0D);
+            RetSalesPrice.setfilter("Ending Date", '=%1 | >=%2', pDate);
             RetSalesPrice.setfilter("Starting Date", '<=%1', pdate);
             RetSalesPrice.setfilter("Item No.", ItemSelectByCustomer."Item No.");
             RetSalesPrice.setfilter("Variant Code", ItemSelectByCustomer."Variant Code");
@@ -99,7 +99,7 @@ codeunit 60038 "Sales Price Management"
             SalesPrice.reset;
             SalesPrice.setrange("Sales Type", SalesPrice."Sales Type"::Customer);
             SalesPrice.setrange("Sales Code", pcustomer);
-            SalesPrice.setrange("Ending Date", 0D);
+            SalesPrice.setfilter("Ending Date", '=%1 | >=%2', pDate);
             SalesPrice.setfilter("Starting Date", '<=%1', pdate);
             SalesPrice.setrange("Item No.", pItem);
             SalesPrice.setfilter("Unit of Measure Code", itemrec."Base Unit of Measure");
@@ -111,7 +111,7 @@ codeunit 60038 "Sales Price Management"
                 SalesPrice.reset;
                 SalesPrice.setrange("Sales Type", SalesPrice."Sales Type"::Customer);
                 SalesPrice.setrange("Sales Code", pcustomer);
-                SalesPrice.setrange("Ending Date", 0D);
+                SalesPrice.setfilter("Ending Date", '=%1 | >=%2', pDate);
                 SalesPrice.setfilter("Starting Date", '<=%1', pdate);
                 SalesPrice.setrange("Item No.", pItem);
                 SalesPrice.setfilter("Unit of Measure Code", '<>%1', itemrec."Base Unit of Measure");

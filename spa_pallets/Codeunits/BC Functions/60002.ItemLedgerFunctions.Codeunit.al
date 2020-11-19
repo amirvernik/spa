@@ -29,6 +29,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine."Entry Type" := RecGItemJournalLine."Entry Type"::"Negative Adjmt.";
                 RecGItemJournalLine."Posting Date" := Today;
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
@@ -134,14 +135,12 @@ codeunit 60002 "Item Ledger Functions"
         ItemLedgerEntry.modify;
         if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
             if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
-                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry); //19/02/2020 - Remove by Oren Ask
-                //Moved Back after Talk with oren 21/05/2020 ^
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry);
                 ItemLedgerEntry.Description := 'POS-' + ItemJournalLine.Description;
                 ItemLedgerEntry.Modify();
             end;
             if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Negative Adjmt." then begin
-                PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemLedgerEntry); //19/02/2020 - Remove by Oren Ask
-                //Moved Back after Talk with oren 21/05/2020 ^
+                PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemLedgerEntry);
                 ItemLedgerEntry.Description := 'NEG-' + ItemJournalLine.Description;
                 ItemLedgerEntry.Modify();
             end;
@@ -151,6 +150,7 @@ codeunit 60002 "Item Ledger Functions"
             ItemLedgerEntry.Description := ItemJournalLine.Description;
             ItemLedgerEntry.Modify();
         end;
+
     end;
 
     var

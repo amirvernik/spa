@@ -111,13 +111,28 @@ page 60025 "Pallet Change Quality"
                 var
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                     TrackingItemNumber: code[20];
+                    LPurchaseArchiveLine: Record "Purchase Line Archive";
+                    LPurchaseHeader: Record "Purchase Header";
                     PalletItemChgLine: Record "Pallet Change Quality";
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
                     ErrNewItem: Label 'You have not enterd a new item line';
                     ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
+                    ErrArchived: Label 'The PO was already invoiced, please change item quality manually';
                     PalletChangeQuality: Record "Pallet Change Quality";
                     ReservationEntry: Record "Reservation Entry";
+                    PurchaseProcessSetup: Record "SPA Purchase Process Setup";
+                    ItemJournalLine: Record "Item Journal Line";
+
                 begin
+
+                    LPurchaseArchiveLine.Reset();
+                    LPurchaseArchiveLine.SetRange("Document Type", LPurchaseArchiveLine."Document Type"::Order);
+                    LPurchaseArchiveLine.SetRange("No.", "Purchase Order No.");
+                    LPurchaseArchiveLine.SetRange("Line No.", "Purchase Order Line No.");
+                    if LPurchaseArchiveLine.FindFirst() then begin
+                        Error(ErrArchived);
+                        exit;
+                    end;
 
                     ReservationEntry.reset;
                     ReservationEntry.SetCurrentKey("Lot No.");
@@ -154,9 +169,17 @@ page 60025 "Pallet Change Quality"
                         exit;
                     end;
 
+                    PurchaseProcessSetup.Get();
+                    ItemJournalLine.reset;
+                    ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                    ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                    ItemJournalLine.SetRange("Pallet ID", Rec."Pallet ID");
+                    if ItemJournalLine.findset then
+                        ItemJournalLine.DeleteAll();
 
-                    // ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
-                    // ChangeQualityMgmt.PostItemLedger(); //Post Neg Item Journals to New Items                 
+                    ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
+                                                                // ChangeQualityMgmt.PostItemLedger(Rec."Pallet ID"); //Post Neg Item Journals to New Items                 
+                    ChangeQualityMgmt.PostItemLedger(rec."Pallet ID");
                     ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
                     ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
                                                                     //ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
@@ -242,6 +265,7 @@ page 60025 "Pallet Change Quality"
             PalletLineChangeQuality.init;
             PalletLineChangeQuality.TransferFields(PalletLine);
             PalletLineChangeQuality."User ID" := UserId;
+            PalletLineChangeQuality."Lot Number" := PalletLine."Lot Number";
             PalletLineChangeQuality.Quantity := PalletLine.Quantity - PalletLine."QTY Consumed";
             PalletLineChangeQuality."Replaced Qty" := PalletLine.Quantity;
             if not PalletLineChangeQuality.insert then PalletLineChangeQuality.Modify();

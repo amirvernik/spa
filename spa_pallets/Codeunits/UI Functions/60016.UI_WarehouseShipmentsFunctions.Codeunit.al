@@ -478,10 +478,8 @@ codeunit 60016 "UI Whse Shipments Functions"
 
         SalesHeader.get(SalesHeader."Document Type"::Order, pOrderNo);
 
-        if SalesHeader."Requested Delivery Date" = 0D then
-            DateToday := PalletFunctionCodeunit.GetCurrTime()
-        else
-            DateToday := SalesHeader."Requested Delivery Date";
+
+        DateToday := SalesHeader."Requested Delivery Date";
 
         BoolAll := false;
         BoolOnlyOne := false;
@@ -489,7 +487,7 @@ codeunit 60016 "UI Whse Shipments Functions"
             SalesPrice.reset;
             SalesPrice.setrange("Item No.", salesline."No.");
             SalesPrice.setrange("Variant Code", Salesline."Variant Code");
-            SalesPrice.setrange("Ending Date", 0D);
+            SalesPrice.setfilter("Ending Date", '=%1 | >=%2', DateToday);
             SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
             SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::"All Customers");
             if SalesPrice.findfirst then
@@ -500,7 +498,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                 SalesPrice.reset;
                 SalesPrice.setrange("Item No.", salesline."No.");
                 SalesPrice.setrange("Variant Code", Salesline."Variant Code");
-                SalesPrice.setrange("Ending Date", 0D);
+                SalesPrice.setfilter("Ending Date", '=%1 | >=%2', DateToday);
                 SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
                 SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::Customer);
                 SalesPrice.setrange(SalesPrice."Sales Code", SalesHeader."Sell-to Customer No.");

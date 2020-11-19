@@ -192,11 +192,14 @@ codeunit 60021 "Purch. UI Functions"
         VendorRec: Record Vendor;
         ScrapQty: Decimal;
         OrderNumber: code[20];
-        BatchNumber: code[20];
+        // BatchNumber: code[20];
         PalletHeaderTemp: Record "Pallet Header" temporary;
         PalletLineTemp: Record "Pallet Line" temporary;
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
+        LItemJournalLine: Record "Item Journal Line";
+        PalletSetup: Record "Pallet Process Setup";
+        LineNumber: Integer;
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         JsonObj: JsonObject;
         JsonTknAll: JsonToken; //All Json
@@ -328,6 +331,7 @@ codeunit 60021 "Purch. UI Functions"
             end;
         end;
 
+        PalletSetup.get();
         PalletLineTemp.reset;
         if PalletLineTemp.findset then
             repeat
@@ -338,6 +342,33 @@ codeunit 60021 "Purch. UI Functions"
                         PalletLine.modify;
 
                         PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
+
+                        LItemJournalLine.reset;
+                        LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                        LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                        if LItemJournalLine.FindLast() then
+                            LineNumber := LItemJournalLine."Line No." + 10000
+                        else
+                            LineNumber := 10000;
+
+                        LItemJournalLine.init;
+                        LItemJournalLine."Journal Template Name" := 'ITEM';
+                        LItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+                        LItemJournalLine."Line No." := LineNumber;
+                        LItemJournalLine.insert;
+                        LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Negative Adjmt.";
+                        LItemJournalLine."Posting Date" := Today();
+                        LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
+                        LItemJournalLine.Description := PalletLine.Description;
+                        LItemJournalLine.validate("Item No.", PalletLine."Item No.");
+                        LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
+                        LItemJournalLine.validate("Location Code", PalletLine."Location Code");
+                        LItemJournalLine.validate(Quantity, PalletLineTemp."QTY Consumed");
+                        LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
+                        LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
+                        LItemJournalLine.modify;
+                        LineNumber += 10000;
+                        CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
 
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
                         PalletLineTemp.modify;
@@ -365,7 +396,7 @@ codeunit 60021 "Purch. UI Functions"
                     else
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
                     PalletHeader.modify;
-                    PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
+                //  PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
                 until PalletHeaderTemp.next = 0;
         end;
 
@@ -378,7 +409,7 @@ codeunit 60021 "Purch. UI Functions"
                     PurchaseHeader.init;
                     PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::order;
                     OrderNumber := NoSeriesManagement.GetNextNo(PurchaseSetup."Order Nos.", GetCurrTime, true);
-                    BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", GetCurrTime, true);
+                    //BatchNumber := NoSeriesManagement.GetNextNo(PurchaseProcessSetup."Batch No. Series", GetCurrTime, true);
                     PurchaseHeader."No." := OrderNumber;
                     purchaseheader.insert(true);
 
@@ -407,7 +438,7 @@ codeunit 60021 "Purch. UI Functions"
 
                     //Sending Result Json
                     JsonResult.Add('PO number', OrderNumber);
-                    JsonResult.add('Batch Number', BatchNumber);
+                    JsonResult.add('Batch Number', rm_lot);
                     JsonResult.WriteTo(pContent);
                 end;
             end;
@@ -605,6 +636,7 @@ codeunit 60021 "Purch. UI Functions"
         ItemJournalLine.validate("Variant Code", PalletLedgEntry."Variant Code");
         ItemJournalLine.validate("Location Code", PalletLedgEntry."Location Code");
         ItemJournalLine.validate(Quantity, PalletLedgEntry.Quantity);
+        ItemJournalLine."Pallet ID" := PalletLedgEntry."Pallet ID";
         ItemJournalLine.modify;
 
         //Create Reservation Entry

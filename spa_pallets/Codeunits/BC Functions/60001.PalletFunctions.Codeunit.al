@@ -1096,6 +1096,7 @@ codeunit 60001 "Pallet Functions"
                         ItemJournalLine.insert;
                         ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
                         ItemJournalLine.validate("Posting Date", Today);
+                        ItemJournalLine."Pallet ID" := LPalletLine."Pallet ID";
                         ItemJournalLine."Document No." := LPalletLine."Pallet ID";
                         ItemJournalLine.Description := LPalletLine.Description;
                         ItemJournalLine.validate("Item No.", LPalletLine."Item No.");

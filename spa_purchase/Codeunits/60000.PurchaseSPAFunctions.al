@@ -224,7 +224,7 @@ codeunit 60000 "SPA Purchase Functions"
     begin
         PurchasePrice.reset;
         PurchasePrice.setrange("Vendor No.", pVendor);
-        PurchasePrice.setrange("Ending Date", 0D);
+        PurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
         PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
         if PurchasePrice.findset then
             repeat
@@ -244,7 +244,7 @@ codeunit 60000 "SPA Purchase Functions"
         IF PAGE.RUNMODAL(0, ItemSelectByVendor) = ACTION::LookupOK THEN begin
             RetPurchasePrice.reset;
             RetPurchasePrice.setrange("Vendor No.", pVendor);
-            RetPurchasePrice.setrange("Ending Date", 0D);
+            RetPurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
             RetPurchasePrice.setfilter("Starting Date", '<=%1', pdate);
             RetPurchasePrice.setfilter("Item No.", ItemSelectByVendor."Item No.");
             RetPurchasePrice.setfilter("Variant Code", ItemSelectByVendor."Variant Code");
@@ -311,7 +311,7 @@ codeunit 60000 "SPA Purchase Functions"
         if ItemRec.get(pItem) then begin
             PurchasePrice.reset;
             PurchasePrice.setrange("Vendor No.", pVendor);
-            PurchasePrice.setrange("Ending Date", 0D);
+            PurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
             PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
             PurchasePrice.setrange("Item No.", pItem);
             PurchasePrice.setfilter("Unit of Measure Code", itemrec."Base Unit of Measure");
@@ -322,7 +322,7 @@ codeunit 60000 "SPA Purchase Functions"
             else begin
                 PurchasePrice.reset;
                 PurchasePrice.setrange("Vendor No.", pVendor);
-                PurchasePrice.setrange("Ending Date", 0D);
+                PurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
                 PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
                 PurchasePrice.setrange("Item No.", pItem);
                 PurchasePrice.setfilter("Unit of Measure Code", '<>%1', itemrec."Base Unit of Measure");
