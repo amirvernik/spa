@@ -181,8 +181,8 @@ page 60011 "Pallet List Select Whse Ship"
             SalesPrice.reset;
             SalesPrice.setrange("Item No.", salesline."No.");
             SalesPrice.setrange("Variant Code", Salesline."Variant Code");
-            SalesPrice.setfilter("Ending Date", '=%1 | >=%2', DateToday);
-            SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
+            SalesPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, DateToday);
+            SalesPrice.setfilter("Starting Date", '=%1 | <=%2', 0D, DateToday);
             SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::"All Customers");
             if SalesPrice.findfirst then
                 BoolAll := true;
@@ -192,8 +192,8 @@ page 60011 "Pallet List Select Whse Ship"
                 SalesPrice.reset;
                 SalesPrice.setrange("Item No.", salesline."No.");
                 SalesPrice.setrange("Variant Code", Salesline."Variant Code");
-                SalesPrice.setfilter("Ending Date", '=%1 | >=%2', DateToday);
-                SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
+                SalesPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, DateToday);
+                SalesPrice.setfilter("Starting Date", '=%1 | <=%2', 0D, DateToday);
                 SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::Customer);
                 SalesPrice.setrange(SalesPrice."Sales Code", SalesHeader."Sell-to Customer No.");
                 if SalesPrice.findfirst then

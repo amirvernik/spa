@@ -295,15 +295,15 @@ codeunit 60010 "UI Pallet Functions"
                     PurchaseLine."Web UI Unit of Measure" := UOM;
                     PurchaseLine."Web UI Quantity" := PalletLine.Quantity;
 
-                    /*  RecPurchPrice.reset;
-                      RecPurchPrice.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
-                      RecPurchPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, GetCurrTime);
-                      RecPurchPrice.setfilter("Starting Date", '<=%1', GetCurrTime);
-                      RecPurchPrice.setfilter("Item No.", PalletLine."Item No.");
-                      RecPurchPrice.setfilter("Variant Code", PalletLine."Variant Code");
-                      RecPurchPrice.SetFilter("Unit of Measure Code", PalletLine."Unit of Measure");
-                      if RecPurchPrice.findfirst then
-                          PurchaseLine.Validate("Unit Cost", RecPurchPrice."Direct Unit Cost");*/
+                    RecPurchPrice.reset;
+                    RecPurchPrice.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
+                    RecPurchPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, GetCurrTime);
+                    RecPurchPrice.setfilter("Starting Date", '<=%1 | <=%2', 0D, GetCurrTime);
+                    RecPurchPrice.setfilter("Item No.", PalletLine."Item No.");
+                    RecPurchPrice.setfilter("Variant Code", PalletLine."Variant Code");
+                    RecPurchPrice.SetFilter("Unit of Measure Code", PalletLine."Unit of Measure");
+                    if RecPurchPrice.findfirst then
+                        PurchaseLine.Validate("Unit Cost", RecPurchPrice."Direct Unit Cost");
 
                     ItemUnitOfMeasure.reset;
                     ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");
@@ -1277,7 +1277,7 @@ codeunit 60010 "UI Pallet Functions"
         if not boolExists then
             pContent := 'Error, cannot find  warehouse shipment line'
         else begin
-            LRecRef.GetTable(LPostedWhseShipmentLine);
+            LRecRef.Get(LPostedWhseShipmentLine.RecordId);
             Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
             pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consugnment Note %1 .pdf', SalesOrderText), true);
         end;

@@ -34,6 +34,13 @@ table 60001 "Pallet Header"
         {
             Caption = 'Pallet Status';
             DataClassification = ToBeClassified;
+            trigger OnValidate();
+            var
+                PalletFunctionsCU: Codeunit "Pallet Functions";
+            begin
+                if (Rec."Pallet Status" <> xRec."Pallet Status") and (Rec."Pallet Status" = Rec."Pallet Status"::Consumed) then
+                    PalletFunctionsCU.CreateNegAdjustmentToPackingMaterials(Rec);
+            end;
 
         }
         field(5; "Creation Date"; date)

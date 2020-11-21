@@ -72,7 +72,7 @@ page 60028 "Pallet Consume Select"
                 PalletHeader.modify;
             end
             else begin
-                PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
+                PalletHeader.validate("Pallet Status", PalletHeader."Pallet Status"::Consumed);
                 PalletHeader.modify;
             end;
         end;

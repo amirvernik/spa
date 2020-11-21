@@ -225,7 +225,7 @@ codeunit 60000 "SPA Purchase Functions"
         PurchasePrice.reset;
         PurchasePrice.setrange("Vendor No.", pVendor);
         PurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
-        PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+        PurchasePrice.setfilter("Starting Date", '=%1 | <=%2', 0D, pdate);
         if PurchasePrice.findset then
             repeat
                 if not ItemSelectByVendor.get(PurchasePrice."Item No.",
@@ -245,7 +245,7 @@ codeunit 60000 "SPA Purchase Functions"
             RetPurchasePrice.reset;
             RetPurchasePrice.setrange("Vendor No.", pVendor);
             RetPurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
-            RetPurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+            RetPurchasePrice.setfilter("Starting Date", '=%1 | <=%2', 0D, pdate);
             RetPurchasePrice.setfilter("Item No.", ItemSelectByVendor."Item No.");
             RetPurchasePrice.setfilter("Variant Code", ItemSelectByVendor."Variant Code");
             RetPurchasePrice.SetFilter("Unit of Measure Code", ItemSelectByVendor."Unit of Measure");
@@ -312,7 +312,7 @@ codeunit 60000 "SPA Purchase Functions"
             PurchasePrice.reset;
             PurchasePrice.setrange("Vendor No.", pVendor);
             PurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
-            PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+            PurchasePrice.setfilter("Starting Date", '=%1 | <=%2', 0D, pdate);
             PurchasePrice.setrange("Item No.", pItem);
             PurchasePrice.setfilter("Unit of Measure Code", itemrec."Base Unit of Measure");
             if PurchasePrice.findfirst then begin
@@ -323,7 +323,7 @@ codeunit 60000 "SPA Purchase Functions"
                 PurchasePrice.reset;
                 PurchasePrice.setrange("Vendor No.", pVendor);
                 PurchasePrice.SetFilter("Ending Date", '=%1 | >=%2', 0D, pDate);
-                PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+                PurchasePrice.setfilter("Starting Date", '=%1 | <=%2', 0D, pdate);
                 PurchasePrice.setrange("Item No.", pItem);
                 PurchasePrice.setfilter("Unit of Measure Code", '<>%1', itemrec."Base Unit of Measure");
                 if PurchasePrice.findfirst then begin

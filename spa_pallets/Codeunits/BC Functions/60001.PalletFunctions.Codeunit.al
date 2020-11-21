@@ -149,11 +149,6 @@ codeunit 60001 "Pallet Functions"
             if pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::Shipped then
                 Error(Err02);
 
-            //Consume Error
-            //if ((pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::"Partially consumed")
-            //or (pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::Consumed)) then
-            //    error(err09);
-
             //Exists in Warehouse Shipment Check
             PalletLines.reset;
             PalletLines.setrange("Pallet ID", pPalletHeader."Pallet ID");
@@ -475,6 +470,53 @@ codeunit 60001 "Pallet Functions"
         if PurchaseHeader.findfirst then
             exit(PurchaseHeader."Vendor Shipment No.");
     end;
+
+    Procedure CreateNegAdjustmentToPackingMaterials(pPalletHeader: Record "Pallet Header")
+    var
+        PurchaseProcessSetup: Record "SPA Purchase Process Setup";
+        ItemJournalLine: Record "Item Journal Line";
+        PalletFunctionUI: Codeunit "UI Pallet Functions";
+        LineNumber: Integer;
+        PackingMaterials: Record "Packing Material Line";
+        RecGReservationEntry2: Record "Reservation Entry";
+        RecGReservationEntry: Record "Reservation Entry";
+        maxEntry: Integer;
+        ItemRec: Record Item;
+    begin
+        PackingMaterials.Reset();
+        PackingMaterials.Setrange("Pallet ID", pPalletHeader."Pallet ID");
+        PackingMaterials.SetRange("Reusable Item", true);
+        if PackingMaterials.FindSet() then begin
+            PurchaseProcessSetup.get();
+            ItemJournalLine.reset;
+            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+            ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+            if ItemJournalLine.FindLast() then
+                LineNumber := ItemJournalLine."Line No." + 10000
+            else
+                LineNumber := 10000;
+            repeat
+
+                ItemJournalLine.init;
+                ItemJournalLine."Journal Template Name" := 'ITEM';
+                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                ItemJournalLine."Line No." := LineNumber;
+                ItemJournalLine.insert;
+                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
+                ItemJournalLine."Posting Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
+                ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
+                // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
+                ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
+                ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine.modify;
+                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+            until PackingMaterials.Next() = 0;
+        end;
+    end;
+
 
     procedure ExportToExcelPODetials(PONumber: Code[20]; var PORec: Record "Purchase Header");
     var

@@ -394,7 +394,7 @@ codeunit 60021 "Purch. UI Functions"
                     if PalletLine.findfirst then
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::"Partially consumed"
                     else
-                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
+                        PalletHeader.validate("Pallet Status", PalletHeader."Pallet Status"::Consumed);
                     PalletHeader.modify;
                 //  PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
                 until PalletHeaderTemp.next = 0;
@@ -567,6 +567,8 @@ codeunit 60021 "Purch. UI Functions"
                             CreateNegAdjustment(PalletLedgerEntry, OrderNo);
                         until PalletLedgerEntry.next = 0;
 
+
+
                         //Post the Journal
                         PurchaseProcessSetup.Get();
                         ItemJournalLine.reset;
@@ -655,7 +657,7 @@ codeunit 60021 "Purch. UI Functions"
                 RecGReservationEntry."Created By" := UserId;
                 RecGReservationEntry."Expected Receipt Date" := GetCurrTime;
                 RecGReservationEntry."Source Type" := 83;
-                RecGReservationEntry."Source Subtype" := 3;
+                RecGReservationEntry."Source Subtype" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
                 RecGReservationEntry."Source ID" := 'ITEM';
                 RecGReservationEntry."Source Ref. No." := LineNumber;
                 RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
@@ -821,7 +823,7 @@ codeunit 60021 "Purch. UI Functions"
                     if PalletLine.findfirst then
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::"Partially consumed"
                     else
-                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Consumed;
+                        PalletHeader.validate("Pallet Status", PalletHeader."Pallet Status"::Consumed);
 
                     PalletHeader.modify;
                     PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);

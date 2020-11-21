@@ -434,27 +434,27 @@ codeunit 60016 "UI Whse Shipments Functions"
                         else
                             LineNumber := 10000;
 
-                        If (LItem.get(PalletLine."Item No.") and LItem."Reusable item") then begin
-                            LItemJournalLine.init;
-                            LItemJournalLine."Journal Template Name" := 'ITEM';
-                            LItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
-                            LItemJournalLine."Line No." := LineNumber;
-                            LItemJournalLine.insert;
-                            LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Positive Adjmt.";
-                            LItemJournalLine."Posting Date" := Today();
-                            LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
-                            LItemJournalLine.Description := PalletLine.Description;
-                            LItemJournalLine.validate("Item No.", PalletLine."Item No.");
-                            LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
-                            LItemJournalLine.validate("Location Code", PalletLine."Location Code");
-                            LItemJournalLine.validate(Quantity, PalletLine."Quantity");
-                            LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
-                            LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
-                            LItemJournalLine.modify;
-                            LineNumber += 10000;
-                            CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
-                        end;
-
+                    /*  If (LItem.get(PalletLine."Item No.") and LItem."Reusable item") then begin
+                          LItemJournalLine.init;
+                          LItemJournalLine."Journal Template Name" := 'ITEM';
+                          LItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+                          LItemJournalLine."Line No." := LineNumber;
+                          LItemJournalLine.insert;
+                          LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Positive Adjmt.";
+                          LItemJournalLine."Posting Date" := Today();
+                          LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
+                          LItemJournalLine.Description := PalletLine.Description;
+                          LItemJournalLine.validate("Item No.", PalletLine."Item No.");
+                          LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
+                          LItemJournalLine.validate("Location Code", PalletLine."Location Code");
+                          LItemJournalLine.validate(Quantity, PalletLine."Quantity");
+                          LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
+                          LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
+                          LItemJournalLine.modify;
+                          LineNumber += 10000;
+                          CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+                      end;
+*/
                     until palletline.next = 0
                 else begin
                     pContent := 'Pallet line does not exists';
@@ -487,8 +487,10 @@ codeunit 60016 "UI Whse Shipments Functions"
             SalesPrice.reset;
             SalesPrice.setrange("Item No.", salesline."No.");
             SalesPrice.setrange("Variant Code", Salesline."Variant Code");
-            SalesPrice.setfilter("Ending Date", '=%1 | >=%2', DateToday);
-            SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
+            if DateToday <> 0D then begin
+                SalesPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, DateToday);
+                SalesPrice.setfilter("Starting Date", '=%1 | <=%2', 0D, DateToday);
+            end;
             SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::"All Customers");
             if SalesPrice.findfirst then
                 BoolAll := true;
@@ -498,8 +500,10 @@ codeunit 60016 "UI Whse Shipments Functions"
                 SalesPrice.reset;
                 SalesPrice.setrange("Item No.", salesline."No.");
                 SalesPrice.setrange("Variant Code", Salesline."Variant Code");
-                SalesPrice.setfilter("Ending Date", '=%1 | >=%2', DateToday);
-                SalesPrice.setfilter("Starting Date", '<=%1', DateToday);
+                if DateToday <> 0D then begin
+                    SalesPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, DateToday);
+                    SalesPrice.setfilter("Starting Date", '=%1 | <=%2', 0D, DateToday);
+                end;
                 SalesPrice.setrange(SalesPrice."Sales Type", SalesPrice."Sales Type"::Customer);
                 SalesPrice.setrange(SalesPrice."Sales Code", SalesHeader."Sell-to Customer No.");
                 if SalesPrice.findfirst then
