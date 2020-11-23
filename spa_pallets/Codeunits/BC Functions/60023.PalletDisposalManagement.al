@@ -246,6 +246,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine."External Document No." := pPalletHeader."Pallet ID";
                 RecGItemJournalLine.validate("Posting Date", Today);
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
+                RecGItemJournalLine."Lot No." := PalletLine."Lot Number";
                 RecGItemJournalLine.Description := PalletLine.Description;
                 RecGItemJournalLine.validate("Item No.", PalletLine."Item No.");
                 RecGItemJournalLine.validate("Variant Code", PalletLine."Variant Code");

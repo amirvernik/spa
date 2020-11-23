@@ -639,6 +639,7 @@ codeunit 60021 "Purch. UI Functions"
         ItemJournalLine.validate("Location Code", PalletLedgEntry."Location Code");
         ItemJournalLine.validate(Quantity, PalletLedgEntry.Quantity);
         ItemJournalLine."Pallet ID" := PalletLedgEntry."Pallet ID";
+        ItemJournalLine."Lot No." := PalletLedgEntry."Lot Number";
         ItemJournalLine.modify;
 
         //Create Reservation Entry

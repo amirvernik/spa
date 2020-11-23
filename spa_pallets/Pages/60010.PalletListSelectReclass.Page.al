@@ -67,6 +67,7 @@ page 60010 "Pallet List Select Reclass"
                         ItemJournalLine.validate(Quantity, PalletLine.Quantity);
                         ItemJournalLine."Pallet ID" := rec."Pallet ID";
                         ItemJournalLine.validate("Location Code", PalletLine."Location Code");
+                        ItemJournalLine."Lot No." := PalletLine."Lot Number";
                         if palletheader.get(PalletLine."Pallet ID") then
                             ItemJournalLine."Pallet Type" := PalletHeader."Pallet Type";
                         ItemJournalLine.modify;

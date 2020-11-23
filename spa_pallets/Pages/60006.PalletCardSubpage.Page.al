@@ -204,6 +204,9 @@ page 60006 "Pallet Card Subpage"
                                         LotSelection."Purchase Order Line" := PurchaseReceiptLine."Order Line No.";
                                     end;
                                     LotSelection.insert;
+                                end else begin
+                                    LotSelection.Quantity += ItemLedgerEntry.Quantity;
+                                    LotSelection.Modify();
                                 end;
                             until ItemLedgerEntry.next = 0;
 

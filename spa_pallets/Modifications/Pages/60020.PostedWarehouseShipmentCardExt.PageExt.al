@@ -30,6 +30,23 @@ pageextension 60020 PostedWarehouseShipmentCardExt extends "Posted Whse. Shipmen
                     StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipment(rec, 'BC');
                 end;
             }
+            action("ConsugnmentNoteReportfortest")
+            {
+                ApplicationArea = ALL;
+                Visible = false;
+                trigger OnAction();
+                var
+                    pcu: Codeunit "UI Pallet Functions";
+                    PSL: Record "Posted Whse. Shipment lINE";
+                begin
+                    PSL.Reset();
+                    PSl.SetRange("No.", rEC."No.");
+                    PSL.SetFilter("Source No.", '<>%1', '');
+                    IF PSL.FindFirst() then
+                        pcu.ConsugnmentNoteReportfortest(PSL
+                        );
+                end;
+            }
         }
     }
     trigger OnAfterGetRecord()

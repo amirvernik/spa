@@ -372,50 +372,50 @@ codeunit 60010 "UI Pallet Functions"
         JSONBuffer.SETRANGE(JSONBuffer.Depth, 1);
         IF JSONBuffer.FINDSET THEN begin
             REPEAT
-                IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN begin
-                    IF STRPOS(JSONBuffer.Path, 'grade') > 0 THEN begin
-                        Attr_Grade := JSONBuffer.Value;
-                        TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'Grade';
-                        TempFilterItemAttributesBuffer.Value := Attr_Grade;
-                        TempFilterItemAttributesBuffer.insert;
-                    end;
-                    IF STRPOS(JSONBuffer.Path, 'size') > 0 THEN begin
-                        Attr_Size := JSONBuffer.Value;
-                        TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'Size';
-                        TempFilterItemAttributesBuffer.Value := Attr_Size;
-                        TempFilterItemAttributesBuffer.insert;
-                    end;
-                    IF STRPOS(JSONBuffer.Path, 'om') > 0 THEN begin
-                        Attr_OM := JSONBuffer.Value;
-                        TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'OM';
-                        TempFilterItemAttributesBuffer.Value := Attr_OM;
-                        TempFilterItemAttributesBuffer.insert;
-                    end;
-                    IF STRPOS(JSONBuffer.Path, 'spacolor') > 0 THEN begin
-                        Attr_Color := JSONBuffer.Value;
-                        TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'SPAColor';
-                        TempFilterItemAttributesBuffer.Value := Attr_Color;
-                        TempFilterItemAttributesBuffer.insert;
-                    end;
-                    IF STRPOS(JSONBuffer.Path, 'primarypackagetype') > 0 THEN begin
-                        Attr_PrimaryPackageType := JSONBuffer.Value;
-                        TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'Primary Packaging Type';
-                        TempFilterItemAttributesBuffer.Value := Attr_PrimaryPackageType;
-                        TempFilterItemAttributesBuffer.insert;
-                    end;
-                    IF STRPOS(JSONBuffer.Path, 'packagedescription') > 0 THEN begin
-                        Attr_PackageDescription := JSONBuffer.Value;
-                        TempFilterItemAttributesBuffer.init;
-                        TempFilterItemAttributesBuffer.Attribute := 'Packaging Description';
-                        TempFilterItemAttributesBuffer.Value := Attr_PackageDescription;
-                        TempFilterItemAttributesBuffer.insert;
-                    end;
+                //  IF JSONBuffer."Token type" = JSONBuffer."Token type"::String THEN begin
+                IF STRPOS(JSONBuffer.Path, 'grade') > 0 THEN begin
+                    Attr_Grade := JSONBuffer.Value;
+                    TempFilterItemAttributesBuffer.init;
+                    TempFilterItemAttributesBuffer.Attribute := 'Grade';
+                    TempFilterItemAttributesBuffer.Value := Attr_Grade;
+                    TempFilterItemAttributesBuffer.insert;
                 end;
+                IF STRPOS(JSONBuffer.Path, 'size') > 0 THEN begin
+                    Attr_Size := JSONBuffer.Value;
+                    TempFilterItemAttributesBuffer.init;
+                    TempFilterItemAttributesBuffer.Attribute := 'Size';
+                    TempFilterItemAttributesBuffer.Value := Attr_Size;
+                    TempFilterItemAttributesBuffer.insert;
+                end;
+                IF STRPOS(JSONBuffer.Path, 'om') > 0 THEN begin
+                    Attr_OM := JSONBuffer.Value;
+                    TempFilterItemAttributesBuffer.init;
+                    TempFilterItemAttributesBuffer.Attribute := 'OM';
+                    TempFilterItemAttributesBuffer.Value := Attr_OM;
+                    TempFilterItemAttributesBuffer.insert;
+                end;
+                IF STRPOS(JSONBuffer.Path, 'spacolor') > 0 THEN begin
+                    Attr_Color := JSONBuffer.Value;
+                    TempFilterItemAttributesBuffer.init;
+                    TempFilterItemAttributesBuffer.Attribute := 'SPAColor';
+                    TempFilterItemAttributesBuffer.Value := Attr_Color;
+                    TempFilterItemAttributesBuffer.insert;
+                end;
+                IF STRPOS(JSONBuffer.Path, 'primarypackagetype') > 0 THEN begin
+                    Attr_PrimaryPackageType := JSONBuffer.Value;
+                    TempFilterItemAttributesBuffer.init;
+                    TempFilterItemAttributesBuffer.Attribute := 'Primary Packaging Type';
+                    TempFilterItemAttributesBuffer.Value := Attr_PrimaryPackageType;
+                    TempFilterItemAttributesBuffer.insert;
+                end;
+                IF STRPOS(JSONBuffer.Path, 'packagedescription') > 0 THEN begin
+                    Attr_PackageDescription := JSONBuffer.Value;
+                    TempFilterItemAttributesBuffer.init;
+                    TempFilterItemAttributesBuffer.Attribute := 'Packaging Description';
+                    TempFilterItemAttributesBuffer.Value := Attr_PackageDescription;
+                    TempFilterItemAttributesBuffer.insert;
+                end;
+            //   end;
             UNTIL JSONBuffer.NEXT = 0;
         end;
         ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempItemFilteredFromAttributes);
@@ -1225,7 +1225,7 @@ codeunit 60010 "UI Pallet Functions"
 
     //Consugnment note report - UI
     [EventSubscriber(ObjectType::Codeunit, Codeunit::UIFunctions, 'WSPublisher', '', true, true)]
-    local procedure ConsignmentNote(VAR pFunction: Text[50]; VAR pContent: Text)
+    procedure ConsignmentNote(VAR pFunction: Text[50]; VAR pContent: Text)
     VAR
         ConsugnmentNoteReport: Report "Consignment Note";
         LPostedWhseShipmentLine: Record "Posted Whse. Shipment Line";
@@ -1277,10 +1277,39 @@ codeunit 60010 "UI Pallet Functions"
         if not boolExists then
             pContent := 'Error, cannot find  warehouse shipment line'
         else begin
+            LPostedWhseShipmentLine.SetRange("No.", LPostedWhseShipmentLine."No.");
+            LRecRef.GetTable(LPostedWhseShipmentLine);
             LRecRef.Get(LPostedWhseShipmentLine.RecordId);
             Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
-            pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consugnment Note %1 .pdf', SalesOrderText), true);
+            pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consignment Note %1 .pdf', SalesOrderText), true);
         end;
+    end;
+
+
+    procedure ConsugnmentNoteReportfortest(LPostedWhseShipmentLine: Record "Posted Whse. Shipment Line")
+    VAR
+        ConsugnmentNoteReport: Report "Consignment Note";
+        LSalesOrder: Record "Sales Header";
+        LSalesOrderArchive: Record "Sales Header Archive";
+        LTempBlob: Codeunit "Temp Blob";
+        LRecRef: RecordRef;
+        SalesOrderText: Code[20];
+        LOutStr: OutStream;
+        JsonObj: JsonObject;
+        JsonTkn: JsonToken;
+        Password: text[10];
+        FileMgt: Codeunit "File Management";
+        boolExists: Boolean;
+        ConsignmentNote: Report "Consignment Note";
+        LInstr: InStream;
+    begin
+        LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
+        LPostedWhseShipmentLine.SetRange("No.", LPostedWhseShipmentLine."No.");
+        LRecRef.GetTable(LPostedWhseShipmentLine);
+        LRecRef.Get(LPostedWhseShipmentLine.RecordId);
+        //Report.SaveAs(60003, '', ReportFormat::pdf, LOutStr, LRecRef);
+        ConsignmentNote.SaveAs(StrSubstNo('Consignment Note %1.pdf', SalesOrderText), ReportFormat::pdf, LOutStr, LRecRef);
+        Message(FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consignment Note %1.pdf', SalesOrderText), true));
     end;
 
 }
