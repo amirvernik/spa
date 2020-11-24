@@ -511,6 +511,7 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
                 ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
                 ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+
                 ItemJournalLine.modify;
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
             until PackingMaterials.Next() = 0;

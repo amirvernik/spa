@@ -128,6 +128,7 @@ codeunit 60002 "Item Ledger Functions"
     begin
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
+        ItemJournalLine."Pallet Line No." := ItemJournalLine."Pallet Line No.";
         ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
         ItemLedgerEntry."Packing Material Qty" := ItemJournalLine."Packing Material Qty";
         ItemLedgerEntry."Packing Material UOM" := ItemJournalLine."Packing Material UOM";

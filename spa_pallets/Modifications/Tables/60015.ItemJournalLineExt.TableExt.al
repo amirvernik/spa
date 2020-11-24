@@ -14,14 +14,18 @@ tableextension 60015 ItemJournalLineExt extends "Item Journal Line"
         {
             DataClassification = ToBeClassified;
         }
-        field(60003;"Packing Material UOM";code[10])
+        field(60003; "Packing Material UOM"; code[10])
         {
-            DataClassification=ToBeClassified;
+            DataClassification = ToBeClassified;
         }
-        field(60004;"Packing Material Qty";Decimal)
+        field(60004; "Packing Material Qty"; Decimal)
         {
-            DataClassification=ToBeClassified;
-        }        
+            DataClassification = ToBeClassified;
+        }
+        field(60005; "Pallet Line No."; Integer)
+        {
+            DataClassification = ToBeClassified;
+        }
 
     }
 

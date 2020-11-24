@@ -338,6 +338,7 @@ codeunit 60010 "UI Pallet Functions"
         TempItemFilteredFromAttributes: Record item temporary;
         ItemAttributeManagement: Codeunit "Item Attribute Management";
         FilterText: text;
+        LItems: Record Item;
         ParameterCount: Integer;
         JsonBuffer: Record "JSON Buffer" temporary;
         JsonText: Text;
@@ -354,6 +355,7 @@ codeunit 60010 "UI Pallet Functions"
         IF pFunction <> 'GetListOfItemsByAttr' THEN
             EXIT;
 
+        TempFilterItemAttributesBuffer.Reset();
         if TempFilterItemAttributesBuffer.findset then
             TempFilterItemAttributesBuffer.deleteall;
 
@@ -378,63 +380,70 @@ codeunit 60010 "UI Pallet Functions"
                     TempFilterItemAttributesBuffer.init;
                     TempFilterItemAttributesBuffer.Attribute := 'Grade';
                     TempFilterItemAttributesBuffer.Value := Attr_Grade;
-                    TempFilterItemAttributesBuffer.insert;
+                    if not TempFilterItemAttributesBuffer.insert
+                    then
+                        TempFilterItemAttributesBuffer.Modify();
                 end;
                 IF STRPOS(JSONBuffer.Path, 'size') > 0 THEN begin
                     Attr_Size := JSONBuffer.Value;
                     TempFilterItemAttributesBuffer.init;
                     TempFilterItemAttributesBuffer.Attribute := 'Size';
                     TempFilterItemAttributesBuffer.Value := Attr_Size;
-                    TempFilterItemAttributesBuffer.insert;
+                    if not TempFilterItemAttributesBuffer.insert
+                   then
+                        TempFilterItemAttributesBuffer.Modify();
                 end;
                 IF STRPOS(JSONBuffer.Path, 'om') > 0 THEN begin
                     Attr_OM := JSONBuffer.Value;
                     TempFilterItemAttributesBuffer.init;
                     TempFilterItemAttributesBuffer.Attribute := 'OM';
                     TempFilterItemAttributesBuffer.Value := Attr_OM;
-                    TempFilterItemAttributesBuffer.insert;
+                    if not TempFilterItemAttributesBuffer.insert
+                   then
+                        TempFilterItemAttributesBuffer.Modify();
                 end;
                 IF STRPOS(JSONBuffer.Path, 'spacolor') > 0 THEN begin
                     Attr_Color := JSONBuffer.Value;
                     TempFilterItemAttributesBuffer.init;
                     TempFilterItemAttributesBuffer.Attribute := 'SPAColor';
                     TempFilterItemAttributesBuffer.Value := Attr_Color;
-                    TempFilterItemAttributesBuffer.insert;
+                    if not TempFilterItemAttributesBuffer.insert
+                   then
+                        TempFilterItemAttributesBuffer.Modify();
                 end;
                 IF STRPOS(JSONBuffer.Path, 'primarypackagetype') > 0 THEN begin
                     Attr_PrimaryPackageType := JSONBuffer.Value;
                     TempFilterItemAttributesBuffer.init;
                     TempFilterItemAttributesBuffer.Attribute := 'Primary Packaging Type';
                     TempFilterItemAttributesBuffer.Value := Attr_PrimaryPackageType;
-                    TempFilterItemAttributesBuffer.insert;
+                    if not TempFilterItemAttributesBuffer.insert
+                   then
+                        TempFilterItemAttributesBuffer.Modify();
                 end;
                 IF STRPOS(JSONBuffer.Path, 'packagedescription') > 0 THEN begin
                     Attr_PackageDescription := JSONBuffer.Value;
                     TempFilterItemAttributesBuffer.init;
                     TempFilterItemAttributesBuffer.Attribute := 'Packaging Description';
                     TempFilterItemAttributesBuffer.Value := Attr_PackageDescription;
-                    TempFilterItemAttributesBuffer.insert;
+                    if not TempFilterItemAttributesBuffer.insert
+                   then
+                        TempFilterItemAttributesBuffer.Modify();
+                    //    end;
                 end;
-            //   end;
             UNTIL JSONBuffer.NEXT = 0;
         end;
         ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempItemFilteredFromAttributes);
         FilterText := ItemAttributeManagement.GetItemNoFilterText(TempItemFilteredFromAttributes, ParameterCount);
-        if TempItemFilteredFromAttributes.findset then begin
-            TempItemFilteredFromAttributes.reset;
-            if TempItemFilteredFromAttributes.findset then
-                repeat
-                    if strpos(TempItemFilteredFromAttributes.Description, '"') > 0 then
-                        DescText := ConvertStr(TempItemFilteredFromAttributes.Description, '"', ' ')
-                    else
-                        DescText := TempItemFilteredFromAttributes.Description;
-                    JsonObj.add('Item No.', TempItemFilteredFromAttributes."No.");
-                    if ItemRec.get(TempItemFilteredFromAttributes."No.") then
-                        JsonObj.add('ItemCategory', itemrec."Item Category Code");
-                    JsonObj.add('Description', DescText);
-                    JsonArr.Add(JsonObj);
-                    clear(JsonObj);
-                until TempItemFilteredFromAttributes.next = 0;
+        LItems.Reset();
+        LItems.SetFilter("No.", FilterText);
+        if LItems.findset then begin
+            repeat
+                JsonObj.add('Item No.', LItems."No.");
+                JsonObj.add('ItemCategory', LItems."Item Category Code");
+                JsonObj.add('Description', LItems.Description);
+                JsonArr.Add(JsonObj);
+                clear(JsonObj);
+            until LItems.next = 0;
             JsonArr.WriteTo(pContent);
         end
         else
@@ -1240,6 +1249,9 @@ codeunit 60010 "UI Pallet Functions"
         Password: text[10];
         FileMgt: Codeunit "File Management";
         boolExists: Boolean;
+        LInstr: InStream;
+        Base64ConvertCU: Codeunit "Base64 Convert";
+        Result: Text;
     begin
         IF pFunction <> 'ConsignmentNote' THEN
             EXIT;
@@ -1281,7 +1293,11 @@ codeunit 60010 "UI Pallet Functions"
             LRecRef.GetTable(LPostedWhseShipmentLine);
             LRecRef.Get(LPostedWhseShipmentLine.RecordId);
             Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
-            pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consignment Note %1 .pdf', SalesOrderText), true);
+            LTempBlob.CreateInStream(LInstr);
+            LInstr.ReadText(Result);
+            Result := Base64ConvertCU.ToBase64(Result);
+            pContent := Result;
+            //pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consignment Note %1 .pdf', SalesOrderText), true);
         end;
     end;
 
@@ -1297,19 +1313,28 @@ codeunit 60010 "UI Pallet Functions"
         LOutStr: OutStream;
         JsonObj: JsonObject;
         JsonTkn: JsonToken;
+        LFile: File;
         Password: text[10];
         FileMgt: Codeunit "File Management";
         boolExists: Boolean;
         ConsignmentNote: Report "Consignment Note";
         LInstr: InStream;
+        Base64ConvertCU: Codeunit "Base64 Convert";
+        Result: Text;
     begin
+
         LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
         LPostedWhseShipmentLine.SetRange("No.", LPostedWhseShipmentLine."No.");
         LRecRef.GetTable(LPostedWhseShipmentLine);
         LRecRef.Get(LPostedWhseShipmentLine.RecordId);
         //Report.SaveAs(60003, '', ReportFormat::pdf, LOutStr, LRecRef);
         ConsignmentNote.SaveAs(StrSubstNo('Consignment Note %1.pdf', SalesOrderText), ReportFormat::pdf, LOutStr, LRecRef);
-        Message(FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consignment Note %1.pdf', SalesOrderText), true));
+
+        LTempBlob.CreateInStream(LInstr);
+        LInstr.ReadText(Result);
+        Result := Base64ConvertCU.ToBase64(Result);
+
+        Message(Result);
     end;
 
 }

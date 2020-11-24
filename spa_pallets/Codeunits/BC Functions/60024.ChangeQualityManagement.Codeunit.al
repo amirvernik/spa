@@ -214,7 +214,8 @@ codeunit 60024 "Change Quality Management"
                     ItemJournalLine."Posting Date" := Today;
                     ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
                     ItemJournalLine."Pallet ID" := pPalletLineChg."Pallet ID";
-
+                    ItemJournalLine."Pallet Line No." := pPalletLineChg."Line No.";
+                    ItemJournalLine."Lot No." := pPalletLineChg."Lot Number";
                     ItemJournalLine."Document Date" := today;
                     ItemJournalLine.validate("Item No.", pPalletLineChg."Item No.");
                     ItemJournalLine.validate("Variant Code", pPalletLineChg."Variant Code");
@@ -224,7 +225,7 @@ codeunit 60024 "Change Quality Management"
                     //Create Reservation Entry
                     if ItemRec.get(pPalletLineChg."Item No.") then
                         if Itemrec."Lot Nos." <> '' then begin
-                            ItemJournalLine."Lot No." := pPalletLineChg."Lot Number";
+
                             ItemJournalLine.Modify();
                             RecGReservationEntry2.reset;
                             if RecGReservationEntry2.findlast then
@@ -290,6 +291,7 @@ codeunit 60024 "Change Quality Management"
         pPalletLineChg.reset;
         pPalletLineChg.SetRange("User ID", UserId);
         pPalletLineChg.SetRange("Pallet ID", PalletID);
+        pPalletLineChg.SetRange("Line No.", PalletLineNo);
         if pPalletLineChg.findset then
             repeat
                 PalletChangeQuality.reset;
@@ -302,17 +304,19 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine."Journal Template Name" := 'ITEM';
                         ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
                         ItemJournalLine."Line No." := LineNumber;
-                        ItemJournalLine.insert;
+                        ItemJournalLine.insert(true);
                         ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
                         ItemJournalLine."Posting Date" := Today;
-                        ItemJournalLine."New Lot No." := pPalletLineChg."Lot Number";
-                        ItemJournalLine."Lot No." := pPalletLineChg."Lot Number";
+
                         ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
                         ItemJournalLine."Document Date" := today;
                         ItemJournalLine.validate("Item No.", PalletChangeQuality."new Item No.");
                         ItemJournalLine.validate("Variant Code", PalletChangeQuality."new Variant Code");
                         ItemJournalLine.validate("Location Code", pPalletLineChg."Location Code");
                         ItemJournalLine.validate(Quantity, PalletChangeQuality."New Quantity");
+                        ItemJournalLine.validate("Lot No.", pPalletLineChg."Lot Number");
+                        ItemJournalLine.Validate("Pallet ID", pPalletLineChg."Pallet ID");
+                        ItemJournalLine."Pallet Line No." := PalletChangeQuality."Pallet Line No.";
                         ItemJournalLine.modify;
                         //Create Reservation Entry
                         if ItemRec.get(PalletChangeQuality."new Item No.") then
@@ -334,12 +338,12 @@ codeunit 60024 "Change Quality Management"
                                 RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
                                 RecGReservationEntry.validate("Location Code", pPalletLineChg."Location Code");
                                 RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
-                                RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
                                 RecGReservationEntry.validate("Item No.", PalletChangeQuality."new Item No.");
                                 RecGReservationEntry.validate("Variant Code", PalletChangeQuality."new Variant Code");
                                 RecGReservationEntry.validate("Quantity (Base)", PalletChangeQuality."New Quantity");
                                 RecGReservationEntry.validate(Quantity, PalletChangeQuality."New Quantity");
                                 RecGReservationEntry.Positive := true;
+                                RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
                                 RecGReservationEntry.insert;
                             end;
                         LineNumber += 10000;
@@ -721,6 +725,7 @@ codeunit 60024 "Change Quality Management"
 
         QualityChangeLine.reset;
         QualityChangeLine.setrange("Pallet ID", pPalletLineChg."Pallet ID");
+        QualityChangeLine.SetRange("Line No.", pPalletLineChg."Line No.");
         QualityChangeLine.SetRange("User Created", UserId);
         if QualityChangeLine.FindSet then
             repeat
@@ -744,7 +749,7 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine.Validate("Unit of Measure Code", BomComponent."Unit of Measure Code");
                         ItemJournalLine.validate(Quantity, QualityChangeLine."New Quantity" * BomComponent."Quantity per");
                         ItemJournalLine."Pallet ID" := QualityChangeLine."Pallet ID";
-                        ItemJournalLine.Correction := true;
+                        ItemJournalLine."Pallet Line No." := QualityChangeLine."Pallet Line No.";
                         ItemJournalLine.modify;
 
                         LineNumber += 1000;

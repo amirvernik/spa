@@ -178,20 +178,20 @@ page 60025 "Pallet Change Quality"
                         ItemJournalLine.DeleteAll();
 
                     ChangeQualityMgmt.NegAdjChangeQuality(Rec); //Negative Change Quality  
-                                                                // ChangeQualityMgmt.PostItemLedger(Rec."Pallet ID"); //Post Neg Item Journals to New Items                 
-                    ChangeQualityMgmt.PostItemLedger(rec."Pallet ID");
-                    // Message('post1');
+                                                                //ChangeQualityMgmt.PostItemLedger(Rec."Pallet ID"); //Post Neg Item Journals to New Items                 
+                                                                //ChangeQualityMgmt.PostItemLedger(rec."Pallet ID");
+                                                                // Message('post1');
                     ChangeQualityMgmt.ChangeQuantitiesOnPalletline(Rec); //Change Quantities on Pallet Line                    
                     ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
                                                                     //ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
                     ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
                     ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
-                    ChangeQualityMgmt.PostItemLedger(rec."Pallet ID");
+                    //ChangeQualityMgmt.PostItemLedger(rec."Pallet ID");
                     //Message('post2');
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(rec."Pallet ID"); //Post Pos Item Journals to New Items  
-                    //Message('3');
-                    ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials                                      
+                                                                       //Message('3');
+                                                                       // ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials                                      
                     ChangeQualityMgmt.RecreateReservations(rec."Pallet ID");
                     ChangeQualityMgmt.RemoveZeroPalletLine(rec); // Remove Pallet Lines with Zero Quantities
                     CurrPage.Close();

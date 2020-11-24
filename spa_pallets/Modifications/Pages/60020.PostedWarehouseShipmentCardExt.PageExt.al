@@ -33,7 +33,7 @@ pageextension 60020 PostedWarehouseShipmentCardExt extends "Posted Whse. Shipmen
             action("ConsugnmentNoteReportfortest")
             {
                 ApplicationArea = ALL;
-                Visible = false;
+                // Visible = false;
                 trigger OnAction();
                 var
                     pcu: Codeunit "UI Pallet Functions";

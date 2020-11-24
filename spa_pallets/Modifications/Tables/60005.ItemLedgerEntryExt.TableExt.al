@@ -23,6 +23,10 @@ tableextension 60005 ItemLedgerEntryExt extends "Item Ledger Entry"
         {
             DataClassification = ToBeClassified;
         }
+        field(60005; "Pallet Line No."; Integer)
+        {
+            DataClassification = ToBeClassified;
+        }
 
     }
 
