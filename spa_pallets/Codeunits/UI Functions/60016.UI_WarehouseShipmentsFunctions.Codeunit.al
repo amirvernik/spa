@@ -453,6 +453,7 @@ codeunit 60016 "UI Whse Shipments Functions"
                           LItemJournalLine.modify;
                           LineNumber += 10000;
                           CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+                          PalletLedgerFunctions.PosPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Return Packing Materials");
                       end;
 */
                     until palletline.next = 0

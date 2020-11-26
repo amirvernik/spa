@@ -119,7 +119,7 @@ page 60025 "Pallet Change Quality"
                     ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
                     ErrArchived: Label 'The PO was already invoiced, please change item quality manually';
                     PalletChangeQuality: Record "Pallet Change Quality";
-                    ReservationEntry: Record "Reservation Entry";
+                    PalletReservationEntry: Record "Pallet Reservation Entry";
                     PurchaseProcessSetup: Record "SPA Purchase Process Setup";
                     ItemJournalLine: Record "Item Journal Line";
 
@@ -134,11 +134,11 @@ page 60025 "Pallet Change Quality"
                         exit;
                     end;
 
-                    ReservationEntry.reset;
-                    ReservationEntry.SetCurrentKey("Lot No.");
-                    ReservationEntry.SetRange("Item No.", Rec."Item No.");
-                    ReservationEntry.setrange("Lot No.", Rec."Lot Number");
-                    if ReservationEntry.findset() then
+                    PalletReservationEntry.reset;
+                    PalletReservationEntry.SetRange("Pallet ID", Rec."Pallet ID");
+                    PalletReservationEntry.SetRange("Item No.", Rec."Item No.");
+                    PalletReservationEntry.setrange("Lot No.", Rec."Lot Number");
+                    if PalletReservationEntry.findset() then
                         Error(ErrorReservation);
 
                     if "Replaced Qty" >= Quantity then
@@ -186,8 +186,6 @@ page 60025 "Pallet Change Quality"
                                                                     //ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
                     ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
                     ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
-                    //ChangeQualityMgmt.PostItemLedger(rec."Pallet ID");
-                    //Message('post2');
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(rec."Pallet ID"); //Post Pos Item Journals to New Items  
                                                                        //Message('3');

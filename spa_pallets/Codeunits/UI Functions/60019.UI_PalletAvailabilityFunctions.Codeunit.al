@@ -168,6 +168,7 @@ codeunit 60019 "UI Pallet Availability"
         clear(JsonObjectAll);
 
         PalletHeaderTemp.reset;
+        PalletHeaderTemp.SetFilter("Pallet Status", '=%1 | =%2', PalletHeaderTemp."Pallet Status"::Closed, PalletHeaderTemp."Pallet Status"::"Partially consumed");
         if PalletHeaderTemp.findset then
             repeat
                 JsonObjPallet.add('palletid', PalletHeaderTemp."Pallet ID");

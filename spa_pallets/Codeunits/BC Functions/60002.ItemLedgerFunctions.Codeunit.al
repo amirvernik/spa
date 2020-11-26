@@ -6,6 +6,7 @@ codeunit 60002 "Item Ledger Functions"
     procedure NegItemLedgerEntry(var pPalletHeader: Record "Pallet Header")
     var
         ItemUOM: Record "Item Unit of Measure";
+        PalletLedgerType: Enum "Pallet Ledger Type";
     begin
         //Inserting Item Journal
         PalletSetup.get();
@@ -48,6 +49,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
+                PalletLedgerFunctions.NegPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
             until PackingMaterials.next = 0;
     end;
 
@@ -55,6 +57,7 @@ codeunit 60002 "Item Ledger Functions"
     procedure PosItemLedgerEntry(var pPalletHeader: Record "Pallet Header")
     var
         ItemUOM: Record "Item Unit of Measure";
+        PalletLedgerType: Enum "Pallet Ledger Type";
     begin
         //Inserting Item Journal
         PalletSetup.get();
@@ -98,7 +101,8 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
-            //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
+                //CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
             until PackingMaterials.next = 0;
     end;
 
@@ -125,6 +129,7 @@ codeunit 60002 "Item Ledger Functions"
     local procedure OnAfterPostItemJnlLine(ItemLedgerEntry: Record "Item Ledger Entry"; var ItemJournalLine: Record "Item Journal Line")
     var
         PalletSetup: Record "Pallet Process Setup";
+        LPalletLedgerEntry: Record "Pallet Ledger Entry";
     begin
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
@@ -134,24 +139,36 @@ codeunit 60002 "Item Ledger Functions"
         ItemLedgerEntry."Packing Material UOM" := ItemJournalLine."Packing Material UOM";
         ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
-        if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
-            if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
-                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry);
-                ItemLedgerEntry.Description := 'POS-' + ItemJournalLine.Description;
-                ItemLedgerEntry.Modify();
-            end;
-            if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Negative Adjmt." then begin
-                PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemLedgerEntry);
-                ItemLedgerEntry.Description := 'NEG-' + ItemJournalLine.Description;
-                ItemLedgerEntry.Modify();
-            end;
-        end;
-        if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then begin
-            PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
-            ItemLedgerEntry.Description := ItemJournalLine.Description;
-            ItemLedgerEntry.Modify();
-        end;
 
+
+        LPalletLedgerEntry.Reset();
+        LPalletLedgerEntry.SetRange("Pallet ID", ItemJournalLine."Pallet ID");
+        LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
+        LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+        if LPalletLedgerEntry.FindLast() then begin
+            LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+            LPalletLedgerEntry.Modify();
+
+            if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
+                if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
+                    // PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry);
+                    ItemLedgerEntry.Description := 'POS-' + ItemJournalLine.Description;
+                    ItemLedgerEntry.Modify();
+
+                end;
+                if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Negative Adjmt." then begin
+                    // PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemLedgerEntry);
+                    ItemLedgerEntry.Description := 'NEG-' + ItemJournalLine.Description;
+                    ItemLedgerEntry.Modify();
+                end;
+            end;
+            if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then begin
+                PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
+                ItemLedgerEntry.Description := ItemJournalLine.Description;
+                ItemLedgerEntry.Modify();
+            end;
+
+        end;
     end;
 
     var

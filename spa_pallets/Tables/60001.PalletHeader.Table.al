@@ -38,7 +38,8 @@ table 60001 "Pallet Header"
             var
                 PalletFunctionsCU: Codeunit "Pallet Functions";
             begin
-                if (Rec."Pallet Status" <> xRec."Pallet Status") and (Rec."Pallet Status" = Rec."Pallet Status"::Consumed) then
+                if ((Rec."Pallet Status" <> xRec."Pallet Status") and (Rec."Pallet Status" = Rec."Pallet Status"::Consumed))
+                 then
                     PalletFunctionsCU.CreateNegAdjustmentToPackingMaterials(Rec);
             end;
 

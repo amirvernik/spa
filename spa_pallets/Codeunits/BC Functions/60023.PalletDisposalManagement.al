@@ -105,6 +105,8 @@ codeunit 60023 "Pallet Disposal Management"
         PackingMaterials: Record "Packing Material Line";
         PMSelect: Record "Packing Materials Select" temporary;
         RecGItemJournalLine: Record "Item Journal Line";
+        PalletLedgerType: Enum "Pallet Ledger Type";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         LineNumber: Integer;
     begin
         PMSelect.Reset();
@@ -162,6 +164,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 lineNumber += 10000;
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
             until PMSelect.next = 0;
     end;
 
@@ -171,6 +174,8 @@ codeunit 60023 "Pallet Disposal Management"
     var
         ItemJournalLine: Record "Item Journal Line";
         LineNumber: Integer;
+        PalletLedgerType: Enum "Pallet Ledger Type";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
     begin
 
         pPackingSelect.reset;
@@ -205,6 +210,7 @@ codeunit 60023 "Pallet Disposal Management"
                 ItemJournalLine.modify;
 
                 lineNumber += 10000;
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
             until pPackingSelect.next = 0;
     end;
 
@@ -223,6 +229,7 @@ codeunit 60023 "Pallet Disposal Management"
         PalletSetup: Record "Pallet Process Setup";
         maxEntry: integer;
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
+        PalletLedgerType: Enum "Pallet Ledger Type";
     begin
         PalletLine.reset;
         PalletLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
@@ -284,6 +291,7 @@ codeunit 60023 "Pallet Disposal Management"
                         ReservationEntry.validate(Quantity, -1 * PalletLine.Quantity);
                         ReservationEntry.Positive := false;
                         ReservationEntry.insert;
+                        PalletLedgerFunctions.NegPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
                         lineNumber += 10000;
                     end;
             until PalletLine.next = 0;

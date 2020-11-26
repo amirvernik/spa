@@ -238,39 +238,42 @@ codeunit 60003 "Pallet Ledger Functions"
 
 
     //Pallet Ledger Entry Item Journal - Negative
-    procedure NegPalletLedgerEntryItem(var ItemLedgerEntry: Record "Item Ledger Entry")
+    procedure NegPalletLedgerEntryItem(var ItemJournalLine: Record "Item Journal Line"; PalletLedgerEntryType: Enum "Pallet Ledger Type")
     var
         PackingMaterialLine: Record "Packing Material Line";
+        LPalletLine: Record "Pallet Line";
     begin
         PalletLedgerEntry.LockTable();
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
-        if ItemLedgerEntry.Disposal then
-            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Dispose Raw Materials"
-        else
-            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Consume Packing Materials";
-        PalletLedgerEntry."Pallet ID" := ItemLedgerEntry."Pallet ID";
-        PalletLedgerEntry."Document No." := ItemLedgerEntry."Pallet ID";
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+        PalletLedgerEntry."Entry Type" := PalletLedgerEntryType;
+        PalletLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
+        PalletLedgerEntry."Document No." := ItemJournalLine."Pallet ID";
+        //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Pallet Entry No.";
         PalletLedgerEntry.validate("Posting Date", Today);
-        PalletLedgerEntry.validate("Item No.", ItemLedgerEntry."Item No.");
-        if item.get(ItemLedgerEntry."Item No.") then
+        PalletLedgerEntry.validate("Item No.", ItemJournalLine."Item No.");
+        if item.get(ItemJournalLine."Item No.") then
             PalletLedgerEntry."Item Description" := item.Description;
-        PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
-        PalletLedgerEntry.validate("Location Code", ItemLedgerEntry."Location Code");
-        //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
-        //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
-        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
-        PalletLedgerEntry.validate(Quantity, -1 * ItemLedgerEntry."Packing Material Qty");
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+        PalletLedgerEntry."Variant Code" := ItemJournalLine."Variant Code";
+        PalletLedgerEntry.validate("Location Code", ItemJournalLine."Location Code");
+        PalletLedgerEntry.validate("Unit of Measure", ItemJournalLine."Unit of Measure Code");
+        PalletLedgerEntry.validate(Quantity, -1 * ItemJournalLine.Quantity);
         PalletLedgerEntry."User ID" := userid;
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+        LPalletLine.Reset();
+        LPalletLine.SetRange("Pallet ID", PalletLedgerEntry."Pallet ID");
+        LPalletLine.SetRange("Line No.", PalletLedgerEntry."Pallet Line No.");
+        LPalletLine.SetFilter("Purchase Order No.", '<>%1', '');
+        if LPalletLine.FindFirst() then begin
+            PalletLedgerEntry."Order Type" := 'Order';
+            PalletLedgerEntry."Order No." := LPalletLine."Purchase Order No.";
+            PalletLedgerEntry."Order Line No." := LPalletLine."Purchase Order Line No.";
+        end;
         PalletLedgerEntry.Insert();
     end;
 
     //Pallet Ledger Entry Item Journal - Negative
-    procedure PosPalletLedgerEntryItem(var ItemLedgerEntry: Record "Item Ledger Entry")
+    procedure PosPalletLedgerEntryItem(var ItemJournalLine: Record "Item Journal Line"; PalletLedgerEntryType: Enum "Pallet Ledger Type")
     var
         ItemUOM: Record "Item Unit of Measure";
     begin
@@ -278,30 +281,26 @@ codeunit 60003 "Pallet Ledger Functions"
         LineNumber := GetLastEntry();
         PalletLedgerEntry.Init();
         PalletLedgerEntry."Entry No." := LineNumber;
-        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Return Packing Materials";
-        PalletLedgerEntry."Pallet ID" := ItemLedgerEntry."Pallet ID";
-        PalletLedgerEntry."Pallet Line No." := PalletLines."Line No.";
-        PalletLedgerEntry."Document No." := ItemLedgerEntry."Pallet ID";
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+        PalletLedgerEntry."Entry Type" := PalletLedgerEntryType;
+        PalletLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
+        PalletLedgerEntry."Pallet Line No." := ItemJournalLine."Pallet Line No.";
+        PalletLedgerEntry."Document No." := ItemJournalLine."Pallet ID";
+        //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
         PalletLedgerEntry.validate("Posting Date", Today);
-        PalletLedgerEntry.validate("Item No.", ItemLedgerEntry."Item No.");
-        if item.get(ItemLedgerEntry."Item No.") then
+        PalletLedgerEntry.validate("Item No.", ItemJournalLine."Item No.");
+        if item.get(ItemJournalLine."Item No.") then
             PalletLedgerEntry."Item Description" := item.Description;
-        PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
-        PalletLedgerEntry.validate("Location Code", ItemLedgerEntry."Location Code");
-        //PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Unit of Measure Code");
-        //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
-        PalletLedgerEntry.validate("Unit of Measure", ItemLedgerEntry."Packing Material UOM");
+        PalletLedgerEntry."Variant Code" := ItemJournalLine."Variant Code";
+        PalletLedgerEntry.validate("Location Code", ItemJournalLine."Location Code");
+        PalletLedgerEntry.validate("Unit of Measure", ItemJournalLine."Unit of Measure Code");
         ItemUOM.reset;
-        ItemUOM.setrange("Item No.", ItemLedgerEntry."Item No.");
-        ItemUOM.setrange(code, ItemLedgerEntry."Packing Material UOM");
+        ItemUOM.setrange("Item No.", ItemJournalLine."Item No.");
+        ItemUOM.setrange(code, ItemJournalLine."Unit of Measure Code");
         if ItemUOM.findfirst then
-            //PalletLedgerEntry.validate(Quantity, ItemLedgerEntry."Packing Material Qty");
-            PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity * ItemUOM."Qty. per Unit of Measure")
+            PalletLedgerEntry.validate(Quantity, ItemJournalLine.Quantity * ItemUOM."Qty. per Unit of Measure")
         else
-            PalletLedgerEntry.validate(Quantity, ItemLedgerEntry.Quantity);
+            PalletLedgerEntry.validate(Quantity, ItemJournalLine.Quantity);
         PalletLedgerEntry."User ID" := userid;
-        PalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
         if PalletLedgerEntry.Quantity <> 0 then
             PalletLedgerEntry.Insert();
 

@@ -364,17 +364,26 @@ codeunit 60021 "Purch. UI Functions"
                         LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
                         LItemJournalLine.validate("Location Code", PalletLine."Location Code");
                         LItemJournalLine.validate(Quantity, PalletLineTemp."QTY Consumed");
+                        LItemJournalLine.Validate(LItemJournalLine."Lot No.", PalletLineTemp."Lot Number");
                         LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
                         LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
                         LItemJournalLine.modify;
                         LineNumber += 10000;
-                        CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
 
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
                         PalletLineTemp.modify;
                     end
                 end;
             until PalletLineTemp.next = 0;
+
+        LItemJournalLine.Reset();
+        LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
+        LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Document No.", PalletID);
+        if LItemJournalLine.FindSet() then
+            repeat
+                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+            until LItemJournalLine.Next() = 0;
 
         //if all consumed
         PalletLineTemp.reset;

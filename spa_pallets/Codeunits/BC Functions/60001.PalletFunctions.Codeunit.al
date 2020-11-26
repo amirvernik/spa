@@ -477,49 +477,72 @@ codeunit 60001 "Pallet Functions"
         ItemJournalLine: Record "Item Journal Line";
         PalletFunctionUI: Codeunit "UI Pallet Functions";
         LineNumber: Integer;
+        LpurchaseHeader: Record "Purchase Header";
+        LpalletLine: Record "Pallet Line";
         PackingMaterials: Record "Packing Material Line";
         RecGReservationEntry2: Record "Reservation Entry";
         RecGReservationEntry: Record "Reservation Entry";
+        PalletLedgerType: Enum "Pallet Ledger Type";
         maxEntry: Integer;
         ItemRec: Record Item;
+        boolMW: Boolean;
     begin
-        PackingMaterials.Reset();
-        PackingMaterials.Setrange("Pallet ID", pPalletHeader."Pallet ID");
-        PackingMaterials.SetRange("Reusable Item", true);
-        if PackingMaterials.FindSet() then begin
-            PurchaseProcessSetup.get();
-            ItemJournalLine.reset;
-            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
-            ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
-            if ItemJournalLine.FindLast() then
-                LineNumber := ItemJournalLine."Line No." + 10000
-            else
-                LineNumber := 10000;
+        boolMW := false;
+        LpalletLine.Reset();
+        LpalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+        if LpalletLine.FindSet() then
             repeat
+                LpurchaseHeader.Reset();
+                LpurchaseHeader.SetRange("Document Type", LpurchaseHeader."Document Type"::Order);
+                LpurchaseHeader.SetRange("No.", LpalletLine."Purchase Order No.");
+                LpurchaseHeader.SetRange("Microwave Process PO", true);
+                if LpurchaseHeader.FindSet() then
+                    boolMW := true;
+            until LpalletLine.Next() = 0;
 
-                ItemJournalLine.init;
-                ItemJournalLine."Journal Template Name" := 'ITEM';
-                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                ItemJournalLine."Line No." := LineNumber;
-                ItemJournalLine.insert;
-                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
-                ItemJournalLine."Posting Date" := PalletFunctionUI.GetCurrTime;
-                ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
-                ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
-                ItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
-                // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
-                ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
-                ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
-                ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+        if boolMW then begin
+            PackingMaterials.Reset();
+            PackingMaterials.Setrange("Pallet ID", pPalletHeader."Pallet ID");
+            PackingMaterials.SetRange("Reusable Item", true);
+            if PackingMaterials.FindSet() then begin
+                PurchaseProcessSetup.get();
+                ItemJournalLine.reset;
+                ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                if ItemJournalLine.FindLast() then
+                    LineNumber := ItemJournalLine."Line No." + 10000
+                else
+                    LineNumber := 10000;
+                repeat
 
-                ItemJournalLine.modify;
-                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
-            until PackingMaterials.Next() = 0;
+                    ItemJournalLine.init;
+                    ItemJournalLine."Journal Template Name" := 'ITEM';
+                    ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                    ItemJournalLine."Line No." := LineNumber;
+                    ItemJournalLine.insert;
+                    ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
+                    ItemJournalLine."Posting Date" := PalletFunctionUI.GetCurrTime;
+                    ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
+                    ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
+                    ItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
+                    // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
+                    ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
+                    ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                    ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+
+                    ItemJournalLine.modify;
+                    CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+
+                    PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Consume Packing Materials");
+
+                until PackingMaterials.Next() = 0;
+            end;
         end;
+
     end;
 
-
-    procedure ExportToExcelPODetials(PONumber: Code[20]; var PORec: Record "Purchase Header");
+    procedure ExportToExcelPODetials(PONumber: Code[20]; var
+                                                             PORec: Record "Purchase Header");
     var
         LPalletLine: Record "Pallet Line";
         LPalletHeader: Record "Pallet Header";
@@ -1083,8 +1106,9 @@ codeunit 60001 "Pallet Functions"
         ItemJournalLine: Record "Item Journal Line";
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         LineNumber: Integer;
-        RecGReservationEntry: Record "Reservation Entry";
+        RecGReservationEntry: Record "Pallet Reservation Entry";
         ReservationEntry: Record "Reservation Entry";
+        PalletLedgerType: Enum "Pallet Ledger Type";
         ReservationEntry2: Record "Reservation Entry";
         MaxEntry: Integer;
         RecItem: Record Item;
@@ -1111,6 +1135,7 @@ codeunit 60001 "Pallet Functions"
                         RecGReservationEntry.SetCurrentKey("Lot No.");
                         //RecGReservationEntry.SetRange("Source Type", 39);
                         //RecGReservationEntry.setrange("Source Subtype", 1);
+                        RecGReservationEntry.SetRange("Pallet ID", pPalletHeader."Pallet ID");
                         RecGReservationEntry.SetRange("Item No.", LPalletLine."Item No.");
                         RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
                         if RecGReservationEntry.findset() then begin
@@ -1179,7 +1204,7 @@ codeunit 60001 "Pallet Functions"
                         lineNumber += 1000;
 
                         CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
-                        PalletLedgerFunctions.PalletCancelledPalletLedger(pPalletHeader, MaxEntry);
+                        PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Pallet Cancelled");
                     until LPalletLine.Next() = 0;
                 end;
                 TrackingLineFunctions.RemoveTrackingLineFromPO(pPalletHeader); //Remove Tracking Line to PO

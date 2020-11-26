@@ -165,7 +165,7 @@ page 60006 "Pallet Card Subpage"
                         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
                         Err001: Label 'There are no Lot to Select for Item %1, Location %2';
                         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
-
+                        PalletReservationEntry: Record "Pallet reservation Entry";
                     begin
 
                         if LotSelection.findset then
@@ -195,6 +195,13 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection."Variant code" := ItemLedgerEntry."Variant Code";
                                     LotSelection."Expiration Date" := ItemLedgerEntry."Expiration Date";
                                     LotSelection."Quantity Available" := ItemLedgerEntry.Quantity;
+                                    PalletReservationEntry.Reset();
+                                    PalletReservationEntry.SetRange("Item No.", ItemLedgerEntry."Item No.");
+                                    PalletReservationEntry.SetRange("Lot No.", ItemLedgerEntry."Lot No.");
+                                    if PalletReservationEntry.FindSet() then begin
+                                        PalletReservationEntry.CalcSums(Quantity);
+                                        LotSelection."Quantity Available" -= PalletReservationEntry.Quantity;
+                                    end;
                                     LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
                                     PurchaseReceiptLine.Reset();
                                     PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");
@@ -206,6 +213,9 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection.insert;
                                 end else begin
                                     LotSelection.Quantity += ItemLedgerEntry.Quantity;
+                                    LotSelection."Quantity Available" += ItemLedgerEntry.Quantity;
+                                    LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
+
                                     LotSelection.Modify();
                                 end;
                             until ItemLedgerEntry.next = 0;

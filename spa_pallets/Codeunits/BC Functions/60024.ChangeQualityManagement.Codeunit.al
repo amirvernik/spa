@@ -172,10 +172,12 @@ codeunit 60024 "Change Quality Management"
         ItemRec: Record item;
         RecGReservationEntry: Record "Reservation Entry";
         RecGReservationEntry2: Record "Reservation Entry";
+        PalletLedgerType: Enum "Pallet Ledger Type";
         MaxEntry: Integer;
         PalletID: Code[20];
         PalletLineNo: Integer;
         LPalletLine: Record "Pallet Line";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
     begin
         PurchaseProcessSetup.get();
         ItemJournalLine.reset;
@@ -214,6 +216,7 @@ codeunit 60024 "Change Quality Management"
                     ItemJournalLine."Posting Date" := Today;
                     ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
                     ItemJournalLine."Pallet ID" := pPalletLineChg."Pallet ID";
+
                     ItemJournalLine."Pallet Line No." := pPalletLineChg."Line No.";
                     ItemJournalLine."Lot No." := pPalletLineChg."Lot Number";
                     ItemJournalLine."Document Date" := today;
@@ -253,7 +256,7 @@ codeunit 60024 "Change Quality Management"
                             (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
                             RecGReservationEntry.Positive := false;
                             RecGReservationEntry.insert;
-
+                            PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Quality Change");
                         end;
 
                     LineNumber += 10000;
@@ -272,8 +275,11 @@ codeunit 60024 "Change Quality Management"
         RecGReservationEntry: Record "Reservation Entry";
         RecGReservationEntry2: Record "Reservation Entry";
         MaxEntry: Integer;
+        LPalletLine: Record "Pallet Line";
         PalletChangeQuality: Record "Pallet Change Quality";
         BomComponent: Record "BOM Component";
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
+        PalletLedgerType: Enum "Pallet Ledger Type";
         PalletID: Code[20];
         PalletLineNo: Integer;
     begin
@@ -288,6 +294,7 @@ codeunit 60024 "Change Quality Management"
 
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
+
         pPalletLineChg.reset;
         pPalletLineChg.SetRange("User ID", UserId);
         pPalletLineChg.SetRange("Pallet ID", PalletID);
@@ -316,7 +323,7 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine.validate(Quantity, PalletChangeQuality."New Quantity");
                         ItemJournalLine.validate("Lot No.", pPalletLineChg."Lot Number");
                         ItemJournalLine.Validate("Pallet ID", pPalletLineChg."Pallet ID");
-                        ItemJournalLine."Pallet Line No." := PalletChangeQuality."Pallet Line No.";
+                        ItemJournalLine."Pallet Line No." := PalletLineNo;
                         ItemJournalLine.modify;
                         //Create Reservation Entry
                         if ItemRec.get(PalletChangeQuality."new Item No.") then
@@ -346,6 +353,8 @@ codeunit 60024 "Change Quality Management"
                                 RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
                                 RecGReservationEntry.insert;
                             end;
+                        PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Quality Change");
+
                         LineNumber += 10000;
                     until PalletChangeQuality.next = 0;
             until pPalletLineChg.next = 0;
@@ -608,25 +617,6 @@ codeunit 60024 "Change Quality Management"
                             end;
                             PalletLine."User ID" := UserId;
                             PalletLine.insert;
-
-                            //Add New Items to Pallet Ledger Entry
-                            PalletLedgerEntry.Init();
-                            PalletLedgerEntry."Entry No." := GetLastEntry();
-                            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
-                            PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
-                            PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
-                            PalletLedgerEntry."Document No." := PalletLine."Pallet ID";
-                            PalletLedgerEntry.validate("Posting Date", Today);
-                            PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");
-                            PalletLedgerEntry."Variant Code" := PalletLine."Variant Code";
-                            PalletLedgerEntry."Item Description" := PalletLine.Description;
-                            PalletLedgerEntry."Lot Number" := PalletLine."Lot Number";
-                            PalletLedgerEntry.validate("Location Code", PalletLine."Location Code");
-                            PalletLedgerEntry.validate("Unit of Measure", PalletLine."Unit of Measure");
-                            PalletLedgerEntry.validate(Quantity, PalletLine.Quantity);
-                            PalletLedgerEntry."User ID" := userid;
-                            if PalletLedgerEntry.Quantity <> 0 then
-                                PalletLedgerEntry.Insert();
                         end;
                     until PalletItemChgLine.next = 0;
 
@@ -711,6 +701,8 @@ codeunit 60024 "Change Quality Management"
         RecGReservationEntry2: Record "Reservation Entry";
         RecGReservationEntry: Record "Reservation Entry";
         LineNumber: Integer;
+        PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
+        PalletLedgerType: Enum "Pallet Ledger Type";
         ItemRec: Record Item;
         maxEntry: Integer;
     begin
@@ -743,6 +735,7 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine."Posting Date" := Today;
                         ItemJournalLine."Document No." := QualityChangeLine."Pallet ID";
                         ItemJournalLine.Description := QualityChangeLine.Description;
+
                         ItemJournalLine.validate("Item No.", BomComponent."No.");
                         ItemJournalLine.validate("Variant Code", BomComponent."Variant Code");
                         ItemJournalLine.validate("Location Code", PalletHeader."Location Code");
@@ -751,6 +744,7 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine."Pallet ID" := QualityChangeLine."Pallet ID";
                         ItemJournalLine."Pallet Line No." := QualityChangeLine."Pallet Line No.";
                         ItemJournalLine.modify;
+                        PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Consume Packing Materials");
 
                         LineNumber += 1000;
                     until BomComponent.next = 0;
