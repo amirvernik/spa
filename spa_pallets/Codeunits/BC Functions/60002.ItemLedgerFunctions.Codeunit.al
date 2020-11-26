@@ -49,7 +49,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
                 RecGItemJournalLine.modify;
                 LineNumber += 10000;
-                PalletLedgerFunctions.NegPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
+                PalletLedgerFunctions.NegPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Consume Packing Materials");
             until PackingMaterials.next = 0;
     end;
 

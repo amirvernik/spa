@@ -198,9 +198,10 @@ codeunit 60021 "Purch. UI Functions"
         PalletHeader: Record "Pallet Header";
         PalletLine: Record "Pallet Line";
         LItemJournalLine: Record "Item Journal Line";
-        PalletSetup: Record "Pallet Process Setup";
+        PalletSetup: Record "SPA Purchase Process Setup";
         LineNumber: Integer;
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
+        LPalletFunctions: Codeunit "Pallet Functions";
         JsonObj: JsonObject;
         JsonTknAll: JsonToken; //All Json
         JsonTkn: jsontoken; //Getting Data From
@@ -219,7 +220,13 @@ codeunit 60021 "Purch. UI Functions"
         PalletsNotConsumed: Boolean;
         JsonResult: JsonObject;
         Variety_Code: code[10];
+        PalletLedgerType: Enum "Pallet Ledger Type";
+        RecGReservationEntry: Record "Reservation Entry";
+        ReservationEntry2: Record "Reservation Entry";
+        MaxEntry: Integer;
+        RecItem: Record Item;
     begin
+        SelectLatestVersion();
         IF pFunction <> 'CreatePurchaseHeaderMW' THEN
             EXIT;
 
@@ -279,6 +286,14 @@ codeunit 60021 "Purch. UI Functions"
         JsonObj.SelectToken('pallets', JsonTkn);
         JsonArr := JsonTkn.AsArray();
 
+        PalletSetup.Get();
+        LItemJournalLine.Reset();
+        LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
+        LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Pallet ID", PalletID);
+        if LItemJournalLine.FindSet() then
+            LItemJournalLine.DeleteAll();
+
         pContent := '';
         Searcher := 0;
         while searcher < JsonArr.Count do begin
@@ -331,7 +346,17 @@ codeunit 60021 "Purch. UI Functions"
             end;
         end;
 
+
         PalletSetup.get();
+
+        LItemJournalLine.reset;
+        LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        if LItemJournalLine.FindLast() then
+            LineNumber := LItemJournalLine."Line No." + 10000
+        else
+            LineNumber := 10000;
+
         PalletLineTemp.reset;
         if PalletLineTemp.findset then
             repeat
@@ -341,15 +366,7 @@ codeunit 60021 "Purch. UI Functions"
                         PalletLine."Remaining Qty" -= PalletLineTemp."QTY Consumed";
                         PalletLine.modify;
 
-                        PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
-
-                        LItemJournalLine.reset;
-                        LItemJournalLine.setrange("Journal Template Name", 'ITEM');
-                        LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
-                        if LItemJournalLine.FindLast() then
-                            LineNumber := LItemJournalLine."Line No." + 10000
-                        else
-                            LineNumber := 10000;
+                        // PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
 
                         LItemJournalLine.init;
                         LItemJournalLine."Journal Template Name" := 'ITEM';
@@ -360,30 +377,60 @@ codeunit 60021 "Purch. UI Functions"
                         LItemJournalLine."Posting Date" := Today();
                         LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
                         LItemJournalLine.Description := PalletLine.Description;
+                        LItemJournalLine."Lot No." := RM_lot;
                         LItemJournalLine.validate("Item No.", PalletLine."Item No.");
                         LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
                         LItemJournalLine.validate("Location Code", PalletLine."Location Code");
+                        LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
+                        LItemJournalLine."Pallet Line No." := PalletLine."Line No.";
+
                         LItemJournalLine.validate(Quantity, PalletLineTemp."QTY Consumed");
-                        LItemJournalLine.Validate(LItemJournalLine."Lot No.", PalletLineTemp."Lot Number");
                         LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
                         LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
+
                         LItemJournalLine.modify;
                         LineNumber += 10000;
 
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
                         PalletLineTemp.modify;
-                    end
+
+                        if RecItem.get(PalletLine."Item No.") then
+                            if RecItem."Lot Nos." <> '' then begin
+
+                                ReservationEntry2.reset;
+                                if ReservationEntry2.findlast then
+                                    maxEntry := ReservationEntry2."Entry No." + 1;
+
+                                RecGReservationEntry.init;
+                                RecGReservationEntry."Entry No." := MaxEntry;
+                                RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
+                                RecGReservationEntry."Creation Date" := Today;
+                                RecGReservationEntry."Created By" := UserId;
+                                RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                                RecGReservationEntry."Expected Receipt Date" := Today;
+                                RecGReservationEntry."Source Type" := 83;
+                                RecGReservationEntry."Source Subtype" := 3;
+                                RecGReservationEntry."Source ID" := 'ITEM';
+                                RecGReservationEntry."Source Ref. No." := LineNumber;
+                                RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                                RecGReservationEntry.validate("Item No.", PalletLine."Item No.");
+                                RecGReservationEntry.validate("Variant Code", PalletLine."Variant Code");
+                                RecGReservationEntry.validate("Location Code", PalletLine."Location Code");
+                                RecGReservationEntry.validate("Quantity (Base)", -1 *
+                                (PalletLine."Quantity"));
+                                RecGReservationEntry.validate(Quantity, -1 *
+                                (PalletLine.Quantity));
+                                RecGReservationEntry.Positive := false;
+                                RecGReservationEntry.validate("Lot No.", RM_Lot);
+                                RecGReservationEntry.insert;
+
+                                lineNumber += 10000;
+                            end;
+
+                        PalletLedgerFunctions.NegPalletLedgerEntryItem(LItemJournalLine, PalletLedgerType::"Consume Value Add");
+                    end;
                 end;
             until PalletLineTemp.next = 0;
-
-        LItemJournalLine.Reset();
-        LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
-        LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
-        LItemJournalLine.SetRange("Document No.", PalletID);
-        if LItemJournalLine.FindSet() then
-            repeat
-                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
-            until LItemJournalLine.Next() = 0;
 
         //if all consumed
         PalletLineTemp.reset;
@@ -402,8 +449,10 @@ codeunit 60021 "Purch. UI Functions"
                     PalletLine.setfilter("Remaining Qty", '<>%1', 0);
                     if PalletLine.findfirst then
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::"Partially consumed"
-                    else
+                    else begin
                         PalletHeader.validate("Pallet Status", PalletHeader."Pallet Status"::Consumed);
+                        LPalletFunctions.CreateNegAdjustmentToPackingMaterials(PalletHeader, RM_Lot);
+                    end;
                     PalletHeader.modify;
                 //  PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
                 until PalletHeaderTemp.next = 0;
@@ -453,13 +502,28 @@ codeunit 60021 "Purch. UI Functions"
             end;
         end;
 
+        PostJournal(PalletID);
         //If po not created
         if PalletsNotConsumed then
             pContent := 'Pallets cannot be consumed, PO not created';
 
     end;
 
-
+    procedure PostJournal(PalletID: code[20]);
+    var
+        LItemJournalLine: Record "Item Journal Line";
+        PalletSetup: Record "SPA Purchase Process Setup";
+    begin
+        PalletSetup.Get();
+        LItemJournalLine.Reset();
+        LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
+        LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Pallet ID", PalletID);
+        if LItemJournalLine.FindSet() then
+            repeat
+                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+            until LItemJournalLine.Next() = 0;
+    end;
 
     /*if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType <> '') then begin
         PurchaseProcessSetup.get;
@@ -571,6 +635,7 @@ codeunit 60021 "Purch. UI Functions"
                     PalletLedgerEntry.Reset;
                     PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::"Consume Raw Materials");
                     PalletLedgerEntry.setrange("Lot Number", BatchNumber);
+                    PalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
                     if PalletLedgerEntry.findset then begin
                         repeat
                             CreateNegAdjustment(PalletLedgerEntry, OrderNo);
@@ -588,18 +653,16 @@ codeunit 60021 "Purch. UI Functions"
                             repeat
                                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
                             until ItemJournalLine.Next() = 0;
-                            if GetLastErrorText = '' then begin
-                                PurchaseHeader."RM Add Neg" := true;
-                                //Edit Scrap Qty
-                                PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
-                                PurchaseHeader.modify;
-                                pContent := 'Success';
-                            end
-                            else
-                                pContent := GetLastErrorText;
+                            // if GetLastErrorText = '' then begin
+                            PurchaseHeader."RM Add Neg" := true;
+                            //Edit Scrap Qty
+                            PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
+                            PurchaseHeader.modify;
+                            pContent := 'Success';
                         end
                         else
-                            pContent := 'error, Raw materials not consumed, please consume and run again';
+                            pContent := GetLastErrorText;
+
                     end
                     else
                         pContent := 'error,raw material was not consumed'

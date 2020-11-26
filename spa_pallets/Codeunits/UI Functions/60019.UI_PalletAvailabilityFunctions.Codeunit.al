@@ -154,13 +154,17 @@ codeunit 60019 "UI Pallet Availability"
         palletline.setfilter("Remaining Qty", '<>%1', 0);
         if PalletLine.findset then begin
             repeat
-                if not PalletHeaderTemp.get(PalletLine."Pallet ID") then begin
-                    PalletHeaderTemp.init;
-                    PalletHeaderTemp."Pallet ID" := PalletLine."Pallet ID";
-                    PalletHeaderTemp.insert;
-                    PalletLineTemp.init;
-                    PalletLineTemp.TransferFields(PalletLine);
-                    PalletLineTemp.insert;
+                if PalletHeader.Get(PalletLine."Pallet ID") then begin
+                    if not PalletHeaderTemp.get(PalletLine."Pallet ID") then begin
+                        PalletHeaderTemp.init;
+                        PalletHeaderTemp."Pallet ID" := PalletLine."Pallet ID";
+                        PalletHeaderTemp."Pallet Status" := PalletHeader."Pallet Status";
+                        PalletHeaderTemp."Raw Material Pallet" := PalletHeader."Raw Material Pallet";
+                        PalletHeaderTemp.insert;
+                        PalletLineTemp.init;
+                        PalletLineTemp.TransferFields(PalletLine);
+                        PalletLineTemp.insert;
+                    end;
                 end;
             until PalletLine.next = 0;
         end;
@@ -169,6 +173,7 @@ codeunit 60019 "UI Pallet Availability"
 
         PalletHeaderTemp.reset;
         PalletHeaderTemp.SetFilter("Pallet Status", '=%1 | =%2', PalletHeaderTemp."Pallet Status"::Closed, PalletHeaderTemp."Pallet Status"::"Partially consumed");
+        PalletHeaderTemp.SetRange("Raw Material Pallet", true);
         if PalletHeaderTemp.findset then
             repeat
                 JsonObjPallet.add('palletid', PalletHeaderTemp."Pallet ID");

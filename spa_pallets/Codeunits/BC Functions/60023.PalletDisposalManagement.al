@@ -261,6 +261,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.validate(Quantity, PalletLine.Quantity);
                 RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
+                RecGItemJournalLine.validate("Lot No.", PalletLine."Lot Number");
                 RecGItemJournalLine.Disposal := true;
                 RecGItemJournalLine.modify;
 
@@ -291,7 +292,7 @@ codeunit 60023 "Pallet Disposal Management"
                         ReservationEntry.validate(Quantity, -1 * PalletLine.Quantity);
                         ReservationEntry.Positive := false;
                         ReservationEntry.insert;
-                        PalletLedgerFunctions.NegPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Dispose Raw Materials");
+                        PalletLedgerFunctions.NegPalletLedgerEntryItem(RecGItemJournalLine, PalletLedgerType::"Consume Packing Materials");
                         lineNumber += 10000;
                     end;
             until PalletLine.next = 0;

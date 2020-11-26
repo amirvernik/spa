@@ -246,18 +246,18 @@ codeunit 60001 "Pallet Functions"
                         packingmaterials."Line No." := GetLastEntryPacking(PalletHeader);
                         PackingMaterials.Description := BomComponent.Description;
                         PackingMaterials."Reusable Item" := BomComponent."Reusable item";
-                        if BomComponent."Fixed Value" then begin
+                        /*if BomComponent."Fixed Value" then begin
                             PackingMaterials.Quantity := BomComponent."Quantity per";
                             PackingMaterials."Fixed Value" := true;
-                        end else
-                            PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
+                        end else*/
+                        PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
                         PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
                         PackingMaterials."Location Code" := PalletHeader."Location Code";
                         PackingMaterials.insert;
 
                     end
                     else begin
-                        if PackingMaterials."Fixed Value" then begin
+                        /*if PackingMaterials."Fixed Value" then begin
                             if BomComponent."Fixed Value" then begin
                                 if BomComponent."Quantity per" > PackingMaterials.Quantity then
                                     PackingMaterials.Quantity := BomComponent."Quantity per";
@@ -268,9 +268,9 @@ codeunit 60001 "Pallet Functions"
                             if BomComponent."Fixed Value" then begin
                                 if BomComponent."Quantity per" > PackingMaterials.Quantity then
                                     PackingMaterials.Quantity := BomComponent."Quantity per";
-                            end else
-                                PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
-                        end;
+                            end else*/
+                        PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
+                        //end;
                         PackingMaterials.modify;
                     end;
 
@@ -471,7 +471,7 @@ codeunit 60001 "Pallet Functions"
             exit(PurchaseHeader."Vendor Shipment No.");
     end;
 
-    Procedure CreateNegAdjustmentToPackingMaterials(pPalletHeader: Record "Pallet Header")
+    Procedure CreateNegAdjustmentToPackingMaterials(pPalletHeader: Record "Pallet Header"; Lot: code[20])
     var
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         ItemJournalLine: Record "Item Journal Line";
@@ -483,60 +483,61 @@ codeunit 60001 "Pallet Functions"
         RecGReservationEntry2: Record "Reservation Entry";
         RecGReservationEntry: Record "Reservation Entry";
         PalletLedgerType: Enum "Pallet Ledger Type";
+        POFunctionsUI: Codeunit "Purch. UI Functions";
         maxEntry: Integer;
         ItemRec: Record Item;
         boolMW: Boolean;
     begin
-        boolMW := false;
-        LpalletLine.Reset();
-        LpalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
-        if LpalletLine.FindSet() then
+        /*  boolMW := false;
+          LpalletLine.Reset();
+          LpalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+          if LpalletLine.FindSet() then
+              repeat
+                  LpurchaseHeader.Reset();
+                  LpurchaseHeader.SetRange("Document Type", LpurchaseHeader."Document Type"::Order);
+                  LpurchaseHeader.SetRange("No.", LpalletLine."Purchase Order No.");
+                  LpurchaseHeader.SetRange("Microwave Process PO", true);
+                  if LpurchaseHeader.FindSet() then
+                      boolMW := true;
+              until LpalletLine.Next() = 0;
+
+          if boolMW then begin*/
+        PackingMaterials.Reset();
+        PackingMaterials.Setrange("Pallet ID", pPalletHeader."Pallet ID");
+        PackingMaterials.SetRange("Reusable Item", true);
+        if PackingMaterials.FindSet() then begin
+            PurchaseProcessSetup.get();
+            ItemJournalLine.reset;
+            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+            ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+            if ItemJournalLine.FindLast() then
+                LineNumber := ItemJournalLine."Line No." + 1000
+            else
+                LineNumber := 10000;
             repeat
-                LpurchaseHeader.Reset();
-                LpurchaseHeader.SetRange("Document Type", LpurchaseHeader."Document Type"::Order);
-                LpurchaseHeader.SetRange("No.", LpalletLine."Purchase Order No.");
-                LpurchaseHeader.SetRange("Microwave Process PO", true);
-                if LpurchaseHeader.FindSet() then
-                    boolMW := true;
-            until LpalletLine.Next() = 0;
 
-        if boolMW then begin
-            PackingMaterials.Reset();
-            PackingMaterials.Setrange("Pallet ID", pPalletHeader."Pallet ID");
-            PackingMaterials.SetRange("Reusable Item", true);
-            if PackingMaterials.FindSet() then begin
-                PurchaseProcessSetup.get();
-                ItemJournalLine.reset;
-                ItemJournalLine.setrange("Journal Template Name", 'ITEM');
-                ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
-                if ItemJournalLine.FindLast() then
-                    LineNumber := ItemJournalLine."Line No." + 10000
-                else
-                    LineNumber := 10000;
-                repeat
+                ItemJournalLine.init;
+                ItemJournalLine."Journal Template Name" := 'ITEM';
+                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                ItemJournalLine."Line No." := LineNumber;
+                if not ItemJournalLine.insert then ItemJournalLine.Modify();
+                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
+                ItemJournalLine."Posting Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
+                ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine."Lot No." := Lot;
+                ItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
+                // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
+                ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
+                ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
+                ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine.modify;
 
-                    ItemJournalLine.init;
-                    ItemJournalLine."Journal Template Name" := 'ITEM';
-                    ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                    ItemJournalLine."Line No." := LineNumber;
-                    ItemJournalLine.insert;
-                    ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
-                    ItemJournalLine."Posting Date" := PalletFunctionUI.GetCurrTime;
-                    ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
-                    ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
-                    ItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
-                    // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
-                    ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
-                    ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
-                    ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
 
-                    ItemJournalLine.modify;
-                    CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+            until PackingMaterials.Next() = 0;
 
-                    PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Consume Packing Materials");
-
-                until PackingMaterials.Next() = 0;
-            end;
+            // POFunctionsUI.PostJournal(pPalletHeader."Pallet ID");
         end;
 
     end;

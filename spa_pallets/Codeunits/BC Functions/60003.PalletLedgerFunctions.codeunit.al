@@ -249,6 +249,7 @@ codeunit 60003 "Pallet Ledger Functions"
         PalletLedgerEntry."Entry No." := LineNumber;
         PalletLedgerEntry."Entry Type" := PalletLedgerEntryType;
         PalletLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
+        PalletLedgerEntry."Pallet Line No." := ItemJournalLine."Pallet Line No.";
         PalletLedgerEntry."Document No." := ItemJournalLine."Pallet ID";
         //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Pallet Entry No.";
         PalletLedgerEntry.validate("Posting Date", Today);
