@@ -36,11 +36,11 @@ table 60001 "Pallet Header"
             DataClassification = ToBeClassified;
             trigger OnValidate();
             var
-                PalletFunctionsCU: Codeunit "Pallet Functions";
+            //  PalletFunctionsCU: Codeunit "Pallet Functions";
             begin
-                if ((Rec."Pallet Status" <> xRec."Pallet Status") and (Rec."Pallet Status" = Rec."Pallet Status"::Consumed))
+                /*if ((Rec."Pallet Status" <> xRec."Pallet Status") and (Rec."Pallet Status" = Rec."Pallet Status"::Consumed))
                  then
-                    PalletFunctionsCU.CreateNegAdjustmentToPackingMaterials(Rec);
+                    PalletFunctionsCU.CreateNegAdjustmentToPackingMaterials(Rec);*/
             end;
 
         }

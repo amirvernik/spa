@@ -117,9 +117,11 @@ page 60025 "Pallet Change Quality"
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
                     ErrNewItem: Label 'You have not enterd a new item line';
                     ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
-                    ErrArchived: Label 'The PO was already invoiced, please change item quality manually';
+                    ErrArchived: Label 'The PO was already Archived, please change item quality manually';
+                    ErrInvoiced: Label 'The PO was already invoiced, please change item quality manually';
                     PalletChangeQuality: Record "Pallet Change Quality";
                     PalletReservationEntry: Record "Pallet Reservation Entry";
+                    ReservationEntry: Record "Reservation Entry";
                     PurchaseProcessSetup: Record "SPA Purchase Process Setup";
                     ItemJournalLine: Record "Item Journal Line";
 
@@ -130,7 +132,10 @@ page 60025 "Pallet Change Quality"
                     LPurchaseArchiveLine.SetRange("No.", "Purchase Order No.");
                     LPurchaseArchiveLine.SetRange("Line No.", "Purchase Order Line No.");
                     if LPurchaseArchiveLine.FindFirst() then begin
-                        Error(ErrArchived);
+                        if LPurchaseArchiveLine."Quantity Invoiced" > 0 then
+                            Error(ErrInvoiced)
+                        else
+                            Error(ErrArchived);
                         exit;
                     end;
 
@@ -139,6 +144,13 @@ page 60025 "Pallet Change Quality"
                     PalletReservationEntry.SetRange("Item No.", Rec."Item No.");
                     PalletReservationEntry.setrange("Lot No.", Rec."Lot Number");
                     if PalletReservationEntry.findset() then
+                        Error(ErrorReservation);
+
+                    ReservationEntry.reset;
+                    ReservationEntry.SetRange("Source Subtype", 4);
+                    ReservationEntry.SetRange("Item No.", Rec."Item No.");
+                    ReservationEntry.setrange("Lot No.", Rec."Lot Number");
+                    if ReservationEntry.findset() then
                         Error(ErrorReservation);
 
                     if "Replaced Qty" >= Quantity then
@@ -281,5 +293,7 @@ page 60025 "Pallet Change Quality"
         PalletLineChangeQuality: Record "Pallet Line Change Quality";
 
         PalletSelect: Boolean;
+
+
 
 }
