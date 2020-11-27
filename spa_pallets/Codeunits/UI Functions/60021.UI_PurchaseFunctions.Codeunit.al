@@ -389,7 +389,6 @@ codeunit 60021 "Purch. UI Functions"
                         LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
 
                         LItemJournalLine.modify;
-                        LineNumber += 10000;
 
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
                         PalletLineTemp.modify;
@@ -424,9 +423,9 @@ codeunit 60021 "Purch. UI Functions"
                                 RecGReservationEntry.validate("Lot No.", RM_Lot);
                                 RecGReservationEntry.insert;
 
-                                lineNumber += 10000;
-                            end;
 
+                            end;
+                        lineNumber += 10000;
                         PalletLedgerFunctions.NegPalletLedgerEntryItem(LItemJournalLine, PalletLedgerType::"Consume Value Add");
                     end;
                 end;
