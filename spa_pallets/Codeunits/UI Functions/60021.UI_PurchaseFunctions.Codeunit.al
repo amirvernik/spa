@@ -393,6 +393,7 @@ codeunit 60021 "Purch. UI Functions"
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
                         PalletLineTemp.modify;
 
+
                         if RecItem.get(PalletLine."Item No.") then
                             if RecItem."Lot Nos." <> '' then begin
 
@@ -420,17 +421,19 @@ codeunit 60021 "Purch. UI Functions"
                                 RecGReservationEntry.validate(Quantity, -1 *
                                 (PalletLine.Quantity));
                                 RecGReservationEntry.Positive := false;
-                                RecGReservationEntry.validate("Lot No.", RM_Lot);
+                                RecGReservationEntry."Lot No." := RM_Lot;
                                 RecGReservationEntry.insert;
 
 
                             end;
                         lineNumber += 10000;
                         PalletLedgerFunctions.NegPalletLedgerEntryItem(LItemJournalLine, PalletLedgerType::"Consume Value Add");
+
                     end;
                 end;
             until PalletLineTemp.next = 0;
 
+        PostJournal(PalletID);
         //if all consumed
         PalletLineTemp.reset;
         PalletLineTemp.setrange("Exists on Warehouse Shipment", false);
@@ -501,7 +504,7 @@ codeunit 60021 "Purch. UI Functions"
             end;
         end;
 
-        PostJournal(PalletID);
+
         //If po not created
         if PalletsNotConsumed then
             pContent := 'Pallets cannot be consumed, PO not created';

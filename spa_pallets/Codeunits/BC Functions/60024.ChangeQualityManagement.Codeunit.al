@@ -436,7 +436,7 @@ codeunit 60024 "Change Quality Management"
                         LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                         LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
                         if LPurchaseLine.FindLast() then begin
-                            LPOLineNo := LPurchaseLine."Line No." + 1000;
+                            LPOLineNo := LPurchaseLine."Line No." + 10000;
 
                             LPurchaseLine.Reset();
                             LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
@@ -530,11 +530,14 @@ codeunit 60024 "Change Quality Management"
         LPurchaseHeader: Record "Purchase Header";
         LisReleased: Boolean;
         POLineno: Integer;
+        maxEntry: Integer;
         LineNumber: integer;
         ItemRec: Record Item;
         PalletLedgerEntry: Record "Pallet Ledger Entry";
         ItemUnitOfMeasure: Record "Item Unit of Measure";
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
+        RecGReservationEntry: Record "Reservation Entry";
+        RecGReservationEntry2: Record "Reservation Entry";
         PalletID: Code[20];
         PalletLineNo: Integer;
     begin
@@ -579,33 +582,67 @@ codeunit 60024 "Change Quality Management"
                                     LPurchaseLine.Reset();
                                     LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                                     LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
-                                    if LPurchaseLine.FindLast() then begin
-                                        POLineno := LPurchaseLine."Line No." + 10000;
-                                        LPurchaseLine.init;
-                                        LPurchaseLine."Document No." := pPalletLineChg."Purchase Order No.";
-                                        Lpurchaseline."Document Type" := LPurchaseLine."Document Type"::Order;
-                                        LPurchaseLine."Line No." := POLineno;
-                                        LPurchaseLine.insert;
-                                        LPurchaseLine.type := LPurchaseLine.type::Item;
-                                        Lpurchaseline.validate("No.", PalletItemChgLine."New Item No.");
-                                        LPurchaseLine.validate("Variant Code", PalletItemChgLine."New Variant Code");
-                                        LPurchaseLine.validate("Location Code", pPalletLineChg."Location Code");
-                                        //New Web UI Fields - to Dummy Fields
-                                        LPurchaseLine."Web UI Unit of Measure" := PalletItemChgLine."Unit of Measure";
-                                        LPurchaseLine."Web UI Quantity" := PalletItemChgLine."New Quantity";
+                                    LPurchaseLine.FindLast();
+                                    POLineno := LPurchaseLine."Line No." + 10000;
 
-                                        ItemUnitOfMeasure.reset;
-                                        ItemUnitOfMeasure.setrange("Item No.", PalletItemChgLine."New Item No.");
-                                        ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
-                                        if ItemUnitOfMeasure.findfirst then
-                                            LPurchaseLine.validate("Qty. (Base) SPA", PalletItemChgLine."New Quantity" * ItemUnitOfMeasure."Qty. per Unit of Measure");
-                                        LPurchaseLine.validate("Qty. to Receive", 0);
-                                        LPurchaseLine.validate("qty. to invoice", 0);
-                                        LPurchaseLine.modify;
 
-                                        PalletLine."Purchase Order No." := pPalletLineChg."Purchase Order No.";
-                                        PalletLine."Purchase Order Line No." := POLineno;
-                                    end;
+                                    LPurchaseLine.init;
+                                    LPurchaseLine."Document No." := pPalletLineChg."Purchase Order No.";
+                                    Lpurchaseline."Document Type" := LPurchaseLine."Document Type"::Order;
+                                    LPurchaseLine."Line No." := POLineno;
+                                    LPurchaseLine.insert;
+                                    LPurchaseLine.type := LPurchaseLine.type::Item;
+                                    Lpurchaseline.validate("No.", PalletItemChgLine."New Item No.");
+                                    LPurchaseLine.validate("Variant Code", PalletItemChgLine."New Variant Code");
+                                    LPurchaseLine.validate("Location Code", pPalletLineChg."Location Code");
+                                    //New Web UI Fields - to Dummy Fields
+                                    LPurchaseLine."Web UI Unit of Measure" := PalletItemChgLine."Unit of Measure";
+                                    LPurchaseLine."Web UI Quantity" := PalletItemChgLine."New Quantity";
+                                    ItemUnitOfMeasure.reset;
+                                    ItemUnitOfMeasure.setrange("Item No.", PalletItemChgLine."New Item No.");
+                                    ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
+                                    if ItemUnitOfMeasure.findfirst then
+                                        LPurchaseLine.validate("Qty. (Base) SPA", PalletItemChgLine."New Quantity" * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                                    LPurchaseLine.validate("Qty. to Receive", 0);
+                                    LPurchaseLine.validate("qty. to invoice", 0);
+                                    LPurchaseLine.modify;
+
+                                    PalletLine."Purchase Order No." := pPalletLineChg."Purchase Order No.";
+                                    PalletLine."Purchase Order Line No." := POLineno;
+
+                                    if ItemRec.get(LPurchaseLine."No.") then
+                                        if itemrec."Lot Nos." <> '' then begin
+                                            //Create Reservation Entry
+                                            RecGReservationEntry2.reset;
+                                            if RecGReservationEntry2.findlast then
+                                                maxEntry := RecGReservationEntry2."Entry No." + 1;
+
+                                            RecGReservationEntry.init;
+                                            RecGReservationEntry."Entry No." := MaxEntry;
+                                            //V16.0 - Changed From [2] to "surplus" on Enum
+                                            RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
+                                            //V16.0 - Changed From [2] to "surplus" on Enum
+                                            RecGReservationEntry."Creation Date" := Today;
+                                            RecGReservationEntry."Created By" := UserId;
+                                            RecGReservationEntry."Expected Receipt Date" := Today;
+                                            RecGReservationEntry.Positive := true;
+                                            RecGReservationEntry."Source Type" := 39;
+                                            RecGReservationEntry."Source Subtype" := 1;
+                                            RecGReservationEntry."Source ID" := LPurchaseLine."Document No.";
+                                            RecGReservationEntry."Source Ref. No." := LPurchaseLine."Line No.";
+                                            RecGReservationEntry.validate("Location Code", LPurchaseLine."Location Code");
+                                            RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                                            RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
+                                            RecGReservationEntry.validate("Item No.", LPurchaseLine."No.");
+                                            RecGReservationEntry.validate("Variant Code", LPurchaseLine."Variant Code");
+                                            RecGReservationEntry.Description := LPurchaseLine.Description;
+                                            RecGReservationEntry.validate("Quantity (Base)", LPurchaseLine."Qty. (Base) SPA");
+                                            RecGReservationEntry.validate(Quantity, LPurchaseLine.Quantity);
+                                            RecGReservationEntry."Packing Date" := today;
+                                            RecGReservationEntry.insert;
+
+                                        end;
+
                                     if LisReleased then
                                         DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
                                 end;
@@ -749,7 +786,7 @@ codeunit 60024 "Change Quality Management"
                         ItemJournalLine.modify;
                         PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Consume Packing Materials");
 
-                        LineNumber += 1000;
+                        LineNumber += 10000;
                     until BomComponent.next = 0;
             until QualityChangeLine.next = 0;
     end;
