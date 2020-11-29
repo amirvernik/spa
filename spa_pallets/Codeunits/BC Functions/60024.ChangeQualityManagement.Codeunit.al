@@ -407,6 +407,11 @@ codeunit 60024 "Change Quality Management"
         LPurchaseLineNewQty: Record "Purchase Line";
         DocmentStatusMgmt: Codeunit "Release Purchase Document";
         CUPurchasePost: Codeunit "Purch.-Post";
+
+        RecGReservationEntry: Record "Reservation Entry";
+        RecGReservationEntry2: Record "Reservation Entry";
+        maxEntry: Integer;
+        ItemRec: Record Item;
         LisReleased: Boolean;
         ErrArchived: Label 'The PO was already invoiced, please change item quality manually';
     begin
@@ -460,6 +465,40 @@ codeunit 60024 "Change Quality Management"
                                     LPurchaseLineNewQty.validate("Qty. to Receive", 0);
                                     LPurchaseLineNewQty.validate("qty. to invoice", 0);
                                     LPurchaseLineNewQty.modify;
+
+                                    if ItemRec.get(LPurchaseLine."No.") then
+                                        if itemrec."Lot Nos." <> '' then begin
+                                            //Create Reservation Entry
+                                            RecGReservationEntry2.reset;
+                                            if RecGReservationEntry2.findlast then
+                                                maxEntry := RecGReservationEntry2."Entry No." + 1;
+
+                                            RecGReservationEntry.init;
+                                            RecGReservationEntry."Entry No." := MaxEntry;
+                                            //V16.0 - Changed From [2] to "surplus" on Enum
+                                            RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
+                                            //V16.0 - Changed From [2] to "surplus" on Enum
+                                            RecGReservationEntry."Creation Date" := Today;
+                                            RecGReservationEntry."Created By" := UserId;
+                                            RecGReservationEntry."Expected Receipt Date" := Today;
+                                            RecGReservationEntry.Positive := true;
+                                            RecGReservationEntry."Source Type" := 39;
+                                            RecGReservationEntry."Source Subtype" := 1;
+                                            RecGReservationEntry."Source ID" := LPurchaseLine."Document No.";
+                                            RecGReservationEntry."Source Ref. No." := LPurchaseLine."Line No.";
+                                            RecGReservationEntry.validate("Location Code", LPurchaseLine."Location Code");
+                                            RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                                            RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
+                                            RecGReservationEntry.validate("Item No.", LPurchaseLine."No.");
+                                            RecGReservationEntry.validate("Variant Code", LPurchaseLine."Variant Code");
+                                            RecGReservationEntry.Description := LPurchaseLine.Description;
+                                            RecGReservationEntry.validate("Quantity (Base)", LPurchaseLine."Qty. (Base) SPA");
+                                            RecGReservationEntry.validate(Quantity, LPurchaseLine.Quantity);
+                                            RecGReservationEntry."Packing Date" := today;
+                                            RecGReservationEntry.insert;
+
+                                        end;
+
                                 end;
 
                                 LPurchaseLine.Validate("Line Discount %", 100);
@@ -577,8 +616,10 @@ codeunit 60024 "Change Quality Management"
                                     If LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then begin
                                         LisReleased := true;
                                         LPurchaseHeader.Status := LPurchaseHeader.Status::Open;
+
                                         LPurchaseHeader.Modify();
                                     end;
+
                                     LPurchaseLine.Reset();
                                     LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                                     LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
@@ -643,8 +684,9 @@ codeunit 60024 "Change Quality Management"
 
                                         end;
 
-                                    if LisReleased then
+                                    if LisReleased then begin
                                         DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
+                                    end;
                                 end;
                             end;
                             PalletLine.Replaced := true;
