@@ -396,7 +396,7 @@ codeunit 60021 "Purch. UI Functions"
 
                         if RecItem.get(PalletLine."Item No.") then
                             if RecItem."Lot Nos." <> '' then begin
-
+                                PurchaseProcessSetup.get; //Amir V. 29/11/2020
                                 ReservationEntry2.reset;
                                 if ReservationEntry2.findlast then
                                     maxEntry := ReservationEntry2."Entry No." + 1;
