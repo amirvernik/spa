@@ -374,7 +374,7 @@ codeunit 60021 "Purch. UI Functions"
                         LItemJournalLine."Line No." := LineNumber;
                         LItemJournalLine.insert;
                         LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Negative Adjmt.";
-                        LItemJournalLine."Posting Date" := Today();
+                        LItemJournalLine.validate("Posting Date", GetCurrTime());
                         LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
                         LItemJournalLine.Description := PalletLine.Description;
                         LItemJournalLine."Lot No." := RM_lot;
@@ -383,11 +383,9 @@ codeunit 60021 "Purch. UI Functions"
                         LItemJournalLine.validate("Location Code", PalletLine."Location Code");
                         LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
                         LItemJournalLine."Pallet Line No." := PalletLine."Line No.";
-
                         LItemJournalLine.validate(Quantity, PalletLineTemp."QTY Consumed");
                         LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
                         LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
-
                         LItemJournalLine.modify;
 
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
@@ -404,10 +402,10 @@ codeunit 60021 "Purch. UI Functions"
                                 RecGReservationEntry.init;
                                 RecGReservationEntry."Entry No." := MaxEntry;
                                 RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
-                                RecGReservationEntry."Creation Date" := Today;
+                                RecGReservationEntry."Creation Date" := GetCurrTime();
                                 RecGReservationEntry."Created By" := UserId;
                                 RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
-                                RecGReservationEntry."Expected Receipt Date" := Today;
+                                RecGReservationEntry."Expected Receipt Date" := GetCurrTime();
                                 RecGReservationEntry."Source Type" := 83;
                                 RecGReservationEntry."Source Subtype" := 3;
                                 RecGReservationEntry."Source ID" := 'ITEM';
@@ -417,9 +415,9 @@ codeunit 60021 "Purch. UI Functions"
                                 RecGReservationEntry.validate("Variant Code", PalletLine."Variant Code");
                                 RecGReservationEntry.validate("Location Code", PalletLine."Location Code");
                                 RecGReservationEntry.validate("Quantity (Base)", -1 *
-                                (PalletLine."Quantity"));
+                                (PalletLineTemp."QTY Consumed"));
                                 RecGReservationEntry.validate(Quantity, -1 *
-                                (PalletLine.Quantity));
+                                (PalletLineTemp."QTY Consumed"));
                                 RecGReservationEntry.Positive := false;
                                 RecGReservationEntry."Lot No." := RM_Lot;
                                 RecGReservationEntry.insert;
