@@ -431,7 +431,7 @@ codeunit 60021 "Purch. UI Functions"
                 end;
             until PalletLineTemp.next = 0;
 
-        PostJournal(PalletID);
+
         //if all consumed
         PalletLineTemp.reset;
         PalletLineTemp.setrange("Exists on Warehouse Shipment", false);
@@ -493,7 +493,7 @@ codeunit 60021 "Purch. UI Functions"
                     PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
                     PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
                     PurchaseHeader.modify;
-
+                    PostJournal(PalletID);
                     //Sending Result Json
                     JsonResult.Add('PO number', OrderNumber);
                     JsonResult.add('Batch Number', rm_lot);
@@ -519,6 +519,7 @@ codeunit 60021 "Purch. UI Functions"
         LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
         LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
         LItemJournalLine.SetRange("Pallet ID", PalletID);
+        LItemJournalLine.SetFilter(Quantity, '<>0');
         if LItemJournalLine.FindSet() then
             repeat
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);

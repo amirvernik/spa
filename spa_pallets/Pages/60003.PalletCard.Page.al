@@ -168,6 +168,21 @@ page 60003 "Pallet Card"
                     end;
 
                 }
+                action(prepacktestssb)//DELETE ME
+                {
+                    ApplicationArea = All;
+                    Visible = EnableTESTPROD1;
+                    trigger OnAction()
+                    var
+                        LPalletLine: Record "Pallet Line";
+                    begin
+                        LPalletLine.Reset();
+                        LPalletLine.SetRange("Pallet ID", "Pallet ID");
+                        LPalletLine.FindFirst();
+                        PalletFunctions.CreateNegAdjustmentToPackingMaterials(Rec, LPalletLine."Lot Number");
+                    end;
+
+                }
 
                 action("Close Pallet")
                 {

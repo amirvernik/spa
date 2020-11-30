@@ -225,7 +225,6 @@ codeunit 60024 "Change Quality Management"
                     ItemJournalLine."Posting Date" := Today;
                     ItemJournalLine."Document No." := pPalletLineChg."Pallet ID";
                     ItemJournalLine."Pallet ID" := pPalletLineChg."Pallet ID";
-
                     ItemJournalLine."Pallet Line No." := LineNoOriginal;
                     ItemJournalLine."Lot No." := pPalletLineChg."Lot Number";
                     ItemJournalLine."Document Date" := today;
@@ -410,6 +409,7 @@ codeunit 60024 "Change Quality Management"
         LpalletLine: Record "Pallet Line";
         RecGReservationEntry: Record "Reservation Entry";
         RecGReservationEntry2: Record "Reservation Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
         maxEntry: Integer;
         ItemRec: Record Item;
         LisReleased: Boolean;
@@ -463,7 +463,7 @@ codeunit 60024 "Change Quality Management"
                             LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
                             LPurchaseLine.SetRange("Line No.", pPalletLineChg."Purchase Order Line No.");
                             if LPurchaseLine.FindFirst() then begin
-                                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
+                                if pPalletLineChg.Quantity <> pPalletLineChg."Replaced Qty" then begin
                                     LPurchaseLineNewQty.Init();
                                     LPurchaseLineNewQty."Document No." := pPalletLineChg."Purchase Order No.";
                                     LPurchaseLineNewQty."Document Type" := LPurchaseLineNewQty."Document Type"::Order;
@@ -476,7 +476,12 @@ codeunit 60024 "Change Quality Management"
                                     //New Web UI Fields - to Dummy Fields
                                     LPurchaseLineNewQty."Web UI Unit of Measure" := LPurchaseLine."Unit of Measure";
                                     LPurchaseLineNewQty."Web UI Quantity" := pPalletLineChg."Replaced Qty";
-                                    LPurchaseLineNewQty.validate("Qty. (Base) SPA", pPalletLineChg."Replaced Qty");
+
+                                    ItemUnitOfMeasure.reset;
+                                    ItemUnitOfMeasure.setrange("Item No.", pPalletLineChg."Item No.");
+                                    ItemUnitOfMeasure.SetRange(Code, 'KG');
+                                    ItemUnitOfMeasure.findfirst;
+                                    LPurchaseLineNewQty.validate("Qty. (Base) SPA", pPalletLineChg."Replaced Qty" * ItemUnitOfMeasure."Qty. per Unit of Measure");
                                     LPurchaseLineNewQty.validate("Qty. to Receive", pPalletLineChg."Replaced Qty");
                                     LPurchaseLineNewQty.validate("qty. to invoice", 0);
                                     LPurchaseLineNewQty.modify;
@@ -661,9 +666,9 @@ codeunit 60024 "Change Quality Management"
                                     LPurchaseLine."Web UI Quantity" := PalletItemChgLine."New Quantity";
                                     ItemUnitOfMeasure.reset;
                                     ItemUnitOfMeasure.setrange("Item No.", PalletItemChgLine."New Item No.");
-                                    ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
-                                    if ItemUnitOfMeasure.findfirst then
-                                        LPurchaseLine.validate("Qty. (Base) SPA", PalletItemChgLine."New Quantity" * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                                    ItemUnitOfMeasure.SetRange(Code, 'KG');
+                                    ItemUnitOfMeasure.findfirst;
+                                    LPurchaseLine.validate("Qty. (Base) SPA", PalletItemChgLine."New Quantity" * ItemUnitOfMeasure."Qty. per Unit of Measure");
                                     LPurchaseLine.validate("Qty. to Receive", PalletItemChgLine."New Quantity");
                                     LPurchaseLine.validate("qty. to invoice", 0);
                                     LPurchaseLine.modify;

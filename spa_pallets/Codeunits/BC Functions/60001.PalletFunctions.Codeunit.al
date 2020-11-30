@@ -480,12 +480,12 @@ codeunit 60001 "Pallet Functions"
         LpurchaseHeader: Record "Purchase Header";
         LpalletLine: Record "Pallet Line";
         PackingMaterials: Record "Packing Material Line";
-        RecGReservationEntry2: Record "Reservation Entry";
+        ReservationEntry2: Record "Reservation Entry";
         RecGReservationEntry: Record "Reservation Entry";
         PalletLedgerType: Enum "Pallet Ledger Type";
         POFunctionsUI: Codeunit "Purch. UI Functions";
         maxEntry: Integer;
-        ItemRec: Record Item;
+        RecItem: Record Item;
         boolMW: Boolean;
     begin
         /*  boolMW := false;
@@ -502,11 +502,13 @@ codeunit 60001 "Pallet Functions"
               until LpalletLine.Next() = 0;
 
           if boolMW then begin*/
+
+        PurchaseProcessSetup.Get();
+
         PackingMaterials.Reset();
         PackingMaterials.Setrange("Pallet ID", pPalletHeader."Pallet ID");
         PackingMaterials.SetRange("Reusable Item", true);
         if PackingMaterials.FindSet() then begin
-            PurchaseProcessSetup.get();
             ItemJournalLine.reset;
             ItemJournalLine.setrange("Journal Template Name", 'ITEM');
             ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
@@ -522,7 +524,7 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine."Line No." := LineNumber;
                 if not ItemJournalLine.insert then ItemJournalLine.Modify();
                 ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
-                ItemJournalLine."Posting Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine.validate("Posting Date", PalletFunctionUI.GetCurrTime);
                 ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
                 ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
                 ItemJournalLine."Lot No." := Lot;
@@ -531,13 +533,37 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
                 ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
                 ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 ItemJournalLine.modify;
 
+                PurchaseProcessSetup.get;
+                ReservationEntry2.reset;
+                if ReservationEntry2.findlast then
+                    maxEntry := ReservationEntry2."Entry No." + 1;
+
+                RecGReservationEntry.init;
+                RecGReservationEntry."Entry No." := MaxEntry;
+                RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
+                RecGReservationEntry."Creation Date" := PalletFunctionUI.GetCurrTime;
+                RecGReservationEntry."Created By" := UserId;
+                RecGReservationEntry."Expected Receipt Date" := PalletFunctionUI.GetCurrTime;
+                RecGReservationEntry."Source Type" := 83;
+                RecGReservationEntry."Source Subtype" := 2;
+                RecGReservationEntry."Source ID" := 'ITEM';
+                RecGReservationEntry."Source Ref. No." := LineNumber;
+                RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                RecGReservationEntry.validate("Location Code", PackingMaterials."Location Code");
+                RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                RecGReservationEntry.validate("Item No.", PackingMaterials."Item No.");
+                RecGReservationEntry.validate("Quantity (Base)", PackingMaterials."Quantity");
+                RecGReservationEntry.validate(Quantity, PackingMaterials."Quantity");
+                RecGReservationEntry.Positive := true;
+                RecGReservationEntry."Lot No." := Lot;
+                RecGReservationEntry.insert;
+
                 PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
-
+                LineNumber += 10000;
             until PackingMaterials.Next() = 0;
-
-            // POFunctionsUI.PostJournal(pPalletHeader."Pallet ID");
         end;
 
     end;

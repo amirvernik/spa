@@ -197,7 +197,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
                                                                     //ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
                     ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
-                    ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
+                                                                // ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(rec."Pallet ID"); //Post Pos Item Journals to New Items  
                                                                        //Message('3');

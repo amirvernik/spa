@@ -264,7 +264,6 @@ codeunit 60003 "Pallet Ledger Functions"
         LPalletLine.Reset();
         LPalletLine.SetRange("Pallet ID", PalletLedgerEntry."Pallet ID");
         LPalletLine.SetRange("Line No.", PalletLedgerEntry."Pallet Line No.");
-        LPalletLine.SetFilter("Purchase Order No.", '<>%1', '');
         if LPalletLine.FindFirst() then begin
             PalletLedgerEntry."Order Type" := 'Order';
             PalletLedgerEntry."Order No." := LPalletLine."Purchase Order No.";
