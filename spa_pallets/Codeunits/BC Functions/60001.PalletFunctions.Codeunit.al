@@ -518,6 +518,7 @@ codeunit 60001 "Pallet Functions"
                 LineNumber := 10000;
             repeat
 
+
                 ItemJournalLine.init;
                 ItemJournalLine."Journal Template Name" := 'ITEM';
                 ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
@@ -527,7 +528,7 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine.validate("Posting Date", PalletFunctionUI.GetCurrTime);
                 ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
                 ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
-                ItemJournalLine."Lot No." := Lot;
+
                 ItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
                 ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
@@ -536,33 +537,38 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 ItemJournalLine.modify;
 
-                PurchaseProcessSetup.get;
-                ReservationEntry2.reset;
-                if ReservationEntry2.findlast then
-                    maxEntry := ReservationEntry2."Entry No." + 1;
+                if RecItem.get(PackingMaterials."Item No.") then
+                    if RecItem."Lot Nos." <> '' then begin
+                        PurchaseProcessSetup.get;
+                        ReservationEntry2.reset;
+                        if ReservationEntry2.findlast then
+                            maxEntry := ReservationEntry2."Entry No." + 1;
+                        ItemJournalLine."Lot No." := Lot;
+                        ItemJournalLine.Modify();
 
-                RecGReservationEntry.init;
-                RecGReservationEntry."Entry No." := MaxEntry;
-                RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
-                RecGReservationEntry."Creation Date" := PalletFunctionUI.GetCurrTime;
-                RecGReservationEntry."Created By" := UserId;
-                RecGReservationEntry."Expected Receipt Date" := PalletFunctionUI.GetCurrTime;
-                RecGReservationEntry."Source Type" := 83;
-                RecGReservationEntry."Source Subtype" := 2;
-                RecGReservationEntry."Source ID" := 'ITEM';
-                RecGReservationEntry."Source Ref. No." := LineNumber;
-                RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                RecGReservationEntry.validate("Location Code", PackingMaterials."Location Code");
-                RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
-                RecGReservationEntry.validate("Item No.", PackingMaterials."Item No.");
-                RecGReservationEntry.validate("Quantity (Base)", PackingMaterials."Quantity");
-                RecGReservationEntry.validate(Quantity, PackingMaterials."Quantity");
-                RecGReservationEntry.Positive := true;
-                RecGReservationEntry."Lot No." := Lot;
-                RecGReservationEntry.insert;
+                        RecGReservationEntry.init;
+                        RecGReservationEntry."Entry No." := MaxEntry;
+                        RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
+                        RecGReservationEntry."Creation Date" := PalletFunctionUI.GetCurrTime;
+                        RecGReservationEntry."Created By" := UserId;
+                        RecGReservationEntry."Expected Receipt Date" := PalletFunctionUI.GetCurrTime;
+                        RecGReservationEntry."Source Type" := 83;
+                        RecGReservationEntry."Source Subtype" := 2;
+                        RecGReservationEntry."Source ID" := 'ITEM';
+                        RecGReservationEntry."Source Ref. No." := LineNumber;
+                        RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                        RecGReservationEntry.validate("Location Code", PackingMaterials."Location Code");
+                        RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                        RecGReservationEntry.validate("Item No.", PackingMaterials."Item No.");
+                        RecGReservationEntry.validate("Quantity (Base)", PackingMaterials."Quantity");
+                        RecGReservationEntry.validate(Quantity, PackingMaterials."Quantity");
+                        RecGReservationEntry.Positive := true;
+                        RecGReservationEntry."Lot No." := Lot;
+                        RecGReservationEntry.insert;
 
-                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
-                LineNumber += 10000;
+                        PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
+                        LineNumber += 10000;
+                    end;
             until PackingMaterials.Next() = 0;
         end;
 
