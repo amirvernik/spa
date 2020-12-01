@@ -513,17 +513,16 @@ codeunit 60001 "Pallet Functions"
             ItemJournalLine.setrange("Journal Template Name", 'ITEM');
             ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
             if ItemJournalLine.FindLast() then
-                LineNumber := ItemJournalLine."Line No." + 1000
+                LineNumber := ItemJournalLine."Line No." + 10000
             else
                 LineNumber := 10000;
             repeat
-
-
                 ItemJournalLine.init;
-                ItemJournalLine."Journal Template Name" := 'ITEM';
-                ItemJournalLine."Journal Batch Name" := PurchaseProcessSetup."Item Journal Batch";
-                ItemJournalLine."Line No." := LineNumber;
-                if not ItemJournalLine.insert then ItemJournalLine.Modify();
+                ItemJournalLine.validate("Journal Template Name", 'ITEM');
+                ItemJournalLine.validate("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                ItemJournalLine.validate("Line No.", LineNumber);
+                ItemJournalLine."Source Code" := 'ITEMJNL';
+                ItemJournalLine.insert(true);
                 ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
                 ItemJournalLine.validate("Posting Date", PalletFunctionUI.GetCurrTime);
                 ItemJournalLine."Document No." := pPalletHeader."Pallet ID";
@@ -566,9 +565,10 @@ codeunit 60001 "Pallet Functions"
                         RecGReservationEntry."Lot No." := Lot;
                         RecGReservationEntry.insert;
 
-                        PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
-                        LineNumber += 10000;
                     end;
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
+                LineNumber += 10000;
+
             until PackingMaterials.Next() = 0;
         end;
 

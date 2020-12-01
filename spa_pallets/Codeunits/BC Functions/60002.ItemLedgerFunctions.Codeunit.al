@@ -23,10 +23,11 @@ codeunit 60002 "Item Ledger Functions"
         if PackingMaterials.findset then
             repeat
                 RecGItemJournalLine.init;
-                RecGItemJournalLine."Journal Template Name" := 'ITEM';
-                RecGItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
-                RecGItemJournalLine."Line No." := LineNumber;
-                RecGItemJournalLine.insert;
+                RecGItemJournalLine.validate("Journal Template Name", 'ITEM');
+                RecGItemJournalLine.validate("Journal Batch Name", PalletSetup."Item Journal Batch");
+                RecGItemJournalLine.validate("Line No.", LineNumber);
+                RecGItemJournalLine."Source Code" := 'ITEMJNL';
+                RecGItemJournalLine.insert(true);
                 RecGItemJournalLine."Entry Type" := RecGItemJournalLine."Entry Type"::"Negative Adjmt.";
                 RecGItemJournalLine."Posting Date" := Today;
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
@@ -118,7 +119,6 @@ codeunit 60002 "Item Ledger Functions"
         RecGItemJournalLine.SetRange("Pallet ID", PalletHeader."Pallet ID");
         if RecGItemJournalLine.findset() then
             repeat
-
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
             until RecGItemJournalLine.Next() = 0;
 

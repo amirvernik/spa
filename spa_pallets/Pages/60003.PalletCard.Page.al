@@ -386,8 +386,6 @@ page 60003 "Pallet Card"
     trigger OnOpenPage()
     begin
         EnableTESTPROD1 := UserId() = 'PRODWARE1';
-
-
         //Ariel Change
         if rec."Disposal Status" = rec."Disposal Status"::"Pending Approval" then begin
             ShowDisposePalletWorkFlow := true;
