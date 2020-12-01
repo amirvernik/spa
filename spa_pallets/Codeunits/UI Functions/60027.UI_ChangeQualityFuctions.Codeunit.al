@@ -7,6 +7,8 @@ codeunit 60027 "UI Change Quality Functions"
         ItemJournalLine: Record "Item Journal Line";
         PurchaseProcessSetup: Record "SPA Purchase Process Setup";
         TrackingItemNumber: code[20];
+        PalletFunctionCU: Codeunit "Pallet Functions";
+        PalletHeader: Record "Pallet Header";
     begin
         IF pFunction <> 'ChangeItemInPallet' THEN
             EXIT;
@@ -79,7 +81,8 @@ codeunit 60027 "UI Change Quality Functions"
                 ChangeQualityMgmt.AddPackingMaterialsToExisting(PalletLineChangeQuality); //Add Packing Materials to Existing Packing Materials
                 ChangeQualityMgmt.RecreateReservations(palletId);
                 ChangeQualityMgmt.RemoveZeroPalletLine(PalletLineChangeQuality); // Remove Lines With Zero quantitites
-
+                PalletHeader.Get(palletId);
+                PalletFunctionCU.UpdateNoOfCopies(PalletHeader);
 
 
                 if PalletLineChangeQuality.Quantity = 0 then

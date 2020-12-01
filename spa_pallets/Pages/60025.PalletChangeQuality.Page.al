@@ -109,11 +109,13 @@ page 60025 "Pallet Change Quality"
 
                 trigger OnAction()
                 var
+                    PalletFunctionCU: Codeunit "Pallet Functions";
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                     TrackingItemNumber: code[20];
                     LPurchaseArchiveLine: Record "Purchase Line Archive";
                     LPurchaseHeader: Record "Purchase Header";
                     PalletItemChgLine: Record "Pallet Change Quality";
+                    PalletHeader: Record "Pallet Header";
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
                     ErrNewItem: Label 'You have not enterd a new item line';
                     ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
@@ -197,13 +199,15 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt.ChangePalletReservation(Rec); //Change Pallet Reservation Line                    
                                                                     //ChangeQualityMgmt.PalletLedgerAdjustOld(rec); //Adjust Pallet Ledger Entries - Old Items  
                     ChangeQualityMgmt.AddNewItemsToPallet(rec); //Add New Lines                    
-                                                                // ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
+                    //ChangeQualityMgmt.PosAdjNewItems(rec); //Positivr Adj to New Lines
                     ChangeQualityMgmt.NegAdjToNewPacking(rec); //Neg ADjustment to New Packing Materials
                     ChangeQualityMgmt.PostItemLedger(rec."Pallet ID"); //Post Pos Item Journals to New Items  
                                                                        //Message('3');
                                                                        // ChangeQualityMgmt.AddPackingMaterialsToExisting(rec); //Add Packing Materials to Existing Packing Materials                                      
                     ChangeQualityMgmt.RecreateReservations(rec."Pallet ID");
                     ChangeQualityMgmt.RemoveZeroPalletLine(rec); // Remove Pallet Lines with Zero Quantities
+                    PalletHeader.Get(rec."Pallet ID");
+                    PalletFunctionCU.UpdateNoOfCopies(PalletHeader);
                     CurrPage.Close();
                 end;
             }

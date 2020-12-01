@@ -127,7 +127,7 @@ page 60006 "Pallet Card Subpage"
             {
                 ApplicationArea = All;
                 image = TaskQualityMeasure;
-                Visible = false;
+                //  Visible = false;
                 trigger OnAction()
                 var
                     ChangeQualityPage: page "Pallet Change Quality";

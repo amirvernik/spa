@@ -366,13 +366,15 @@ codeunit 60021 "Purch. UI Functions"
                         PalletLine."Remaining Qty" -= PalletLineTemp."QTY Consumed";
                         PalletLine.modify;
 
+
                         // PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
 
                         LItemJournalLine.init;
                         LItemJournalLine."Journal Template Name" := 'ITEM';
                         LItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
                         LItemJournalLine."Line No." := LineNumber;
-                        LItemJournalLine.insert;
+                        LItemJournalLine."Source Code" := 'ITEMJNL';
+                        LItemJournalLine.insert(true);
                         LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Negative Adjmt.";
                         LItemJournalLine.validate("Posting Date", GetCurrTime());
                         LItemJournalLine."Document No." := PalletLine."Purchase Order No.";
@@ -432,6 +434,7 @@ codeunit 60021 "Purch. UI Functions"
             until PalletLineTemp.next = 0;
 
 
+
         //if all consumed
         PalletLineTemp.reset;
         PalletLineTemp.setrange("Exists on Warehouse Shipment", false);
@@ -458,6 +461,7 @@ codeunit 60021 "Purch. UI Functions"
                 until PalletHeaderTemp.next = 0;
         end;
 
+        PostJournal(PalletID);
         //Creating The PO
         if not PalletsNotConsumed then begin
             if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType = 'microwave') then begin
@@ -493,7 +497,7 @@ codeunit 60021 "Purch. UI Functions"
                     PurchaseHeader."Receiving No. Series" := PurchaseSetup."Posted Receipt Nos.";
                     PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
                     PurchaseHeader.modify;
-                    PostJournal(PalletID);
+
                     //Sending Result Json
                     JsonResult.Add('PO number', OrderNumber);
                     JsonResult.add('Batch Number', rm_lot);
