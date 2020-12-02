@@ -463,7 +463,7 @@ codeunit 60024 "Change Quality Management"
                             LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
                             LPurchaseLine.SetRange("Line No.", pPalletLineChg."Purchase Order Line No.");
                             if LPurchaseLine.FindFirst() then begin
-                                if pPalletLineChg.Quantity <> pPalletLineChg."Replaced Qty" then begin
+                                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
                                     LPurchaseLineNewQty.Init();
                                     LPurchaseLineNewQty."Document No." := pPalletLineChg."Purchase Order No.";
                                     LPurchaseLineNewQty."Document Type" := LPurchaseLineNewQty."Document Type"::Order;
@@ -521,17 +521,19 @@ codeunit 60024 "Change Quality Management"
                                 end;
                                 LPurchaseLine.Validate("Line Discount %", 100);
                                 LPurchaseLine.Modify();
+                                if LisReleased then
+                                    DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
+                                LpalletLine.Reset();
+                                // LpalletLine.SetRange("Pallet ID", pPalletLineChg."Pallet ID");
+                                LpalletLine.SetRange("Purchase Order No.", LPurchaseLine."No.");
+                                LpalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
+                                if LpalletLine.FindLast() then begin
+                                    LpalletLine."Purchase Order Line No." := LPurchaseLineNewQty."Line No.";
+                                    LpalletLine.Modify();
+                                end;
                             end;
                         end;
-                        if LisReleased then
-                            DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
-                        LpalletLine.Reset();
-                        LpalletLine.SetRange("Pallet ID", pPalletLineChg."Pallet ID");
-                        LpalletLine.SetRange("Purchase Order No.", pPalletLineChg."Purchase Order No.");
-                        LpalletLine.SetRange("Purchase Order Line No.", pPalletLineChg."Purchase Order Line No.");
-                        LpalletLine.FindLast();
-                        LpalletLine."Purchase Order Line No." := LPurchaseLineNewQty."Line No.";
-                        LpalletLine.Modify();
+
                     end;
                 end;
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
@@ -684,7 +686,7 @@ codeunit 60024 "Change Quality Management"
                                     PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
                                     PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
                                     PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
-                                    PalletLedgerEntry."Document No." := PalletLine."Pallet ID";
+                                    PalletLedgerEntry."Document No." := PalletLine."Purchase Order No.";
                                     //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
                                     PalletLedgerEntry.validate("Posting Date", Today);
                                     PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");

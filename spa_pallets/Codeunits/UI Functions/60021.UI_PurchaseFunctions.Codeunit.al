@@ -510,7 +510,7 @@ codeunit 60021 "Purch. UI Functions"
         //If po not created
         if PalletsNotConsumed then
             pContent := 'Pallets cannot be consumed, PO not created';
-
+        Commit();
     end;
 
     procedure PostJournal(PalletID: code[20]);
@@ -869,7 +869,7 @@ codeunit 60021 "Purch. UI Functions"
                         PalletLine."Remaining Qty" -= PalletLineTemp."QTY Consumed";
                         PalletLine.modify;
 
-                        PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
+                        //  PalletLedgerFunctions.ValueAddConsume(PalletLine, PalletLineTemp."QTY Consumed");
 
                         PalletLineTemp."Exists on Warehouse Shipment" := true;
                         PalletLineTemp.modify;
@@ -904,7 +904,7 @@ codeunit 60021 "Purch. UI Functions"
                         PalletHeader.validate("Pallet Status", PalletHeader."Pallet Status"::Consumed);
 
                     PalletHeader.modify;
-                    PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
+                //   PalletLedgerFunctions.ConsumeRawMaterials(PalletHeader);
                 until PalletHeaderTemp.next = 0;
         end;
 

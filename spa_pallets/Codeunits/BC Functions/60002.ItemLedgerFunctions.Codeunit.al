@@ -148,27 +148,35 @@ codeunit 60002 "Item Ledger Functions"
         if LPalletLedgerEntry.FindLast() then begin
             LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
             LPalletLedgerEntry.Modify();
+        end;
+        LPalletLedgerEntry.Reset();
+        LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
+        LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
+        LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+        if LPalletLedgerEntry.FindLast() then begin
+            LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+            LPalletLedgerEntry.Modify();
+        end;
 
-            if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
-                if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
-                    // PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry);
-                    ItemLedgerEntry.Description := 'POS-' + ItemJournalLine.Description;
-                    ItemLedgerEntry.Modify();
+        if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
+            if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
+                // PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry);
+                ItemLedgerEntry.Description := 'POS-' + ItemJournalLine.Description;
+                ItemLedgerEntry.Modify();
 
-                end;
-                if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Negative Adjmt." then begin
-                    // PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemLedgerEntry);
-                    ItemLedgerEntry.Description := 'NEG-' + ItemJournalLine.Description;
-                    ItemLedgerEntry.Modify();
-                end;
             end;
-            if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then begin
-                PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
-                ItemLedgerEntry.Description := ItemJournalLine.Description;
+            if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Negative Adjmt." then begin
+                // PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemLedgerEntry);
+                ItemLedgerEntry.Description := 'NEG-' + ItemJournalLine.Description;
                 ItemLedgerEntry.Modify();
             end;
-
         end;
+        if ItemJournalLine."Journal Template Name" = PalletSetup."Item Reclass Template" then begin
+            PalletLedgerFunctions.PalletLedgerEntryReclass(ItemLedgerEntry);
+            ItemLedgerEntry.Description := ItemJournalLine.Description;
+            ItemLedgerEntry.Modify();
+        end;
+
     end;
 
     var
