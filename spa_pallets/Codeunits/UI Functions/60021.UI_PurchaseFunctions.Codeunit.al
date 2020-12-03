@@ -290,7 +290,7 @@ codeunit 60021 "Purch. UI Functions"
         LItemJournalLine.Reset();
         LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
         LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
-        LItemJournalLine.SetRange("Pallet ID", PalletID);
+        LItemJournalLine.SetRange("Lot No.", RM_Lot);
         if LItemJournalLine.FindSet() then
             LItemJournalLine.DeleteAll();
 
@@ -462,6 +462,13 @@ codeunit 60021 "Purch. UI Functions"
         end;
 
         PostJournal(PalletID);
+        //Delete lines taht are left from posting (Why?)
+        LItemJournalLine.Reset();
+        LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
+        LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Lot No.", RM_Lot);
+        if LItemJournalLine.FindSet() then
+            LItemJournalLine.DeleteAll();
         //Creating The PO
         if not PalletsNotConsumed then begin
             if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType = 'microwave') then begin
