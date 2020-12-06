@@ -160,6 +160,9 @@ codeunit 60002 "Item Ledger Functions"
         LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
         LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
         LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+        LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
+        LPalletLedgerEntry.SetRange("Location Code", ItemJournalLine."Location Code");
+        LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
         if LPalletLedgerEntry.FindLast() then begin
             LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
             LPalletLedgerEntry.Modify();

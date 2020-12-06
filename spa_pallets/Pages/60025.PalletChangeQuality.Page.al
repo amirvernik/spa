@@ -113,6 +113,7 @@ page 60025 "Pallet Change Quality"
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                     TrackingItemNumber: code[20];
                     LPurchaseArchiveLine: Record "Purchase Line Archive";
+                    LPurchaseLine: Record "Purchase Line";
                     LPurchaseHeader: Record "Purchase Header";
                     PalletItemChgLine: Record "Pallet Change Quality";
                     PalletHeader: Record "Pallet Header";
@@ -129,17 +130,26 @@ page 60025 "Pallet Change Quality"
 
                 begin
 
+                    LPurchaseLine.Reset();
+                    LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
+                    LPurchaseLine.SetRange("No.", Rec."Purchase Order No.");
+                    LPurchaseLine.SetRange("Line No.", Rec."Purchase Order Line No.");
+                    if LPurchaseLine.FindFirst() then begin
+                        if LPurchaseLine."Quantity Invoiced" > 0 then begin
+                            Error(ErrInvoiced);
+                            exit;
+                        end;
+                    end;
+
                     LPurchaseArchiveLine.Reset();
                     LPurchaseArchiveLine.SetRange("Document Type", LPurchaseArchiveLine."Document Type"::Order);
-                    LPurchaseArchiveLine.SetRange("No.", "Purchase Order No.");
-                    LPurchaseArchiveLine.SetRange("Line No.", "Purchase Order Line No.");
-                    if LPurchaseArchiveLine.FindFirst() then begin
-                        if LPurchaseArchiveLine."Quantity Invoiced" > 0 then
-                            Error(ErrInvoiced)
-                        else
+                    LPurchaseArchiveLine.SetRange("No.", Rec."Purchase Order No.");
+                    LPurchaseArchiveLine.SetRange("Line No.", Rec."Purchase Order Line No.");
+                    if LPurchaseArchiveLine.FindFirst() then
+                        if LPurchaseArchiveLine."Quantity Invoiced" > 0 then begin
                             Error(ErrArchived);
-                        exit;
-                    end;
+                            exit;
+                        end;
 
                     PalletReservationEntry.reset;
                     PalletReservationEntry.SetRange("Pallet ID", Rec."Pallet ID");

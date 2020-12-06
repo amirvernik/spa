@@ -463,7 +463,7 @@ codeunit 60024 "Change Quality Management"
                             LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
                             LPurchaseLine.SetRange("Line No.", pPalletLineChg."Purchase Order Line No.");
                             if LPurchaseLine.FindFirst() then begin
-                                if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then begin
+                                if pPalletLineChg."Replaced Qty" > 0 then begin
                                     LPurchaseLineNewQty.Init();
                                     LPurchaseLineNewQty."Document No." := pPalletLineChg."Purchase Order No.";
                                     LPurchaseLineNewQty."Document Type" := LPurchaseLineNewQty."Document Type"::Order;

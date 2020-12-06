@@ -251,6 +251,7 @@ page 60006 "Pallet Card Subpage"
                     Image = DeleteQtyToHandle;
                     Promoted = true;
                     PromotedCategory = Process;
+                    Enabled = not PalletOpen;
 
                     trigger OnAction();
                     var
@@ -277,8 +278,14 @@ page 60006 "Pallet Card Subpage"
             PalletCancelled := false
         else
             PalletCancelled := true;
+
+        if LPalletHeader."Pallet Status" = LPalletHeader."Pallet Status"::Open then
+            PalletOpen := false
+        else
+            PalletOpen := true;
     end;
 
     var
         PalletCancelled: Boolean;
+        PalletOpen: Boolean;
 }
