@@ -30,6 +30,8 @@ codeunit 60001 "Pallet Functions"
         if PalletLines.findfirst then
             error(Err05);
 
+
+
         if pType = 'BC' then begin
             LPurchaseOrdersText := '';
 
@@ -113,12 +115,13 @@ codeunit 60001 "Pallet Functions"
             until PalletLines.next = 0;
 
         UpdateNoOfCopies(pPalletHeader); //Change No. Of Copies
-        AddMaterials(pPalletHeader); //Add Materials
-        PalletLedgerFunctions.PosPalletLedger(pPalletHeader); //Positive on Pallet Ledger
-        ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
-        ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
-                                                       //AddPoLines(pPalletHeader); //Add PO Lines
-
+        if pPalletHeader."Pallet Status" <> pPalletHeader."Pallet Status"::Closed then begin
+            AddMaterials(pPalletHeader); //Add Materials
+            PalletLedgerFunctions.PosPalletLedger(pPalletHeader); //Positive on Pallet Ledger
+            ItemLedgerFunctions.NegItemLedgerEntry(pPalletHeader); //Negative on Item Journal
+            ItemLedgerFunctions.PostLedger(pPalletHeader); //Post Item Journal
+                                                           //AddPoLines(pPalletHeader); //Add PO Lines
+        end;
         //Change Status
         pPalletHeader."Pallet Status" := pPalletHeader."Pallet Status"::Closed;
         pPalletHeader.modify;

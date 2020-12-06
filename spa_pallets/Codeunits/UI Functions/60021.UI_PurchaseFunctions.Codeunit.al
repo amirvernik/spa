@@ -535,6 +535,13 @@ codeunit 60021 "Purch. UI Functions"
             repeat
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
             until LItemJournalLine.Next() = 0;
+
+        LItemJournalLine.reset;
+        LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Pallet ID", PalletID);
+        if LItemJournalLine.FindSet() then
+            LItemJournalLine.DeleteAll();
     end;
 
     /*if (VendorNo <> '') and (VendorShipmentNo <> '') and (PurchaseType <> '') then begin
@@ -642,45 +649,45 @@ codeunit 60021 "Purch. UI Functions"
 
         if PurchaseHeader.get(PurchaseHeader."Document Type"::order, OrderNo) then begin
             if PurchaseHeader."Microwave Process PO" then begin
-                if not PurchaseHeader."RM Add Neg" then begin
+                //  if not PurchaseHeader."RM Add Neg" then begin
 
-                    PalletLedgerEntry.Reset;
-                    PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::"Consume Raw Materials");
-                    PalletLedgerEntry.setrange("Lot Number", BatchNumber);
-                    PalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
-                    if PalletLedgerEntry.findset then begin
-                        repeat
-                            CreateNegAdjustment(PalletLedgerEntry, OrderNo);
-                        until PalletLedgerEntry.next = 0;
+                /*  PalletLedgerEntry.Reset;
+                  PalletLedgerEntry.SetRange(PalletLedgerEntry."Entry Type", PalletLedgerEntry."Entry Type"::"Consume Raw Materials");
+                  PalletLedgerEntry.setrange("Lot Number", BatchNumber);
+                  PalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+                  if PalletLedgerEntry.findset then begin
+                      repeat
+                          CreateNegAdjustment(PalletLedgerEntry, OrderNo);
+                      until PalletLedgerEntry.next = 0;
 
 
 
-                        //Post the Journal
-                        PurchaseProcessSetup.Get();
-                        ItemJournalLine.reset;
-                        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
-                        ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
-                        ItemJournalLine.setrange(ItemJournalLine."Document No.", OrderNo);
-                        if ItemJournalLine.findset() then begin
-                            repeat
-                                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
-                            until ItemJournalLine.Next() = 0;
-                            // if GetLastErrorText = '' then begin
-                            PurchaseHeader."RM Add Neg" := true;
-                            //Edit Scrap Qty
-                            PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
-                            PurchaseHeader.modify;
-                            pContent := 'Success';
-                        end
-                        else
-                            pContent := GetLastErrorText;
+                //Post the Journal
+                PurchaseProcessSetup.Get();
+                ItemJournalLine.reset;
+                ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                ItemJournalLine.setrange(ItemJournalLine."Document No.", OrderNo);
+                if ItemJournalLine.findset() then begin
+                    repeat
+                        CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
+                    until ItemJournalLine.Next() = 0;*/
+                // if GetLastErrorText = '' then begin
+                //  PurchaseHeader."RM Add Neg" := true;
+                //Edit Scrap Qty
+                PurchaseHeader."Scrap QTY (KG)" := ScrapQty;
+                PurchaseHeader.modify;
+                pContent := 'Success';
+                // end
+                //  else
+                //  pContent := GetLastErrorText;
 
-                    end
-                    else
-                        pContent := 'error,raw material was not consumed'
-                end
+                /*end
                 else
-                    pcontent := 'error, raw material already been consumed';
+                    pContent := 'error,raw material was not consumed'*/
+                //  end
+                // else
+                //       pcontent := 'error, raw material already been consumed';
             end
             else
                 pcontent := 'error, order is not a microwave order';

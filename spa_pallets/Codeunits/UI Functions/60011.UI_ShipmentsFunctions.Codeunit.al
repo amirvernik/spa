@@ -307,6 +307,7 @@ codeunit 60011 "UI Shipments Functions"
                                     if ItemUnitofMeasure.FindFirst() then
                                         if ItemUnitofMeasure.Code <> SalesLine."Unit of Measure Code" then
                                             LQuantity *= ItemUnitofMeasure."Qty. per Unit of Measure";
+                                    LQuantity := Round(LQuantity, 0.01);
                                     JsonObjLines.add('Qty. to Ship (Base)', format(LQuantity));
 
                                     JsonArrLines.Add(JsonObjLines);

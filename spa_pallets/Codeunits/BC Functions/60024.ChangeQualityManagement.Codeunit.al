@@ -778,6 +778,12 @@ codeunit 60024 "Change Quality Management"
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
             until ItemJournalLine.Next() = 0;
 
+        ItemJournalLine.reset;
+        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+        ItemJournalLine.SetRange("Pallet ID", pPalletNumber);
+        if ItemJournalLine.FindSet() then
+            ItemJournalLine.DeleteAll();
 
     end;
 

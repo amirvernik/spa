@@ -238,7 +238,7 @@ codeunit 60010 "UI Pallet Functions"
                         PalletLine.validate(Quantity, qty * ItemUnitOfMeasure."Qty. per Unit of Measure");
                     end;
                 end;
-                PalletLine."Lot Number" := LOTNO;
+                PalletLine.validate("Lot Number", LOTNO);
                 PalletLine.Insert();
             end;
         END;
@@ -309,7 +309,7 @@ codeunit 60010 "UI Pallet Functions"
                     ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");
                     ItemUnitOfMeasure.SetRange("Default Unit Of Measure", true);
                     if ItemUnitOfMeasure.findfirst then
-                        PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                        PurchaseLine.validate("Qty. (Base) SPA", Round(PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure", 0.001));
                     //PurchaseLine.validate("Qty. (Base) SPA", PalletLine.Quantity);
                     PurchaseLine.validate("Qty. to Receive", 0);
                     PurchaseLine.validate("qty. to invoice", 0);
@@ -731,7 +731,7 @@ codeunit 60010 "UI Pallet Functions"
                                 PalletLine."Expiration Date" := CalcDate('+' + format(ItemRec."Expiration Calculation"), GetCurrTime);
                         end;
                         PalletLine."Location Code" := PalletHeader."Location Code";
-                        PalletLine."Lot Number" := LOTNO;
+                        PalletLine.validate("Lot Number", LOTNO);
                         PalletLine.Quantity := Qty;
                         PalletLine.Insert();
 

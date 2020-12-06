@@ -313,7 +313,14 @@ codeunit 60023 "Pallet Disposal Management"
         if ItemJournalLine.findset then
             repeat
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", ItemJournalLine);
-            until ItemJournalLine.Next() = 0
+            until ItemJournalLine.Next() = 0;
+
+        ItemJournalLine.reset;
+        ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        ItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        ItemJournalLine.SetRange("Pallet ID", pPalletNumber);
+        if ItemJournalLine.FindSet() then
+            ItemJournalLine.DeleteAll();
     end;
 
     var

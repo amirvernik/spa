@@ -215,7 +215,6 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection.Quantity += ItemLedgerEntry.Quantity;
                                     LotSelection."Quantity Available" += ItemLedgerEntry.Quantity;
                                     LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
-
                                     LotSelection.Modify();
                                 end;
                             until ItemLedgerEntry.next = 0;

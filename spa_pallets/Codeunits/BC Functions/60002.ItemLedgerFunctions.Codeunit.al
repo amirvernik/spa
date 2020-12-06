@@ -122,6 +122,13 @@ codeunit 60002 "Item Ledger Functions"
                 CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", RecGItemJournalLine);
             until RecGItemJournalLine.Next() = 0;
 
+        RecGItemJournalLine.reset;
+        RecGItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        RecGItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        RecGItemJournalLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+        if RecGItemJournalLine.FindSet() then
+            RecGItemJournalLine.DeleteAll();
+
     end;
 
     //On AFter Post Item Journal Line
