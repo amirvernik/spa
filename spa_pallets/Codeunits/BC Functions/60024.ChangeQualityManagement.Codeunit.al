@@ -231,7 +231,7 @@ codeunit 60024 "Change Quality Management"
                     ItemJournalLine.validate("Item No.", pPalletLineChg."Item No.");
                     ItemJournalLine.validate("Variant Code", pPalletLineChg."Variant Code");
                     ItemJournalLine.validate("Location Code", pPalletLineChg."Location Code");
-                    ItemJournalLine.validate(Quantity, (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                    ItemJournalLine.validate(Quantity, (pPalletLineChg.Quantity));
                     ItemJournalLine.modify;
                     //Create Reservation Entry
                     if ItemRec.get(pPalletLineChg."Item No.") then
@@ -259,9 +259,9 @@ codeunit 60024 "Change Quality Management"
                             RecGReservationEntry.validate("Location Code", pPalletLineChg."Location Code");
                             RecGReservationEntry."Lot No." := pPalletLineChg."Lot Number";
                             RecGReservationEntry.validate("Quantity (Base)", -1 *
-                            (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                            (pPalletLineChg.Quantity));
                             RecGReservationEntry.validate(Quantity, -1 *
-                            (pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty"));
+                            (pPalletLineChg.Quantity));
                             RecGReservationEntry.Positive := false;
                             RecGReservationEntry.insert;
                             PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Quality Change");
@@ -477,11 +477,11 @@ codeunit 60024 "Change Quality Management"
                                     LPurchaseLineNewQty."Web UI Unit of Measure" := LPurchaseLine."Unit of Measure";
                                     LPurchaseLineNewQty."Web UI Quantity" := pPalletLineChg."Replaced Qty";
 
-                                    ItemUnitOfMeasure.reset;
-                                    ItemUnitOfMeasure.setrange("Item No.", pPalletLineChg."Item No.");
-                                    ItemUnitOfMeasure.SetRange(Code, 'KG');
-                                    ItemUnitOfMeasure.findfirst;
-                                    LPurchaseLineNewQty.validate("Qty. (Base) SPA", pPalletLineChg."Replaced Qty" * ItemUnitOfMeasure."Qty. per Unit of Measure");
+                                    /*    ItemUnitOfMeasure.reset;
+                                        ItemUnitOfMeasure.setrange("Item No.", pPalletLineChg."Item No.");
+                                        ItemUnitOfMeasure.SetRange(Code, LPurchaseLine."Unit of Measure");
+                                        ItemUnitOfMeasure.findfirst;*/
+                                    LPurchaseLineNewQty.validate("Qty. (Base) SPA", pPalletLineChg."Replaced Qty");//* ItemUnitOfMeasure."Qty. per Unit of Measure");
                                     LPurchaseLineNewQty.validate("Qty. to Receive", pPalletLineChg."Replaced Qty");
                                     LPurchaseLineNewQty.validate("qty. to invoice", 0);
                                     LPurchaseLineNewQty.modify;
@@ -521,15 +521,17 @@ codeunit 60024 "Change Quality Management"
                                 end;
                                 LPurchaseLine.Validate("Line Discount %", 100);
                                 LPurchaseLine.Modify();
-                                if LisReleased then
-                                    DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
+
                                 LpalletLine.Reset();
-                                // LpalletLine.SetRange("Pallet ID", pPalletLineChg."Pallet ID");
+                                LpalletLine.SetRange("Pallet ID", pPalletLineChg."Pallet ID");
                                 LpalletLine.SetRange("Purchase Order No.", LPurchaseLine."No.");
                                 LpalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
                                 if LpalletLine.FindLast() then begin
-                                    LpalletLine."Purchase Order Line No." := LPurchaseLineNewQty."Line No.";
+                                    LpalletLine."Purchase Order Line No." := LPOLineNo;
                                     LpalletLine.Modify();
+
+                                    if LisReleased then
+                                        DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
                                 end;
                             end;
                         end;
@@ -668,7 +670,7 @@ codeunit 60024 "Change Quality Management"
                                     LPurchaseLine."Web UI Quantity" := PalletItemChgLine."New Quantity";
                                     ItemUnitOfMeasure.reset;
                                     ItemUnitOfMeasure.setrange("Item No.", PalletItemChgLine."New Item No.");
-                                    ItemUnitOfMeasure.SetRange(Code, 'KG');
+                                    ItemUnitOfMeasure.SetRange(Code, PalletItemChgLine."Unit of Measure");
                                     ItemUnitOfMeasure.findfirst;
                                     LPurchaseLine.validate("Qty. (Base) SPA", PalletItemChgLine."New Quantity" * ItemUnitOfMeasure."Qty. per Unit of Measure");
                                     LPurchaseLine.validate("Qty. to Receive", PalletItemChgLine."New Quantity");
