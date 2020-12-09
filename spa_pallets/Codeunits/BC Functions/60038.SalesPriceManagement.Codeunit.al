@@ -21,7 +21,7 @@ codeunit 60038 "Sales Price Management"
                     ItemSelectByCustomer.init;
                     ItemSelectByCustomer."Item No." := SalesPrice."Item No.";
                     ItemSelectByCustomer."Variant Code" := SalesPrice."Variant Code";
-                    ItemSelectByCustomer."Unit of Measure" := SalesPrice."Unit of Measure Code";
+                    ItemSelectByCustomer.validate("Unit of Measure", SalesPrice."Unit of Measure Code");
                     ItemSelectByCustomer."Direct Unit Cost" := SalesPrice."Unit Price";
                     if ItemRec.get(SalesPrice."Item No.") then
                         ItemSelectByCustomer."Item Description" := ItemRec.Description;

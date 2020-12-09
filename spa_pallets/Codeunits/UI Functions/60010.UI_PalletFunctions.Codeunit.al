@@ -230,11 +230,11 @@ codeunit 60010 "UI Pallet Functions"
                 if ItemUnitOfMeasure.findfirst then begin
                     //if ItemUnitOfMeasure.Code = UOM then begin //AV-27/08/2020
                     if ItemRec."Base Unit of Measure" = UOM then begin
-                        PalletLine."Unit of Measure" := UOM;
+                        PalletLine.validate("Unit of Measure", UOM);
                         PalletLine.validate(Quantity, qty);
                     end else begin
                         //AV-27/08/2020
-                        PalletLine."Unit of Measure" := ItemRec."Base Unit of Measure";  //ItemUnitOfMeasure.Code;
+                        PalletLine.validate("Unit of Measure", ItemRec."Base Unit of Measure");  //ItemUnitOfMeasure.Code;
                         PalletLine.validate(Quantity, qty * ItemUnitOfMeasure."Qty. per Unit of Measure");
                     end;
                 end;

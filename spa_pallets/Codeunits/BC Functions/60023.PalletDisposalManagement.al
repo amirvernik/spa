@@ -122,7 +122,7 @@ codeunit 60023 "Pallet Disposal Management"
                 PMSelect."PM Item No." := PackingMaterials."Item No.";
                 PMSelect."PM Item Description" := PackingMaterials.Description;
                 PMSelect.Quantity := PackingMaterials.Quantity;
-                PMSelect."Unit of Measure" := PackingMaterials."Unit of Measure Code";
+                PMSelect.validate("Unit of Measure", PackingMaterials."Unit of Measure Code");
                 pmselect.insert;
             until PackingMaterials.next = 0;
 

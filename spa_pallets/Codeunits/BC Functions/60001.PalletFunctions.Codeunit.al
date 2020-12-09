@@ -399,7 +399,7 @@ codeunit 60001 "Pallet Functions"
                     PMSelect."PM Item No." := PackingMaterials."Item No.";
                     PMSelect."Pallet Packing Line No." := PackingMaterials."Line No.";
                     PMSelect."PM Item Description" := PackingMaterials.Description;
-                    PMSelect."Unit of Measure" := PackingMaterials."Unit of Measure Code";
+                    PMSelect.validate("Unit of Measure", PackingMaterials."Unit of Measure Code");
                     PMSelect.Quantity := PackingMaterials.Quantity;
                     pmselect.insert;
                 until PackingMaterials.next = 0;
@@ -624,6 +624,7 @@ codeunit 60001 "Pallet Functions"
                 if LPurchaseLine.FindSet() then
                     repeat
                         LPalletLine.Reset();
+                        LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
                         LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
                         LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
                         IF LPalletLine.FindSet() then begin
@@ -897,6 +898,7 @@ codeunit 60001 "Pallet Functions"
                 if LPurchaseLine.FindSet() then
                     repeat
                         LPalletLine.Reset();
+                        LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
                         LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
                         LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
                         IF LPalletLine.FindSet() then begin
@@ -1290,6 +1292,118 @@ codeunit 60001 "Pallet Functions"
 
     end;
 
+
+    Procedure CreatePosAdjustmentToPackingMaterials_PalletLine(pPalletLine: Record "Pallet Line"; pQuantityToReturn: Decimal)
+    var
+        PurchaseProcessSetup: Record "SPA Purchase Process Setup";
+        ItemJournalLine: Record "Item Journal Line";
+        PalletFunctionUI: Codeunit "UI Pallet Functions";
+        LineNumber: Integer;
+        LpurchaseHeader: Record "Purchase Header";
+        LpalletLine: Record "Pallet Line";
+        BOMComp: Record "BOM Component";
+        ReservationEntry2: Record "Reservation Entry";
+        RecGReservationEntry: Record "Reservation Entry";
+        PalletLedgerType: Enum "Pallet Ledger Type";
+        POFunctionsUI: Codeunit "Purch. UI Functions";
+        maxEntry: Integer;
+        RecItem: Record Item;
+        boolMW: Boolean;
+    begin
+        PurchaseProcessSetup.Get();
+
+        BOMComp.Reset();
+        BOMComp.SetRange("Parent Item No.", pPalletLine."Item No.");
+        if BOMComp.FindSet() then begin
+            ItemJournalLine.reset;
+            ItemJournalLine.setrange("Journal Template Name", 'ITEM');
+            ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+            if ItemJournalLine.FindLast() then
+                LineNumber := ItemJournalLine."Line No." + 10000
+            else
+                LineNumber := 10000;
+            repeat
+                ItemJournalLine.init;
+                ItemJournalLine.validate("Journal Template Name", 'ITEM');
+                ItemJournalLine.validate("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
+                ItemJournalLine.validate("Line No.", LineNumber);
+                ItemJournalLine."Source Code" := 'ITEMJNL';
+                ItemJournalLine.insert(true);
+                ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
+                ItemJournalLine.validate("Posting Date", PalletFunctionUI.GetCurrTime);
+                ItemJournalLine."Document No." := pPalletLine."Pallet ID";
+                ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine.validate("Item No.", BOMComp."No.");
+                ItemJournalLine.validate("Location Code", pPalletLine."Location Code");
+                ItemJournalLine.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
+                ItemJournalLine."Pallet ID" := pPalletLine."Pallet ID";
+                ItemJournalLine.modify;
+
+                if RecItem.get(BOMComp."No.") then
+                    if RecItem."Lot Nos." <> '' then begin
+                        PurchaseProcessSetup.get;
+                        ReservationEntry2.reset;
+                        if ReservationEntry2.findlast then
+                            maxEntry := ReservationEntry2."Entry No." + 1;
+                        ItemJournalLine."Lot No." := pPalletLine."Lot Number";
+                        ItemJournalLine.Modify();
+
+                        RecGReservationEntry.init;
+                        RecGReservationEntry."Entry No." := MaxEntry;
+                        RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
+                        RecGReservationEntry."Creation Date" := PalletFunctionUI.GetCurrTime;
+                        RecGReservationEntry."Created By" := UserId;
+                        RecGReservationEntry."Expected Receipt Date" := PalletFunctionUI.GetCurrTime;
+                        RecGReservationEntry."Source Type" := 83;
+                        RecGReservationEntry."Source Subtype" := 2;
+                        RecGReservationEntry."Source ID" := 'ITEM';
+                        RecGReservationEntry."Source Ref. No." := LineNumber;
+                        RecGReservationEntry."Source Batch Name" := PurchaseProcessSetup."Item Journal Batch";
+                        RecGReservationEntry.validate("Location Code", pPalletLine."Location Code");
+                        RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                        RecGReservationEntry.validate("Item No.", BOMComp."No.");
+                        RecGReservationEntry.validate("Quantity (Base)", BOMComp."Quantity per" * pQuantityToReturn);
+                        RecGReservationEntry.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
+                        RecGReservationEntry.Positive := true;
+                        RecGReservationEntry."Lot No." := pPalletLine."Lot Number";
+                        RecGReservationEntry.insert;
+
+                    end;
+                PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Return Packing Materials");
+
+                LineNumber += 10000;
+
+            until BOMComp.Next() = 0;
+
+
+
+        end;
+
+    end;
+
+    procedure PostJournal(PalletID: code[20]);
+    var
+        LItemJournalLine: Record "Item Journal Line";
+        PalletSetup: Record "SPA Purchase Process Setup";
+    begin
+        PalletSetup.Get();
+        LItemJournalLine.Reset();
+        LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
+        LItemJournalLine.SetRange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Pallet ID", PalletID);
+        LItemJournalLine.SetFilter(Quantity, '<>0');
+        if LItemJournalLine.FindSet() then
+            repeat
+                CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+            until LItemJournalLine.Next() = 0;
+
+        LItemJournalLine.reset;
+        LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+        LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+        LItemJournalLine.SetRange("Pallet ID", PalletID);
+        if LItemJournalLine.FindSet() then
+            LItemJournalLine.DeleteAll();
+    end;
 
     var
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";

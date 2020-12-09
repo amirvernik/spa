@@ -135,7 +135,7 @@ codeunit 60027 "UI Change Quality Functions"
                     PalletLineChange.Description := item.Description;
                 if ItemVariant.get(newItemId, newVariety) then
                     PalletLineChange.Description := ItemVariant.Description;
-                PalletLineChange."Unit of Measure" := newUM;
+                PalletLineChange.validate("Unit of Measure", newUM);
                 PalletLineChange."New Quantity" := qtyToAdd;
                 PalletLineChange."User Created" := userid;
                 if not PalletLineChange.insert then PalletLineChange.Modify();

@@ -160,6 +160,7 @@ page 60036 "PO Details Factbox"
         if LPurchaseLine.FindSet() then begin
             repeat
                 LPalletLine.Reset();
+                LPalletLine.SetCurrentKey("Purchase Order No.", "Purchase Order Line No.");
                 LPalletLine.SetRange("Purchase Order No.", LPurchaseLine."Document No.");
                 LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
                 IF LPalletLine.FindSet() then begin
@@ -203,8 +204,9 @@ page 60036 "PO Details Factbox"
                                     Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
 
                             end;
-                            if not Rec.Insert() then Rec.Modify();
+
                         end;
+                        if not Rec.Insert() then Rec.Modify();
                     until LPalletLine.Next() = 0;
                 end else begin
                     Rec.Init();

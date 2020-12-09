@@ -64,7 +64,7 @@ codeunit 60024 "Change Quality Management"
                     PalletLineTemp."Lot Number" := pPalletLineChg."Lot Number";
                     PalletLineTemp.Quantity := PalletItemChgLine."New Quantity";
                     PalletLineTemp."Remaining Qty" := PalletItemChgLine."New Quantity";
-                    PalletLineTemp."Unit of Measure" := PalletItemChgLine."Unit of Measure";
+                    PalletLineTemp.validate("Unit of Measure", PalletItemChgLine."Unit of Measure");
                     PalletLineTemp.validate("Variant Code", PalletItemChgLine."New Variant Code");
                     PalletLineTemp."Purchase Order No." := pPalletLineChg."Purchase Order No.";
                     PalletLineTemp."Purchase Order Line No." := pPalletLineChg."Purchase Order Line No.";
@@ -375,6 +375,7 @@ codeunit 60024 "Change Quality Management"
         PalletLine: Record "Pallet Line";
         PalletID: Code[20];
         PalletLineNo: Integer;
+        PalletFunctionsCU: Codeunit "Pallet Functions";
     begin
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
@@ -385,11 +386,11 @@ codeunit 60024 "Change Quality Management"
         if pPalletLineChg.findset then
             repeat
                 //if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
-                if PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.") then begin
-                    PalletLine.Quantity := pPalletLineChg."Replaced Qty";
-                    PalletLine."Remaining Qty" := pPalletLineChg."Replaced Qty";
-                    PalletLine.modify;
-                end;
+                PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.");
+                PalletLine.Quantity := pPalletLineChg."Replaced Qty";
+                PalletLine."Remaining Qty" := pPalletLineChg."Replaced Qty";
+                PalletLine.modify;
+                PalletFunctionsCU.CreatePosAdjustmentToPackingMaterials_PalletLine(PalletLine, pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty")
             until pPalletLineChg.next = 0;
     end;
 
@@ -633,7 +634,7 @@ codeunit 60024 "Change Quality Management"
                             PalletLine."Lot Number" := pPalletLineChg."Lot Number";
                             PalletLine.Quantity := PalletItemChgLine."New Quantity";
                             PalletLine."Remaining Qty" := PalletItemChgLine."New Quantity";
-                            PalletLine."Unit of Measure" := PalletItemChgLine."Unit of Measure";
+                            PalletLine.validate("Unit of Measure", PalletItemChgLine."Unit of Measure");
                             PalletLine.validate("Variant Code", PalletItemChgLine."New Variant Code");
 
                             if (pPalletLineChg."Purchase Order No." <> '') then begin
