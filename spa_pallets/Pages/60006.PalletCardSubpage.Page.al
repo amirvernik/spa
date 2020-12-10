@@ -127,7 +127,7 @@ page 60006 "Pallet Card Subpage"
             {
                 ApplicationArea = All;
                 image = TaskQualityMeasure;
-                Visible = false;
+                //Visible = false;
                 trigger OnAction()
                 var
                     ChangeQualityPage: page "Pallet Change Quality";
@@ -138,7 +138,8 @@ page 60006 "Pallet Card Subpage"
                     LPalletHeader.SetRange("Pallet ID", Rec."Pallet ID");
                     LPalletHeader.FindFirst();
                     if ((LPalletHeader."Pallet Status" = "Pallet Status"::Closed) and
-                            (LPalletHeader."Exist in warehouse shipment" = false)) then begin
+                            (LPalletHeader."Exist in warehouse shipment" = false))
+                            and (LPalletHeader."Exist in Transfer Order" = false) then begin
                         ChangeQualityPage.SetPalletIDAndPalletLine(rec."Pallet ID", rec."Line No.");
                         ChangeQualityPage.CalcChangeQuality(rec."Pallet ID", Rec."Line No.");
                         ChangeQualityPage.run;

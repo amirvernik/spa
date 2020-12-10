@@ -94,7 +94,6 @@ pageextension 60021 PurchaseOrderMWExt extends "Purchase Order"
     trigger OnAfterGetCurrRecord()
     begin
         CurrPage."PO Details Factbox".Page.SetPO(Rec."No.", 0);
-        CurrPage.Update(false);
     end;
 
     var

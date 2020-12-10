@@ -100,6 +100,7 @@ codeunit 60006 "Warehouse Shipment Management"
         palletheader.setrange(palletheader."Pallet Status", palletheader."Pallet Status"::Closed);
         palletheader.setrange(palletheader."Location Code", WarehouseShipment."Location Code");
         palletheader.setrange(palletheader."Exist in warehouse shipment", false);
+        Palletheader.SetRange(Palletheader."Exist in Transfer Order", false);
         Palletheader.setrange(Palletheader."Raw Material Pallet", false);
         if palletheader.findset then begin
             repeat

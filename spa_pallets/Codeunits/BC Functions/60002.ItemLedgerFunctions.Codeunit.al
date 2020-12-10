@@ -1,6 +1,6 @@
 codeunit 60002 "Item Ledger Functions"
 {
-    Permissions = TableData 32 = rimd;
+    Permissions = TableData 32 = rm;
 
     //Negative Item Journal from a Pallet - Global Function
     procedure NegItemLedgerEntry(var pPalletHeader: Record "Pallet Header")
@@ -31,7 +31,7 @@ codeunit 60002 "Item Ledger Functions"
                 RecGItemJournalLine."Entry Type" := RecGItemJournalLine."Entry Type"::"Negative Adjmt.";
                 RecGItemJournalLine."Posting Date" := Today;
                 RecGItemJournalLine."Document No." := pPalletHeader."Pallet ID";
-                RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 RecGItemJournalLine.Description := PackingMaterials.Description;
                 RecGItemJournalLine.validate("Item No.", PackingMaterials."Item No.");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
@@ -44,7 +44,7 @@ codeunit 60002 "Item Ledger Functions"
                 else
                     RecGItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
 
-                RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine."Packing Material Qty" := PackingMaterials.Quantity;
                 RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
@@ -96,7 +96,7 @@ codeunit 60002 "Item Ledger Functions"
                 else
                     RecGItemJournalLine.validate(Quantity, PackingMaterials."Qty to Return");
 
-                RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine."Packing Material Qty" := PackingMaterials.Quantity;
                 RecGItemJournalLine."Packing Material UOM" := PackingMaterials."Unit of Measure Code";
@@ -140,7 +140,7 @@ codeunit 60002 "Item Ledger Functions"
     begin
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
-        ItemJournalLine."Pallet Line No." := ItemJournalLine."Pallet Line No.";
+        ItemLedgerEntry."Pallet Line No." := ItemJournalLine."Pallet Line No.";
         ItemLedgerEntry."Pallet Type" := ItemJournalLine."Pallet Type";
         ItemLedgerEntry."Packing Material Qty" := ItemJournalLine."Packing Material Qty";
         ItemLedgerEntry."Packing Material UOM" := ItemJournalLine."Packing Material UOM";
@@ -161,8 +161,6 @@ codeunit 60002 "Item Ledger Functions"
         LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
         LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
         LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
-        LPalletLedgerEntry.SetRange("Location Code", ItemJournalLine."Location Code");
-        LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
         if LPalletLedgerEntry.FindLast() then begin
             LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
             LPalletLedgerEntry.Modify();

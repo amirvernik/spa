@@ -344,6 +344,8 @@ codeunit 60016 "UI Whse Shipments Functions"
         if PalletHeaderTemp.findset then begin
             LineNumber := 10000;
             repeat
+                PalletHeaderTemp.TestField("Exist in Transfer Order", false);
+
                 PalletLine.reset;
                 PalletLine.setrange(PalletLine."Pallet ID", PalletHeaderTemp."Pallet ID");
                 if palletline.findset then
@@ -784,6 +786,7 @@ codeunit 60016 "UI Whse Shipments Functions"
             palletheader.setrange(palletheader."Pallet Status", palletheader."Pallet Status"::Closed);
             palletheader.setrange(palletheader."Location Code", WarehouseShipmentHeader."Location Code");
             palletheader.setrange(palletheader."Exist in warehouse shipment", false);
+            PalletHeader.SetRange(PalletHeader."Exist in Transfer Order", false);
             PalletHeader.setrange(PalletHeader."Raw Material Pallet", false);
             if palletheader.findset then begin
                 repeat

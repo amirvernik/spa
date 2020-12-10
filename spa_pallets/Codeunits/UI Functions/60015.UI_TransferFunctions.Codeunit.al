@@ -75,7 +75,7 @@ codeunit 60015 "UI Transfer Functions"
                     ItemJournalLine.Validate("Variant Code", PalletLine."Variant Code");
                     ItemJournalLine.validate(Quantity, PalletLine.Quantity);
                     ItemJournalLine."Lot No." := PalletLine."Lot Number";
-                    ItemJournalLine."Pallet ID" := PalletID;
+                    ItemJournalLine.validate("Pallet ID", PalletID);
                     ItemJournalLine.validate("Location Code", PalletLine."Location Code");
                     ItemJournalLine.validate("New Location Code", ToLocation);
                     ItemJournalLine."Pallet Type" := PalletHeader."Pallet Type";

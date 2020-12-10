@@ -16,7 +16,8 @@ codeunit 60023 "Pallet Disposal Management"
         isReleased: Boolean;
         Err10: Label 'Disposed status is allowed only for open or close status pallet and if the pallet not exist in warehouse shipment';
     begin
-        if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed]) and not (pPalletHeader."Exist in warehouse shipment") then begin
+        if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed])
+         and not (pPalletHeader."Exist in warehouse shipment") and not (pPalletHeader."Exist in Transfer Order") then begin
             if DPWI.IsDisposePalletEnabled(pPalletHeader) = true then begin
                 myRec := pPalletHeader;
                 DPW.SetStatusToPendingApprovalDisposePallet(myRec);
@@ -160,7 +161,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.validate("Variant Code", Palletline."Variant Code");
                 RecGItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 RecGItemJournalLine.validate(Quantity, PMSelect.Quantity);
-                RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine.modify;
                 lineNumber += 10000;
@@ -205,7 +206,7 @@ codeunit 60023 "Pallet Disposal Management"
                 ItemJournalLine.validate("Variant Code", Palletline."Variant Code");
                 ItemJournalLine.validate("Location Code", pPalletHeader."Location Code");
                 ItemJournalLine.validate(Quantity, pPackingSelect.Quantity);
-                ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 ItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 ItemJournalLine.modify;
 
@@ -259,7 +260,7 @@ codeunit 60023 "Pallet Disposal Management"
                 RecGItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
                 RecGItemJournalLine.validate("Location Code", PalletLine."Location Code");
                 RecGItemJournalLine.validate(Quantity, PalletLine.Quantity);
-                RecGItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                RecGItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 RecGItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 RecGItemJournalLine.validate("Lot No.", PalletLine."Lot Number");
                 RecGItemJournalLine.Disposal := true;

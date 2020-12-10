@@ -115,6 +115,7 @@ page 60025 "Pallet Change Quality"
                     LPurchaseArchiveLine: Record "Purchase Line Archive";
                     LPurchaseLine: Record "Purchase Line";
                     LPurchaseHeader: Record "Purchase Header";
+                    LPalletHeader: Record "Pallet Header";
                     PalletItemChgLine: Record "Pallet Change Quality";
                     PalletHeader: Record "Pallet Header";
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
@@ -129,6 +130,9 @@ page 60025 "Pallet Change Quality"
                     ItemJournalLine: Record "Item Journal Line";
 
                 begin
+                    LPalletHeader.Get(Rec."Pallet ID");
+                    IF LPalletHeader."Exist in Transfer Order" or LPalletHeader."Exist in warehouse shipment" then
+                        Error(ErrorReservation);
 
                     LPurchaseLine.Reset();
                     LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
@@ -151,19 +155,7 @@ page 60025 "Pallet Change Quality"
                             exit;
                         end;
 
-                    PalletReservationEntry.reset;
-                    PalletReservationEntry.SetRange("Pallet ID", Rec."Pallet ID");
-                    PalletReservationEntry.SetRange("Item No.", Rec."Item No.");
-                    PalletReservationEntry.setrange("Lot No.", Rec."Lot Number");
-                    if PalletReservationEntry.findset() then
-                        Error(ErrorReservation);
 
-                    ReservationEntry.reset;
-                    ReservationEntry.SetRange("Source Subtype", 4);
-                    ReservationEntry.SetRange("Item No.", Rec."Item No.");
-                    ReservationEntry.setrange("Lot No.", Rec."Lot Number");
-                    if ReservationEntry.findset() then
-                        Error(ErrorReservation);
 
                     if "Replaced Qty" >= Quantity then
                         Error('New Quantity must be less than %1', Quantity);

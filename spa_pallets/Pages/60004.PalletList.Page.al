@@ -10,7 +10,7 @@ page 60004 "Pallet List"
     Editable = false;
     SourceTableView = order(descending);
     DeleteAllowed = false;
-
+    Permissions = tableData 32 = rm;
     layout
     {
         area(content)
@@ -83,6 +83,84 @@ page 60004 "Pallet List"
         area(Processing)
         {
 
+            action("Fix Transfers")
+            {
+                ApplicationArea = All;
+                Enabled = EnableTESTPROD1;
+                trigger OnAction();
+                var
+
+                    LTransferLine: Record "Transfer Line";
+                    LPalletHeader: Record "Pallet Header";
+                    PalletSetup: Record "Pallet Process Setup";
+                    LItemJournalLine: Record "Item Journal Line";
+                begin
+
+
+                    LPalletHeader.Reset();
+                    if LPalletHeader.FindSet() then
+                        repeat
+                            LTransferLine.Reset();
+                            LTransferLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            LTransferLine.SetFilter("Quantity Received", '<>%1', LTransferLine.Quantity);
+                            if LTransferLine.FindFirst() then begin
+                                LPalletHeader.validate("Exist in Transfer Order", true);
+                                LPalletHeader.Validate("Transfer Order", LTransferLine."Document No.");
+                                LPalletHeader.Modify();
+                            end;
+
+                            PalletSetup.get;
+                            LItemJournalLine.Reset();
+                            LItemJournalLine.SetRange("Journal Template Name", PalletSetup."Item Reclass Template");
+                            LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            if LItemJournalLine.FindFirst() then begin
+                                LPalletHeader.validate("Exist in Transfer Order", true);
+                                LPalletHeader."Transfer Order" := LItemJournalLine."Journal Batch Name";
+                                LPalletHeader.Modify();
+                            end;
+                        until LPalletHeader.Next() = 0
+                end;
+            }
+            action("Fix Item Journal")
+            {
+                ApplicationArea = All;
+                Visible = EnableTESTPROD1;
+                trigger OnAction()
+                var
+                    ItemLedgerEntry: Record "Item Ledger Entry";
+                    valueEntry: Record "Value Entry";
+                    palletLedger: Record "Pallet Ledger Entry";
+                begin
+                    ItemLedgerEntry.Reset();
+                    ItemLedgerEntry.SetRange("Posting Date", 0D);
+                    ItemLedgerEntry.SetRange("Item No.", '');
+                    if ItemLedgerEntry.FindSet() then
+                        repeat
+                            valueEntry.Reset();
+                            valueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
+                            if valueEntry.FindFirst() then begin
+                                ItemLedgerEntry."Entry Type" := valueEntry."Item Ledger Entry Type";
+                                ItemLedgerEntry.validate("Posting Date", valueEntry."Posting Date");
+                                // ItemLedgerEntry.validate("Pallet ID", LPalletLine."Pallet ID");
+                                ItemLedgerEntry."Document No." := valueEntry."Document No.";
+                                ItemLedgerEntry.Description := valueEntry.Description;
+                                ItemLedgerEntry.validate("Item No.", valueEntry."Item No.");
+                                ItemLedgerEntry.Validate("Variant Code", valueEntry."Variant Code");
+                                ItemLedgerEntry.validate(Quantity, valueEntry."Item Ledger Entry Quantity");
+                                ItemLedgerEntry.validate("Location Code", valueEntry."Location Code");
+                                palletLedger.Reset();
+                                palletLedger.SetRange("Item Ledger Entry No.", valueEntry."Item Ledger Entry No.");
+                                palletLedger.SetRange("Item No.", valueEntry."Item No.");
+                                palletLedger.SetRange("Posting Date", valueEntry."Posting Date");
+                                if palletLedger.FindFirst() then begin
+                                    ItemLedgerEntry."Lot No." := palletLedger."Lot Number";
+                                    ItemLedgerEntry.Validate("Unit of Measure Code", palletLedger."Unit of Measure");
+                                end;
+                                ItemLedgerEntry.modify;
+                            end;
+                        until ItemLedgerEntry.Next() = 0;
+                end;
+            }
             action("Fix Shipped")//DELETE ME
             {
                 ApplicationArea = All;
@@ -260,7 +338,7 @@ page 60004 "Pallet List"
 
         end;
 
-        if "Exist in warehouse shipment" then ShowReopen := false;
+        if "Exist in warehouse shipment" or "Exist in Transfer Order" then ShowReopen := false;
         if "Pallet Status" = "Pallet Status"::Canceled then
             if LUserSetup.Get(UserId) then
                 if not LUserSetup."Reopen Cancelled Pallets" then

@@ -60,6 +60,16 @@ page 60003 "Pallet Card"
                     ApplicationArea = all;
                     Editable = false;
                 }
+                field("Exist in Transfer Order"; "Exist in Transfer Order")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                }
+                field("Transfer Order"; "Transfer Order")
+                {
+                    ApplicationArea = All;
+                    Editable = false;
+                }
                 field("Exist in warehouse shipment"; "Exist in warehouse shipment")
                 {
                     ApplicationArea = all;
@@ -233,7 +243,6 @@ page 60003 "Pallet Card"
                     image = Cancel;
                     Promoted = true;
                     PromotedCategory = Process;
-                    // Enabled = ("Pallet Status" = "Pallet Status"::Open) and (not ("Exist in warehouse shipment"));
                     Enabled = "Pallet Status" <> "Pallet Status"::Canceled;
                     trigger OnAction()
                     var

@@ -1,6 +1,6 @@
 codeunit 60001 "Pallet Functions"
 {
-    Permissions = TableData 32 = rimd;
+    Permissions = TableData 32 = rm;
     trigger OnRun()
     var
     begin
@@ -535,7 +535,7 @@ codeunit 60001 "Pallet Functions"
                 // ItemJournalLine.validate("Variant Code", PackingMaterials.v);
                 ItemJournalLine.validate("Location Code", PackingMaterials."Location Code");
                 ItemJournalLine.validate(Quantity, PackingMaterials.Quantity);
-                ItemJournalLine."Pallet ID" := pPalletHeader."Pallet ID";
+                ItemJournalLine.validate("Pallet ID", pPalletHeader."Pallet ID");
                 ItemJournalLine."Pallet Type" := pPalletHeader."Pallet Type";
                 ItemJournalLine.modify;
 
@@ -640,11 +640,7 @@ codeunit 60001 "Pallet Functions"
                                 LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                                 LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
                                 If LPostedWarehousePallet.FindLast() then begin
-                                    LSalesLine.Reset();
-                                    LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
-                                    LSalesLine.SetRange("SPA Order No.", LPostedWarehousePallet."Sales Order No.");
-                                    LSalesLine.SetRange("SPA Order Line No.", LPostedWarehousePallet."Sales Order Line No.");
-                                    if not LSalesLine.FindFirst() then begin
+                                    if LPalletHeader."Exist in warehouse shipment" then begin
                                         ExcelBuffer.AddColumn(LPostedWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     end else begin
@@ -660,11 +656,7 @@ codeunit 60001 "Pallet Functions"
                                     LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                                     LWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
                                     If LWarehousePallet.FindLast() then begin
-                                        LSalesLine.Reset();
-                                        LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
-                                        LSalesLine.SetRange("SPA Order No.", LWarehousePallet."Sales Order No.");
-                                        LSalesLine.SetRange("SPA Order Line No.", LWarehousePallet."Sales Order Line No.");
-                                        if not LSalesLine.FindFirst() then begin
+                                        if LPalletHeader."Exist in warehouse shipment" then begin
                                             ExcelBuffer.AddColumn(LWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                             ExcelBuffer.AddColumn(format(LWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         end else begin
@@ -673,9 +665,9 @@ codeunit 60001 "Pallet Functions"
                                         end;
                                         ExcelBuffer.AddColumn(LWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         ExcelBuffer.AddColumn(format(LWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     end;
+                                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 end;
 
                                 ExcelBuffer.NewRow;
@@ -903,6 +895,7 @@ codeunit 60001 "Pallet Functions"
                         LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
                         IF LPalletLine.FindSet() then begin
                             repeat
+
                                 ExcelBuffer.AddColumn(LPalletLine."Purchase Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 ExcelBuffer.AddColumn(format(LPurchaseHeader."Version No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 ExcelBuffer.AddColumn(format(LPalletLine."Purchase Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -915,17 +908,14 @@ codeunit 60001 "Pallet Functions"
                                 LPostedWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                                 LPostedWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
                                 If LPostedWarehousePallet.FindLast() then begin
-                                    LSalesLine.Reset();
-                                    LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
-                                    LSalesLine.SetRange("SPA Order No.", LPostedWarehousePallet."Sales Order No.");
-                                    LSalesLine.SetRange("SPA Order Line No.", LPostedWarehousePallet."Sales Order Line No.");
-                                    if not LSalesLine.FindFirst() then begin
+                                    if LPalletHeader."Exist in warehouse shipment" then begin
                                         ExcelBuffer.AddColumn(LPostedWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         ExcelBuffer.AddColumn(format(LPostedWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     end else begin
                                         ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     end;
+
                                     ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     ExcelBuffer.AddColumn(LPostedWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
@@ -935,22 +925,18 @@ codeunit 60001 "Pallet Functions"
                                     LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
                                     LWarehousePallet.SetRange("Pallet Line No.", LPalletLine."Line No.");
                                     If LWarehousePallet.FindLast() then begin
-                                        LSalesLine.Reset();
-                                        LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
-                                        LSalesLine.SetRange("SPA Order No.", LWarehousePallet."Sales Order No.");
-                                        LSalesLine.SetRange("SPA Order Line No.", LWarehousePallet."Sales Order Line No.");
-                                        if not LSalesLine.FindFirst() then begin
+                                        if LPalletHeader."Exist in warehouse shipment" then begin
                                             ExcelBuffer.AddColumn(LWarehousePallet."Sales Order No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                             ExcelBuffer.AddColumn(format(LWarehousePallet."Sales Order Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         end else begin
                                             ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                             ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                         end;
-                                        ExcelBuffer.AddColumn(LWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                        ExcelBuffer.AddColumn(format(LWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
-                                        ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                     end;
+                                    ExcelBuffer.AddColumn(LWarehousePallet."Whse Shipment No.", FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn(format(LWarehousePallet."Whse Shipment Line No."), FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
+                                    ExcelBuffer.AddColumn('', FALSE, '', FALSE, FALSE, FALSE, '', ExcelBuffer."Cell Type"::Text);
                                 end;
 
                                 ExcelBuffer.NewRow;
@@ -1153,7 +1139,11 @@ codeunit 60001 "Pallet Functions"
         InventorySetup: Record "Inventory Setup";
         PostItemJnlLine: Boolean;
     begin
-        if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Open, pPalletHeader."Pallet Status"::Closed]) and not (pPalletHeader."Exist in warehouse shipment") then begin
+
+        if (pPalletHeader."Exist in warehouse shipment") or (pPalletHeader."Exist in Transfer Order") then
+            Error(Err11);
+
+        if (pPalletHeader."Pallet Status" in [pPalletHeader."Pallet Status"::Closed, pPalletHeader."Pallet Status"::Open]) and not (pPalletHeader."Exist in warehouse shipment") and not (pPalletHeader."Exist in Transfer Order") then begin
             if Confirm(StrSubstNo(ConfirmCancelPallet, pPalletHeader."Pallet ID")) then begin
                 PalletSetup.get();
 
@@ -1166,25 +1156,8 @@ codeunit 60001 "Pallet Functions"
 
                 LPalletLine.Reset();
                 LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
-                LPalletLine.SetFilter("Lot Number", '<>%1', '');
-                if LPalletLine.FindSet() then
-                    repeat
-                        RecGReservationEntry.reset;
-                        RecGReservationEntry.SetCurrentKey("Lot No.");
-                        //RecGReservationEntry.SetRange("Source Type", 39);
-                        //RecGReservationEntry.setrange("Source Subtype", 1);
-                        RecGReservationEntry.SetRange("Pallet ID", pPalletHeader."Pallet ID");
-                        RecGReservationEntry.SetRange("Item No.", LPalletLine."Item No.");
-                        RecGReservationEntry.setrange("Lot No.", LPalletLine."Lot Number");
-                        if RecGReservationEntry.findset() then begin
-                            Error(Err11);
-                            Exit;
-                        end;
-                    until LPalletLine.Next() = 0;
-
-
-                LPalletLine.Reset();
-                LPalletLine.SetRange("Pallet ID", pPalletHeader."Pallet ID");
+                if pPalletHeader."Pallet Status" = pPalletHeader."Pallet Status"::Open then
+                    LPalletLine.SetFilter("Lot Number", '<>%1', '');
                 if LPalletLine.FindSet() then begin
                     PurchaseProcessSetup.get;
                     ItemJournalLine.reset;
@@ -1202,7 +1175,7 @@ codeunit 60001 "Pallet Functions"
                         ItemJournalLine.insert;
                         ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Negative Adjmt.";
                         ItemJournalLine.validate("Posting Date", Today);
-                        ItemJournalLine."Pallet ID" := LPalletLine."Pallet ID";
+                        ItemJournalLine.validate("Pallet ID", LPalletLine."Pallet ID");
                         ItemJournalLine."Document No." := LPalletLine."Pallet ID";
                         ItemJournalLine.Description := LPalletLine.Description;
                         ItemJournalLine.validate("Item No.", LPalletLine."Item No.");
@@ -1211,7 +1184,7 @@ codeunit 60001 "Pallet Functions"
                         ItemJournalLine.validate("Location Code", LPalletLine."Location Code");
                         ItemJournalLine.Validate("Unit of Measure Code", LPalletLine."Unit of Measure");
                         ItemJournalLine.validate(Quantity, LPalletLine."Quantity");
-                        ItemJournalLine."Pallet ID" := LPalletLine."Pallet ID";
+                        ItemJournalLine.validate("Pallet ID", LPalletLine."Pallet ID");
                         ItemJournalLine.modify;
 
                         ReservationEntry2.reset;
@@ -1308,6 +1281,7 @@ codeunit 60001 "Pallet Functions"
         POFunctionsUI: Codeunit "Purch. UI Functions";
         maxEntry: Integer;
         RecItem: Record Item;
+        LPackingMaterial: Record "Packing Material Line";
         boolMW: Boolean;
     begin
         PurchaseProcessSetup.Get();
@@ -1315,6 +1289,7 @@ codeunit 60001 "Pallet Functions"
         BOMComp.Reset();
         BOMComp.SetRange("Parent Item No.", pPalletLine."Item No.");
         if BOMComp.FindSet() then begin
+
             ItemJournalLine.reset;
             ItemJournalLine.setrange("Journal Template Name", 'ITEM');
             ItemJournalLine.setrange("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
@@ -1323,6 +1298,17 @@ codeunit 60001 "Pallet Functions"
             else
                 LineNumber := 10000;
             repeat
+                LPackingMaterial.Reset();
+                LPackingMaterial.SetRange("Item No.", BOMComp."No.");
+                LPackingMaterial.SetRange("Pallet ID", pPalletLine."Pallet ID");
+                if LPackingMaterial.FindFirst() then begin
+                    if LPackingMaterial.Quantity = pQuantityToReturn * BOMComp."Quantity per" then
+                        LPackingMaterial.Delete()
+                    else begin
+                        LPackingMaterial.Quantity -= pQuantityToReturn * BOMComp."Quantity per";
+                        LPackingMaterial.Modify();
+                    end;
+                end;
                 ItemJournalLine.init;
                 ItemJournalLine.validate("Journal Template Name", 'ITEM');
                 ItemJournalLine.validate("Journal Batch Name", PurchaseProcessSetup."Item Journal Batch");
@@ -1336,7 +1322,7 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine.validate("Item No.", BOMComp."No.");
                 ItemJournalLine.validate("Location Code", pPalletLine."Location Code");
                 ItemJournalLine.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
-                ItemJournalLine."Pallet ID" := pPalletLine."Pallet ID";
+                ItemJournalLine.validate("Pallet ID", pPalletLine."Pallet ID");
                 ItemJournalLine.modify;
 
                 if RecItem.get(BOMComp."No.") then

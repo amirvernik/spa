@@ -54,8 +54,12 @@ page 60009 "Pallet List Select Transfer"
                             TransferLine.validate("Qty. to Ship", PalletLine.Quantity);
                             TransferLine."Pallet ID" := rec."Pallet ID";
                             TransferLine."Lot No." := PalletLine."Lot Number";
-                            if PalletHeader.get(PalletLine."Pallet ID") then
+                            if PalletHeader.get(PalletLine."Pallet ID") then begin
                                 TransferLine."Pallet Type" := PalletHeader."Pallet Type";
+                                PalletHeader.Validate("Exist in Transfer Order", true);
+                                PalletHeader."Transfer Order" := TransferLine."Document No.";
+                                PalletHeader.Modify();
+                            end;
                             TransferLine.insert;
                             LineNumber += 10000;
                         until palletline.next = 0;

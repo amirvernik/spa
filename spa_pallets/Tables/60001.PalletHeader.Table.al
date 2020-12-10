@@ -93,6 +93,16 @@ table 60001 "Pallet Header"
             Caption = 'Attention';
             Editable = false;
         }
+        field(41; "Exist in Transfer Order"; Boolean)
+        {
+            Caption = 'Exist in Transfer Order';
+            DataClassification = ToBeClassified;
+        }
+        field(42; "Transfer Order"; Text[20])
+        {
+            Caption = 'Transfer Order';
+            DataClassification = ToBeClassified;
+        }
     }
 
     keys

@@ -165,6 +165,7 @@ page 60036 "PO Details Factbox"
                 LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
                 IF LPalletLine.FindSet() then begin
                     repeat
+                        LPalletHeader.Get(LPalletLine."Pallet ID");
                         Rec.Init();
                         Rec."User Created" := UserId;
                         Rec."Purchase Order No." := PONumber;
@@ -181,11 +182,7 @@ page 60036 "PO Details Factbox"
                         If LPostedWarehousePallet.FindLast() then begin
                             Rec."Posted Whse Shipment No." := LPostedWarehousePallet."Whse Shipment No.";
                             Rec."Posted Whse Shipment Line No." := LPostedWarehousePallet."Whse Shipment Line No.";
-                            LSalesLine.Reset();
-                            LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
-                            LSalesLine.SetRange("SPA Order No.", LWarehousePallet."Sales Order No.");
-                            LSalesLine.SetRange("SPA Order Line No.", LWarehousePallet."Sales Order Line No.");
-                            if not LSalesLine.FindFirst() then
+                            if LPalletHeader."Exist in warehouse shipment" then
                                 Rec."Sales Order No." := LPostedWarehousePallet."Sales Order No.";
 
                         end else begin
@@ -195,14 +192,8 @@ page 60036 "PO Details Factbox"
                             If LWarehousePallet.FindLast() then begin
                                 Rec."Posted Whse Shipment No." := LWarehousePallet."Whse Shipment No.";
                                 Rec."Posted Whse Shipment Line No." := LWarehousePallet."Whse Shipment Line No.";
-
-                                LSalesLine.Reset();
-                                LSalesLine.SetRange("Document Type", LSalesLine."Document Type"::"Return Order");
-                                LSalesLine.SetRange("SPA Order No.", LWarehousePallet."Sales Order No.");
-                                LSalesLine.SetRange("SPA Order Line No.", LWarehousePallet."Sales Order Line No.");
-                                if not LSalesLine.FindFirst() then
+                                if LPalletHeader."Exist in warehouse shipment" then
                                     Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
-
                             end;
 
                         end;
@@ -229,6 +220,7 @@ page 60036 "PO Details Factbox"
                     LPalletLine.SetRange("Purchase Order Line No.", LPurchaseLineArchive."Line No.");
                     IF LPalletLine.FindSet() then begin
                         repeat
+                            LPalletHeader.Get(LPalletLine."Pallet ID");
                             Rec.Init();
                             Rec."User Created" := UserId;
                             Rec."Purchase Order No." := PONumber;
@@ -245,7 +237,8 @@ page 60036 "PO Details Factbox"
                             If LPostedWarehousePallet.FindLast() then begin
                                 Rec."Posted Whse Shipment No." := LPostedWarehousePallet."Whse Shipment No.";
                                 Rec."Posted Whse Shipment Line No." := LPostedWarehousePallet."Whse Shipment Line No.";
-                                Rec."Sales Order No." := LPostedWarehousePallet."Sales Order No.";
+                                if LPalletHeader."Exist in warehouse shipment" then
+                                    Rec."Sales Order No." := LPostedWarehousePallet."Sales Order No.";
                             end else begin
                                 LWarehousePallet.Reset();
                                 LWarehousePallet.SetRange("Pallet ID", LPalletLine."Pallet ID");
@@ -253,7 +246,8 @@ page 60036 "PO Details Factbox"
                                 If LWarehousePallet.FindLast() then begin
                                     Rec."Posted Whse Shipment No." := LWarehousePallet."Whse Shipment No.";
                                     Rec."Posted Whse Shipment Line No." := LWarehousePallet."Whse Shipment Line No.";
-                                    Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
+                                    if LPalletHeader."Exist in warehouse shipment" then
+                                        Rec."Sales Order No." := LWarehousePallet."Sales Order No.";
                                 end;
                             end;
                             if not Rec.Insert() then Rec.Modify();

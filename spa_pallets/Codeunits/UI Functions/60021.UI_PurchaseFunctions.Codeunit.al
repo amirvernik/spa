@@ -383,10 +383,10 @@ codeunit 60021 "Purch. UI Functions"
                         LItemJournalLine.validate("Item No.", PalletLine."Item No.");
                         LItemJournalLine.validate("Variant Code", PalletLine."Variant Code");
                         LItemJournalLine.validate("Location Code", PalletLine."Location Code");
-                        LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
+                        LItemJournalLine.validate("Pallet ID", PalletLine."Pallet ID");
                         LItemJournalLine."Pallet Line No." := PalletLine."Line No.";
                         LItemJournalLine.validate(Quantity, PalletLineTemp."QTY Consumed");
-                        LItemJournalLine."Pallet ID" := PalletLine."Pallet ID";
+                        LItemJournalLine.validate("Pallet ID", PalletLine."Pallet ID");
                         LItemJournalLine."Pallet Type" := PalletHeaderTemp."Pallet Type";
                         LItemJournalLine.modify;
 
@@ -729,7 +729,7 @@ codeunit 60021 "Purch. UI Functions"
         ItemJournalLine.validate("Variant Code", PalletLedgEntry."Variant Code");
         ItemJournalLine.validate("Location Code", PalletLedgEntry."Location Code");
         ItemJournalLine.validate(Quantity, PalletLedgEntry.Quantity);
-        ItemJournalLine."Pallet ID" := PalletLedgEntry."Pallet ID";
+        ItemJournalLine.validate("Pallet ID", PalletLedgEntry."Pallet ID");
         ItemJournalLine."Lot No." := PalletLedgEntry."Lot Number";
         ItemJournalLine.modify;
 

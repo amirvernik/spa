@@ -1213,7 +1213,8 @@ codeunit 60010 "UI Pallet Functions"
             until JsonBuffer.next = 0;
 
         if PalletHeader.GET(PalletID) then begin
-            if (PalletHeader."Pallet Status" = "PalletHeader"."Pallet Status"::Open) and not (PalletHeader."Exist in warehouse shipment") then begin
+            if (PalletHeader."Pallet Status" = "PalletHeader"."Pallet Status"::Open) 
+            and not (PalletHeader."Exist in warehouse shipment") and not (pPalletHeader."Exist in Transfer Order") then begin
                 LPalletLedgerEntry.Reset();
                 LPalletLedgerEntry.SetRange("Pallet ID", PalletID);
                 if LPalletLedgerEntry.FindFirst() then
@@ -1249,9 +1250,12 @@ codeunit 60010 "UI Pallet Functions"
         Password: text[10];
         FileMgt: Codeunit "File Management";
         boolExists: Boolean;
+        ConsignmentNote: Report "Consignment Note";
         LInstr: InStream;
-        Base64ConvertCU: Codeunit "Base64 Convert";
-        Result: Text;
+        BearerToken: Text;
+        OneDriveFunctions: Codeunit "OneDrive Functions";
+        lOneDrive: text;
+        PalletProcessSetup: Record "Pallet Process Setup";
     begin
         IF pFunction <> 'ConsignmentNote' THEN
             EXIT;
@@ -1260,8 +1264,6 @@ codeunit 60010 "UI Pallet Functions"
         JsonObj.ReadFrom(pContent);
         JsonObj.SelectToken('salesorder', JsonTkn);
         SalesOrderText := JsonTkn.AsValue().AsText();
-
-        LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
 
         boolExists := false;
         LSalesOrder.Reset();
@@ -1289,15 +1291,22 @@ codeunit 60010 "UI Pallet Functions"
         if not boolExists then
             pContent := 'Error, cannot find  warehouse shipment line'
         else begin
+
+            LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
             LPostedWhseShipmentLine.SetRange("No.", LPostedWhseShipmentLine."No.");
             LRecRef.GetTable(LPostedWhseShipmentLine);
             LRecRef.Get(LPostedWhseShipmentLine.RecordId);
-            Report.SaveAs(60003, '', ReportFormat::Pdf, LOutStr, LRecRef);
+            //Report.SaveAs(60003, '', ReportFormat::pdf, LOutStr, LRecRef);
+            ConsignmentNote.SaveAs(StrSubstNo('Consignment Note %1.pdf', SalesOrderText), ReportFormat::pdf, LOutStr, LRecRef);
+
             LTempBlob.CreateInStream(LInstr);
-            LInstr.ReadText(Result);
-            Result := Base64ConvertCU.ToBase64(Result);
-            pContent := Result;
-            //pContent := FileMgt.BLOBExport(LTempBlob, StrSubstNo('Consignment Note %1 .pdf', SalesOrderText), true);
+            BearerToken := OneDriveFunctions.GetBearerToken();
+            OneDriveFunctions.UploadFile('BC/Consignment Note', StrSubstNo('Consignment Note %1.pdf', SalesOrderText), BearerToken, LInstr);
+
+            PalletProcessSetup.get;
+            lOneDrive := PalletProcessSetup."OneDrive Drive ID";
+            pContent := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/' + 'BC/Consignment Note' + '/' + StrSubstNo('Consignment Note %1.pdf', SalesOrderText) + ':/content';
+
         end;
     end;
 
@@ -1319,8 +1328,10 @@ codeunit 60010 "UI Pallet Functions"
         boolExists: Boolean;
         ConsignmentNote: Report "Consignment Note";
         LInstr: InStream;
-        Base64ConvertCU: Codeunit "Base64 Convert";
+        BearerToken: Text;
+        //Base64ConvertCU: Codeunit "Base64 Convert";
         Result: Text;
+        OneDriveFunctions: Codeunit "OneDrive Functions";
     begin
 
         LTempBlob.CreateOutStream(LOutStr, TextEncoding::UTF8);
@@ -1331,10 +1342,12 @@ codeunit 60010 "UI Pallet Functions"
         ConsignmentNote.SaveAs(StrSubstNo('Consignment Note %1.pdf', SalesOrderText), ReportFormat::pdf, LOutStr, LRecRef);
 
         LTempBlob.CreateInStream(LInstr);
-        LInstr.ReadText(Result);
-        Result := Base64ConvertCU.ToBase64(Result);
+        BearerToken := OneDriveFunctions.GetBearerToken();
+        OneDriveFunctions.UploadFile('Consignment Note', StrSubstNo('Consignment Note %1.pdf', SalesOrderText), BearerToken, LInstr);
 
-        Message(Result);
+        //LInstr.ReadText(Result);
+        //Result := Base64ConvertCU.ToBase64(Result);
+        Message('DONE');
     end;
 
 }

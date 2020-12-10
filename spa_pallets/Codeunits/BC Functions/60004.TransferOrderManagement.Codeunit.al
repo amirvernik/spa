@@ -32,11 +32,197 @@ codeunit 60004 "Transfer Order Management"
 
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterValidateEvent', 'Pallet ID', false, false)]
+    local procedure OnAfterValidateEventPalletID_ITemJournalLine(CurrFieldNo: Integer; var Rec: Record "Item Journal Line"; var xRec: Record "Item Journal Line")
+    var
+        LPalletHeader: Record "Pallet Header";
+        PalletSetup: Record "Pallet Process Setup";
+    begin
+
+        PalletSetup.get;
+        if Rec."Journal Template Name" = PalletSetup."Item Reclass Template" then
+            if LPalletHeader.Get(Rec."Pallet ID") then begin
+                LPalletHeader.TestField("Exist in warehouse shipment", false);
+                LPalletHeader.validate("Exist in Transfer Order", true);
+                LPalletHeader."Transfer Order" := Rec."Journal Batch Name";
+                LPalletHeader.Modify();
+            end;
+
+    end;
+
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", 'OnAfterValidateEvent', 'Quantity Received', false, false)]
+    local procedure OnAfterValidateEventQuantityReceived(CurrFieldNo: Integer; var Rec: Record "Transfer Line"; var xRec: Record "Transfer Line")
+    var
+        LTransferLine: Record "Transfer Line";
+        LPalletHeader: Record "Pallet Header";
+        PalletSetup: Record "Pallet Process Setup";
+        LItemJournalLine: Record "Item Journal Line";
+        LboolTransferLineExist: Boolean;
+    begin
+        if Rec."Quantity Received" = Rec.Quantity then begin
+            if LPalletHeader.Get(Rec."Pallet ID") then begin
+                LboolTransferLineExist := false;
+                LTransferLine.Reset();
+                LTransferLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                LTransferLine.SetFilter("Quantity Received", '<>%1', LTransferLine.Quantity);
+                if LTransferLine.FindSet() then
+                    repeat
+                        if (LTransferLine."Document No." <> Rec."Document No.")
+                        or ((LTransferLine."Document No." = Rec."Document No.") and (LTransferLine."Line No." <> Rec."Line No.")) then
+                            LboolTransferLineExist := true;
+                    until LTransferLine.Next() = 0;
+
+                IF not LboolTransferLineExist then begin
+                    PalletSetup.get;
+                    LItemJournalLine.Reset();
+                    LItemJournalLine.SetRange("Journal Template Name", PalletSetup."Item Reclass Template");
+                    LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                    if not LItemJournalLine.FindFirst() then begin
+                        LPalletHeader.validate("Exist in Transfer Order", false);
+                        LPalletHeader."Transfer Order" := '';
+                        LPalletHeader.Modify();
+                    end;
+                end;
+            end;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteEventTransferLine(RunTrigger: Boolean; var Rec: Record "Transfer Line")
+    var
+        LTransferLine: Record "Transfer Line";
+        LPalletHeader: Record "Pallet Header";
+        PalletSetup: Record "Pallet Process Setup";
+        LItemJournalLine: Record "Item Journal Line";
+        LboolTransferLineExist: Boolean;
+    begin
+        if LPalletHeader.Get(Rec."Pallet ID") then begin
+            LboolTransferLineExist := false;
+            LTransferLine.Reset();
+            LTransferLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+            LTransferLine.SetFilter("Quantity Received", '<>%1', LTransferLine.Quantity);
+            if LTransferLine.FindSet() then
+                repeat
+                    if (LTransferLine."Document No." <> Rec."Document No.")
+                    or ((LTransferLine."Document No." = Rec."Document No.") and (LTransferLine."Line No." <> Rec."Line No.")) then begin
+                        LboolTransferLineExist := true;
+                        LPalletHeader."Transfer Order" := TransferLines."Document No.";
+                        LPalletHeader.Modify();
+                    end;
+                until LTransferLine.Next() = 0;
+
+            IF not LboolTransferLineExist then begin
+                PalletSetup.get;
+                LItemJournalLine.Reset();
+                LItemJournalLine.SetRange("Journal Template Name", PalletSetup."Item Reclass Template");
+                LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                if not LItemJournalLine.FindFirst() then begin
+                    LPalletHeader.validate("Exist in Transfer Order", false);
+                    LPalletHeader."Transfer Order" := '';
+                    LPalletHeader.Modify();
+                end else begin
+                    LPalletHeader."Transfer Order" := LItemJournalLine."Journal Batch Name";
+                    LPalletHeader.Modify();
+                end;
+            end;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Header", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteEventTransferHeader(RunTrigger: Boolean; var Rec: Record "Transfer Header")
+    var
+        LTransferLine: Record "Transfer Line";
+        RecTransferLine: Record "Transfer Line";
+        LPalletHeader: Record "Pallet Header";
+        PalletSetup: Record "Pallet Process Setup";
+        LItemJournalLine: Record "Item Journal Line";
+        LboolTransferLineExist: Boolean;
+    begin
+        RecTransferLine.Reset();
+        RecTransferLine.SetRange("Document No.", Rec."No.");
+        RecTransferLine.SetFilter("Pallet ID", '<>%1', '');
+        if RecTransferLine.FindSet() then
+            repeat
+                if LPalletHeader.Get(RecTransferLine."Pallet ID") then begin
+                    LboolTransferLineExist := false;
+                    LTransferLine.Reset();
+                    LTransferLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                    LTransferLine.SetFilter("Quantity Received", '<>%1', LTransferLine.Quantity);
+                    if LTransferLine.FindSet() then
+                        repeat
+                            if (LTransferLine."Document No." <> RecTransferLine."Document No.")
+                            or ((LTransferLine."Document No." = RecTransferLine."Document No.") and (LTransferLine."Line No." <> RecTransferLine."Line No.")) then begin
+                                LboolTransferLineExist := true;
+                                LPalletHeader."Transfer Order" := TransferLines."Document No.";
+                                LPalletHeader.Modify();
+                            end;
+                            LboolTransferLineExist := true;
+                        until LTransferLine.Next() = 0;
+
+                    IF not LboolTransferLineExist then begin
+                        PalletSetup.get;
+                        LItemJournalLine.Reset();
+                        LItemJournalLine.SetRange("Journal Template Name", PalletSetup."Item Reclass Template");
+                        LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                        if not LItemJournalLine.FindFirst() then begin
+                            LPalletHeader.validate("Exist in Transfer Order", false);
+                            LPalletHeader."Transfer Order" := '';
+                            LPalletHeader.Modify();
+                        end else begin
+                            LPalletHeader."Transfer Order" := LItemJournalLine."Journal Batch Name";
+                            LPalletHeader.Modify();
+                        end;
+                    end;
+                end;
+            until RecTransferLine.Next() = 0;
+    end;
+
+
+    [EventSubscriber(ObjectType::Table, Database::"Item Journal Line", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteEventItemJournalLine(RunTrigger: Boolean; var Rec: Record "Item Journal Line")
+    var
+        LTransferLine: Record "Transfer Line";
+        RecTransferLine: Record "Transfer Line";
+        LPalletHeader: Record "Pallet Header";
+        PalletSetup: Record "Pallet Process Setup";
+        LItemJournalLine: Record "Item Journal Line";
+        LboolTransferLineExist: Boolean;
+    begin
+        PalletSetup.get;
+        if (Rec."Journal Template Name" = PalletSetup."Item Reclass Template") and (Rec."Pallet ID" <> '') then begin
+            if LPalletHeader.Get(Rec."Pallet ID") then begin
+                LTransferLine.Reset();
+                LTransferLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                LTransferLine.SetFilter("Quantity Received", '<>%1', LTransferLine.Quantity);
+                if not LTransferLine.FindFirst() then begin
+                    LItemJournalLine.Reset();
+                    LItemJournalLine.SetRange("Journal Template Name", PalletSetup."Item Reclass Template");
+                    LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                    LItemJournalLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+                    if not LItemJournalLine.FindFirst() then begin
+                        LPalletHeader.validate("Exist in Transfer Order", false);
+                        LPalletHeader."Transfer Order" := '';
+                        LPalletHeader.Modify();
+                    end else begin
+                        LPalletHeader."Transfer Order" := LItemJournalLine."Journal Batch Name";
+                        LPalletHeader.Modify();
+                    end;
+                end else begin
+                    LPalletHeader."Transfer Order" := LTransferLine."Document No.";
+                    LPalletHeader.Modify();
+                end;
+            end;
+        end;
+    end;
+
+
+
     //On Before Post Item Journal -> Transfer Shipment
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", 'OnBeforePostItemJournalLine', '', true, true)]
     local procedure OnBeforePostItemJournalLine_Ship(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line")
     begin
-        ItemJournalLine."Pallet ID" := TransferLine."Pallet ID";
+        ItemJournalLine.validate("Pallet ID", TransferLine."Pallet ID");
         ItemJournalLine."Pallet Type" := TransferLine."Pallet Type";
     end;
 
@@ -44,7 +230,7 @@ codeunit 60004 "Transfer Order Management"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Receipt", 'OnBeforePostItemJournalLine', '', true, true)]
     local procedure OnBeforePostItemJournalLine_Rct(var ItemJournalLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line");
     begin
-        ItemJournalLine."Pallet ID" := TransferLine."Pallet ID";
+        ItemJournalLine.validate("Pallet ID", TransferLine."Pallet ID");
         ItemJournalLine."Pallet Type" := TransferLine."Pallet Type";
     end;
 
