@@ -16,6 +16,7 @@ codeunit 60004 "Transfer Order Management"
         palletheader.reset;
         palletheader.setrange(palletheader."Pallet Status", palletheader."Pallet Status"::Closed);
         palletheader.SetRange("Exist in warehouse shipment", false);
+        palletheader.SetRange("Exist in Transfer Order", false);
         palletheader.setrange(palletheader."Location Code", TransferOrder."Transfer-from Code");
         if palletheader.findset then begin
             repeat

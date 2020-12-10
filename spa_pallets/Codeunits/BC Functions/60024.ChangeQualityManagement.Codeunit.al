@@ -387,8 +387,8 @@ codeunit 60024 "Change Quality Management"
             repeat
                 //if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
                 PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.");
-                PalletLine.Quantity := pPalletLineChg."Replaced Qty";
-                PalletLine."Remaining Qty" := pPalletLineChg."Replaced Qty";
+                PalletLine.Quantity := pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty";
+                PalletLine."Remaining Qty" := pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty";
                 PalletLine.modify;
                 PalletFunctionsCU.CreatePosAdjustmentToPackingMaterials_PalletLine(PalletLine, pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty")
             until pPalletLineChg.next = 0;
@@ -483,7 +483,7 @@ codeunit 60024 "Change Quality Management"
                                         ItemUnitOfMeasure.SetRange(Code, LPurchaseLine."Unit of Measure");
                                         ItemUnitOfMeasure.findfirst;*/
                                     LPurchaseLineNewQty.validate("Qty. (Base) SPA", pPalletLineChg."Replaced Qty");//* ItemUnitOfMeasure."Qty. per Unit of Measure");
-                                    LPurchaseLineNewQty.validate("Qty. to Receive", pPalletLineChg."Replaced Qty");
+                                    LPurchaseLineNewQty.validate("Qty. to Receive", LPurchaseLineNewQty.Quantity);
                                     LPurchaseLineNewQty.validate("qty. to invoice", 0);
                                     LPurchaseLineNewQty.modify;
 
@@ -674,7 +674,7 @@ codeunit 60024 "Change Quality Management"
                                     ItemUnitOfMeasure.SetRange(Code, PalletItemChgLine."Unit of Measure");
                                     ItemUnitOfMeasure.findfirst;
                                     LPurchaseLine.validate("Qty. (Base) SPA", PalletItemChgLine."New Quantity" * ItemUnitOfMeasure."Qty. per Unit of Measure");
-                                    LPurchaseLine.validate("Qty. to Receive", PalletItemChgLine."New Quantity");
+                                    LPurchaseLine.validate("Qty. to Receive", LPurchaseLine.Quantity);
                                     LPurchaseLine.validate("qty. to invoice", 0);
                                     LPurchaseLine.modify;
 
