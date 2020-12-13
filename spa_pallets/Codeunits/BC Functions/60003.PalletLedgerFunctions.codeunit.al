@@ -313,8 +313,9 @@ codeunit 60003 "Pallet Ledger Functions"
 
     begin
         if PostedWhseShipmentLine."Item No." <> '' then begin
-
+            PalletLedgerEntry.LockTable();
             LineNumber := GetLastEntry();
+
             PostedWarehousePallet.reset;
             PostedWarehousePallet.SetRange("Whse Shipment No.", PostedWhseShipmentLine."No.");
             PostedWarehousePallet.SetRange("Whse Shipment Line No.", PostedWhseShipmentLine."Line No.");
@@ -324,29 +325,29 @@ codeunit 60003 "Pallet Ledger Functions"
                     //    PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::closed;
                     //     palletheader.modify;
                     // end;
-
-                    PalletLedgerEntry.Init();
-                    PalletLedgerEntry."Entry No." := LineNumber;
-                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Sales Shipment";
-                    PalletLedgerEntry."Document No." := PostedWhseShipmentLine."No.";
-                    PalletLedgerEntry."Document Line No." := PostedWhseShipmentLine."Line No.";
-                    PalletLedgerEntry."Order Type" := 'Sales Order';
-                    PalletLedgerEntry."Order No." := PostedWhseShipmentLine."Source No.";
-                    PalletLedgerEntry."Order Line No." := PostedWhseShipmentLine."Source Line No.";
-                    PalletLedgerEntry."Pallet ID" := PostedWarehousePallet."Pallet ID";
-                    PalletLedgerEntry."Pallet Line No." := PostedWarehousePallet."Pallet Line No.";
-                    PalletLedgerEntry.validate("Posting Date", PostedWhseShipmentLine."Posting Date");
-                    PalletLines.get(PostedWarehousePallet."Pallet ID", PostedWarehousePallet."Pallet Line No.");
-                    PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
-                    PalletLedgerEntry."Item Description" := PalletLines.Description;
-                    PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
-                    PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
-                    PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
-                    PalletLedgerEntry.validate(Quantity, -1 * PalletLines.Quantity);
-                    PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
-                    PalletLedgerEntry."User ID" := userid;
-                    if PalletLedgerEntry.Quantity <> 0 then
-                        PalletLedgerEntry.Insert();
+                    if PalletLines.get(PostedWarehousePallet."Pallet ID", PostedWarehousePallet."Pallet Line No.") then begin
+                        PalletLedgerEntry.Init();
+                        PalletLedgerEntry."Entry No." := LineNumber;
+                        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Sales Shipment";
+                        PalletLedgerEntry."Document No." := PostedWhseShipmentLine."No.";
+                        PalletLedgerEntry."Document Line No." := PostedWhseShipmentLine."Line No.";
+                        PalletLedgerEntry."Order Type" := 'Sales Order';
+                        PalletLedgerEntry."Order No." := PostedWhseShipmentLine."Source No.";
+                        PalletLedgerEntry."Order Line No." := PostedWhseShipmentLine."Source Line No.";
+                        PalletLedgerEntry."Pallet ID" := PostedWarehousePallet."Pallet ID";
+                        PalletLedgerEntry."Pallet Line No." := PostedWarehousePallet."Pallet Line No.";
+                        PalletLedgerEntry.validate("Posting Date", PostedWhseShipmentLine."Posting Date");
+                        PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
+                        PalletLedgerEntry."Item Description" := PalletLines.Description;
+                        PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
+                        PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                        PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
+                        PalletLedgerEntry.validate(Quantity, -1 * PalletLines.Quantity);
+                        PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                        PalletLedgerEntry."User ID" := userid;
+                        if PalletLedgerEntry.Quantity <> 0 then
+                            PalletLedgerEntry.Insert();
+                    end;
 
                     //Change Status of Pallet to Shipped
                     if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
@@ -363,48 +364,52 @@ codeunit 60003 "Pallet Ledger Functions"
     procedure PalletLedgerEntryReturnReceipt(var ReturnReceiptLine: Record "Return Receipt Line"; var SalseLine: Record "Sales Line")
     begin
         if ReturnReceiptLine."No." <> '' then begin
-            LineNumber := GetLastEntry();
+
+
             PostedWarehousePallet.reset;
             PostedWarehousePallet.setrange("Sales Order No.", SalseLine."SPA Order No.");
             PostedWarehousePallet.setrange("Sales Order Line No.", SalseLine."SPA Order Line No.");
             if PostedWarehousePallet.findset then
                 repeat
                     if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
+                        PalletLedgerEntry.LockTable();
                         PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::closed;
                         palletheader.modify;
                     end;
+                    if PalletLines.get(PostedWarehousePallet."Pallet ID", PostedWarehousePallet."Pallet Line No.") then begin
+                        LineNumber := GetLastEntry();
+                        PalletLedgerEntry.Init();
+                        PalletLedgerEntry."Entry No." := LineNumber;
+                        PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Sales Return Order";
+                        PalletLedgerEntry."Document No." := ReturnReceiptLine."Document No.";
+                        PalletLedgerEntry."Document Line No." := ReturnReceiptLine."Line No.";
+                        PalletLedgerEntry."Order Type" := 'Return Order';
+                        PalletLedgerEntry."Order No." := ReturnReceiptLine."Return Order No.";
+                        PalletLedgerEntry."Order Line No." := ReturnReceiptLine."Return Order Line No.";
+                        PalletLedgerEntry."Pallet ID" := PostedWarehousePallet."Pallet ID";
+                        PalletLedgerEntry."Pallet Line No." := PostedWarehousePallet."Pallet Line No.";
+                        PalletLedgerEntry.validate("Posting Date", Today);
 
-                    PalletLedgerEntry.Init();
-                    PalletLedgerEntry."Entry No." := LineNumber;
-                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Sales Return Order";
-                    PalletLedgerEntry."Document No." := ReturnReceiptLine."Document No.";
-                    PalletLedgerEntry."Document Line No." := ReturnReceiptLine."Line No.";
-                    PalletLedgerEntry."Order Type" := 'Return Order';
-                    PalletLedgerEntry."Order No." := ReturnReceiptLine."Return Order No.";
-                    PalletLedgerEntry."Order Line No." := ReturnReceiptLine."Return Order Line No.";
-                    PalletLedgerEntry."Pallet ID" := PostedWarehousePallet."Pallet ID";
-                    PalletLedgerEntry."Pallet Line No." := PostedWarehousePallet."Pallet Line No.";
-                    PalletLedgerEntry.validate("Posting Date", Today);
-                    PalletLines.get(PostedWarehousePallet."Pallet ID", PostedWarehousePallet."Pallet Line No.");
-                    PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
-                    PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
-                    PalletLedgerEntry."Item Description" := PalletLines.Description;
-                    PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
-                    PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
-                    PalletLedgerEntry.validate(Quantity, PalletLines.Quantity);
-                    PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
-                    PalletLedgerEntry."User ID" := userid;
-                    if PalletLedgerEntry.Quantity <> 0 then
-                        PalletLedgerEntry.Insert();
-                    //Change Status of Pallet to closed after Post Sales Return Order
-                    if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
-                        PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Closed;
-                        PalletHeader."Exist in warehouse shipment" := false;
-                        PalletHeader.Attention := true;
-                        PalletHeader.modify;
+                        PalletLedgerEntry.validate("Item No.", PalletLines."Item No.");
+                        PalletLedgerEntry."Variant Code" := PalletLines."Variant Code";
+                        PalletLedgerEntry."Item Description" := PalletLines.Description;
+                        PalletLedgerEntry.validate("Location Code", PalletLines."Location Code");
+                        PalletLedgerEntry.validate("Unit of Measure", PalletLines."Unit of Measure");
+                        PalletLedgerEntry.validate(Quantity, PalletLines.Quantity);
+                        PalletLedgerEntry."Lot Number" := PalletLines."Lot Number";
+                        PalletLedgerEntry."User ID" := userid;
+                        if PalletLedgerEntry.Quantity <> 0 then
+                            PalletLedgerEntry.Insert();
+                        //Change Status of Pallet to closed after Post Sales Return Order
+                        if PalletHeader.get(PostedWarehousePallet."Pallet ID") then begin
+                            PalletHeader."Pallet Status" := PalletHeader."Pallet Status"::Closed;
+                            PalletHeader."Exist in warehouse shipment" := false;
+                            PalletHeader.Attention := true;
+                            PalletHeader.modify;
+                        end;
+
+                        //   LineNumber += 1;
                     end;
-
-                    LineNumber += 1;
                 until PostedWarehousePallet.next = 0;
         end;
     end;
@@ -468,11 +473,11 @@ codeunit 60003 "Pallet Ledger Functions"
         PalletLine: Record "Pallet Line";
 
     begin
+        PalletLedgerEntry.LockTable();
         PalletLine.reset;
         PalletLine.setrange("Pallet ID", pPalletHeader."Pallet ID");
         if PalletLine.findset then
             repeat
-                PalletLedgerEntry.LockTable();
                 LineNumber := GetLastEntry();
                 PalletLedgerEntry.Init();
                 PalletLedgerEntry."Entry No." := LineNumber;

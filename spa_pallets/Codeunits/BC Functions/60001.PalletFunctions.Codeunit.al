@@ -1316,9 +1316,9 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine."Source Code" := 'ITEMJNL';
                 ItemJournalLine.insert(true);
                 ItemJournalLine."Entry Type" := ItemJournalLine."Entry Type"::"Positive Adjmt.";
-                ItemJournalLine.validate("Posting Date", PalletFunctionUI.GetCurrTime);
+                ItemJournalLine.validate("Posting Date", Today);
                 ItemJournalLine."Document No." := pPalletLine."Pallet ID";
-                ItemJournalLine."Document Date" := PalletFunctionUI.GetCurrTime;
+                ItemJournalLine."Document Date" := Today;
                 ItemJournalLine.validate("Item No.", BOMComp."No.");
                 ItemJournalLine.validate("Location Code", pPalletLine."Location Code");
                 ItemJournalLine.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
@@ -1337,9 +1337,9 @@ codeunit 60001 "Pallet Functions"
                         RecGReservationEntry.init;
                         RecGReservationEntry."Entry No." := MaxEntry;
                         RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
-                        RecGReservationEntry."Creation Date" := PalletFunctionUI.GetCurrTime;
+                        RecGReservationEntry."Creation Date" := Today;
                         RecGReservationEntry."Created By" := UserId;
-                        RecGReservationEntry."Expected Receipt Date" := PalletFunctionUI.GetCurrTime;
+                        RecGReservationEntry."Expected Receipt Date" := Today;
                         RecGReservationEntry."Source Type" := 83;
                         RecGReservationEntry."Source Subtype" := 2;
                         RecGReservationEntry."Source ID" := 'ITEM';

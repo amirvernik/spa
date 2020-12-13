@@ -161,41 +161,42 @@ codeunit 60006 "Warehouse Shipment Management"
                     if RecGReservationEntry2.findlast then
                         maxEntry := RecGReservationEntry2."Entry No." + 1;
 
-                    PalletLine.get(rec."Pallet ID", rec."Pallet Line No.");
-                    RecGReservationEntry.init;
-                    RecGReservationEntry."Entry No." := MaxEntry;
-                    //V16.0 - Changed From [2] to "surplus" on Enum
-                    RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
-                    //V16.0 - Changed From [2] to "surplus" on Enum
-                    RecGReservationEntry."Creation Date" := Today;
-                    RecGReservationEntry."Created By" := UserId;
-                    RecGReservationEntry.Positive := false;
-                    RecGReservationEntry."Source Type" := 37;
-                    RecGReservationEntry."Source Subtype" := 1;
-                    RecGReservationEntry."Source ID" := WarehouseShipmentLine."Source No.";
-                    RecGReservationEntry."Source Ref. No." := WarehouseShipmentLine."Source Line No.";
-                    RecGReservationEntry."Shipment Date" := today;
-                    RecGReservationEntry."Item No." := WarehouseShipmentLine."Item No.";
-                    if PalletLine."Variant Code" <> '' then
-                        RecGReservationEntry."Variant Code" := PalletLine."Variant Code";
-                    //V16.0 - Changed From [1] to "Lot No." on Enum
-                    RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
-                    //V16.0 - Changed From [1] to "Lot No." on Enum
-                    RecGReservationEntry."Location Code" := WarehouseShipmentLine."Location Code";
-                    RecGReservationEntry."Lot No." := PalletLine."Lot Number";
-                    RecGReservationEntry.validate("Quantity (Base)", -1 * rec.Quantity);
-                    RecGReservationEntry.validate(Quantity, -1 * rec.Quantity);
-                    RecGReservationEntry.validate("Qty. to Handle (Base)", -1 * rec.Quantity);
-                    RecGReservationEntry.insert;
+                    if PalletLine.get(rec."Pallet ID", rec."Pallet Line No.") then begin
+                        RecGReservationEntry.init;
+                        RecGReservationEntry."Entry No." := MaxEntry;
+                        //V16.0 - Changed From [2] to "surplus" on Enum
+                        RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Surplus;
+                        //V16.0 - Changed From [2] to "surplus" on Enum
+                        RecGReservationEntry."Creation Date" := Today;
+                        RecGReservationEntry."Created By" := UserId;
+                        RecGReservationEntry.Positive := false;
+                        RecGReservationEntry."Source Type" := 37;
+                        RecGReservationEntry."Source Subtype" := 1;
+                        RecGReservationEntry."Source ID" := WarehouseShipmentLine."Source No.";
+                        RecGReservationEntry."Source Ref. No." := WarehouseShipmentLine."Source Line No.";
+                        RecGReservationEntry."Shipment Date" := today;
+                        RecGReservationEntry."Item No." := WarehouseShipmentLine."Item No.";
+                        if PalletLine."Variant Code" <> '' then
+                            RecGReservationEntry."Variant Code" := PalletLine."Variant Code";
+                        //V16.0 - Changed From [1] to "Lot No." on Enum
+                        RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                        //V16.0 - Changed From [1] to "Lot No." on Enum
+                        RecGReservationEntry."Location Code" := WarehouseShipmentLine."Location Code";
+                        RecGReservationEntry."Lot No." := PalletLine."Lot Number";
+                        RecGReservationEntry.validate("Quantity (Base)", -1 * rec.Quantity);
+                        RecGReservationEntry.validate(Quantity, -1 * rec.Quantity);
+                        RecGReservationEntry.validate("Qty. to Handle (Base)", -1 * rec.Quantity);
+                        RecGReservationEntry.insert;
 
-                    if PalletHeader.get(rec."Pallet ID") then
-                        RecGReservationEntry."Packing Date" := Palletheader."Creation Date";
-                    // if PalletLine.get(rec."Pallet ID", rec."Pallet Line No.") then
-                    //     RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
-                    RecGReservationEntry.modify;
+                        if PalletHeader.get(rec."Pallet ID") then
+                            RecGReservationEntry."Packing Date" := Palletheader."Creation Date";
+                        // if PalletLine.get(rec."Pallet ID", rec."Pallet Line No.") then
+                        //     RecGReservationEntry."Expiration Date" := PalletLine."Expiration Date";
+                        RecGReservationEntry.modify;
 
-                    Rec."Reserve. Entry No." := MaxEntry;
-                    Rec.modify;
+                        Rec."Reserve. Entry No." := MaxEntry;
+                        Rec.modify;
+                    end;
                 end;
         end;
     end;

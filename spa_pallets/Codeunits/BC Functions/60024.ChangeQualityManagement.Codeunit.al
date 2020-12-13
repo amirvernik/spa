@@ -557,6 +557,7 @@ codeunit 60024 "Change Quality Management"
         PalletLineNo: Integer;
     begin
         //LineNumber := GetLastEntry();
+        PalletLedgerEntry.LockTable();
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
         pPalletLineChg.reset;
@@ -610,6 +611,7 @@ codeunit 60024 "Change Quality Management"
         PalletLineNo: Integer;
         PostPurchase: Codeunit "Purch.-Post";
     begin
+        PalletLedgerEntry.LockTable();
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
         pPalletLineChg.reset;
@@ -682,7 +684,7 @@ codeunit 60024 "Change Quality Management"
                                     PalletLine."Purchase Order Line No." := POLineno;
                                     //PalletLine.Modify();
 
-                                    PalletLedgerEntry.LockTable();
+
                                     LineNumber := GetLastEntry();
                                     PalletLedgerEntry.Init();
                                     PalletLedgerEntry."Entry No." := LineNumber;
@@ -915,6 +917,7 @@ codeunit 60024 "Change Quality Management"
         PalletID := pPalletLineChg."Pallet ID";
         PalletLineNo := pPalletLineChg."Line No.";
         PalletHeader.get(PalletID);
+        PalletLedgerEntry.LockTable();
 
         pPalletLineChg.reset;
         pPalletLineChg.setrange("User ID", UserId);
