@@ -130,12 +130,230 @@ codeunit 60001 "Pallet Functions"
 
 
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostLines', '', false, false)]
-    procedure OnBeforePostLinesPO(VAR PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean)
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnAfterActionEvent', 'Post', false, false)]
+    procedure OnBeforePostPurchaseDoc(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
     begin
-
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
     end;
 
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnBeforeActionEvent', 'Post &Batch', false, false)]
+    procedure OnBeforePostPurchaseDocPostBatch(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnBeforeActionEvent', 'Post and &Print', false, false)]
+    procedure OnBeforePostPurchaseDocPostandPrint(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnBeforeActionEvent', 'Post and Print Prepmt. Cr. Mem&o', false, false)]
+    procedure OnBeforePostPurchaseDocPostandPrintPrepmtCM(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnBeforeActionEvent', 'Post and Print Prepmt. Invoic&e', false, false)]
+    procedure OnBeforePostPurchaseDocPostandPrintPrepmtInv(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnBeforeActionEvent', 'Post', false, false)]
+    procedure OnBeforePostPurchaseDocPost(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order List", 'OnBeforeActionEvent', 'Post', false, false)]
+    procedure OnBeforePostPurchaseDocListPost(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order List", 'OnBeforeActionEvent', 'PostAndPrint', false, false)]
+    procedure OnBeforePostPurchaseDocListPostandPrint(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order List", 'OnBeforeActionEvent', 'PostBatch', false, false)]
+    procedure OnBeforePostPurchaseDocListPostBatch(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Page, page::"Purchase Order", 'OnBeforeActionEvent', 'PostAndNew', false, false)]
+    procedure OnBeforePostPurchaseDocPostAndNew(var Rec: Record "Purchase Header")
+    var
+        LpalletHeader: Record "Pallet Header";
+        LPalletLine: Record "Pallet Line";
+        NoteText: Label 'Please note that some pallets in this Purchase Order have yet to be shipped or cancelled or fully consumed.';
+    begin
+        if Rec."Grading Result PO" then begin
+            LPalletLine.Reset();
+            LPalletLine.SetCurrentKey("Purchase Order No.");
+            LPalletLine.SetRange("Purchase Order No.", Rec."No.");
+            if LPalletLine.FindSet() then
+                repeat
+                    LpalletHeader.Get(LPalletLine."Pallet ID");
+                    if LpalletHeader."Pallet Status" = LpalletHeader."Pallet Status"::Closed then begin
+                        Message(NoteText);
+                        exit;
+                    end;
+                until LPalletLine.Next() = 0;
+        end;
+    end;
 
     //Reopen Pallet - Global Function
     procedure ReOpenPallet(var pPalletHeader: Record "Pallet Header")
@@ -343,35 +561,6 @@ codeunit 60001 "Pallet Functions"
         if BoolCheck then error(Err08);
     end;
 
-    //On Before Delete Pallet Line - Pallet Line Table
-    [EventSubscriber(ObjectType::table, database::"Pallet Line", 'OnBeforeDeleteEvent', '', true, true)]
-    local procedure OnBeforeDeletePalletLine(var Rec: Record "Pallet Line")
-    var
-        ItemRec: Record Item;
-        PalletLine: Record "Pallet Line";
-        BoolCheck: Boolean;
-        Err001: label 'You cannot delete Pallet line, there is a Purchase line connectd to it';
-        PalletReservation: Record "Pallet reservation Entry";
-        Lbl001: label 'There are Reservation for Item %1 for Pallet Line, do you want to Delete Reservations?';
-        Lbl002: label 'Pallet Line did not delete';
-
-    begin
-        //if rec."Purchase Order No." <> '' then
-        //    error(Err001);
-
-        PalletReservation.reset;
-        PalletReservation.setrange("Pallet ID", rec."Pallet ID");
-        PalletReservation.setrange("Pallet Line", rec."Line No.");
-        if PalletReservation.findfirst then begin
-            if Confirm(StrSubstNo(Lbl001, rec."Item No.")) then begin
-                repeat
-                    PalletReservation.delete;
-                until PalletReservation.next = 0;
-            end
-            else
-                error(Lbl002);
-        end;
-    end;
 
     //Choose Packing Materials
     procedure ChoosePackingMaterials(var pPalletHeader: Record "Pallet Header")
@@ -1288,6 +1477,7 @@ codeunit 60001 "Pallet Functions"
 
         BOMComp.Reset();
         BOMComp.SetRange("Parent Item No.", pPalletLine."Item No.");
+        BOMComp.SetFilter("No.", BOMComp."Parent Item No.");
         if BOMComp.FindSet() then begin
 
             ItemJournalLine.reset;

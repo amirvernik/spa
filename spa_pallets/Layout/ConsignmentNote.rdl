@@ -1969,7 +1969,10 @@
                 <TablixMember>
                   <Group Name="Details">
                     <GroupExpressions>
-                      <GroupExpression>=Fields!VarientName.Value</GroupExpression>
+                      <GroupExpression>=Fields!ItemNo.Value</GroupExpression>
+                      <GroupExpression>=Fields!VariantCode.Value</GroupExpression>
+                      <GroupExpression>=Fields!Grade.Value</GroupExpression>
+                      <GroupExpression>=Fields!Size.Value</GroupExpression>
                     </GroupExpressions>
                   </Group>
                   <SortExpressions>

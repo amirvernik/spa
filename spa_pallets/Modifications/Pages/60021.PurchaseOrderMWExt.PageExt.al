@@ -128,8 +128,10 @@ pageextension 60043 Mode_PurchaseList extends "Purchase Order List"
                             LPurchaseLine.Reset();
                             LPurchaseLine.SetRange("Document Type", "Document Type"::Order);
                             LPurchaseLine.SetRange("Document No.", LPurchaseOrder."No.");
-                            if not LPurchaseLine.FindSet() then
+                            if not LPurchaseLine.FindSet() then begin
                                 ArchiveManagement.StorePurchDocument(LPurchaseOrder, false);
+                                LPurchaseOrder.Delete();
+                            end;
                         until LPurchaseOrder.Next() = 0;
                 end;
             }

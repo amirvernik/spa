@@ -112,17 +112,12 @@ page 60025 "Pallet Change Quality"
                     PalletFunctionCU: Codeunit "Pallet Functions";
                     ChangeQualityMgmt: Codeunit "Change Quality Management";
                     TrackingItemNumber: code[20];
-                    LPurchaseArchiveLine: Record "Purchase Line Archive";
-                    LPurchaseLine: Record "Purchase Line";
-                    LPurchaseHeader: Record "Purchase Header";
-                    LPalletHeader: Record "Pallet Header";
+
                     PalletItemChgLine: Record "Pallet Change Quality";
                     PalletHeader: Record "Pallet Header";
                     ErrQty: Label 'The replaced item cant be with 0 QTY';
                     ErrNewItem: Label 'You have not enterd a new item line';
-                    ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
-                    ErrArchived: Label 'The PO was already Archived, please change item quality manually';
-                    ErrInvoiced: Label 'The PO was already invoiced, please change item quality manually';
+
                     PalletChangeQuality: Record "Pallet Change Quality";
                     PalletReservationEntry: Record "Pallet Reservation Entry";
                     ReservationEntry: Record "Reservation Entry";
@@ -130,32 +125,6 @@ page 60025 "Pallet Change Quality"
                     ItemJournalLine: Record "Item Journal Line";
 
                 begin
-                    LPalletHeader.Get(Rec."Pallet ID");
-                    IF LPalletHeader."Exist in Transfer Order" or LPalletHeader."Exist in warehouse shipment" then
-                        Error(ErrorReservation);
-
-                    LPurchaseLine.Reset();
-                    LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
-                    LPurchaseLine.SetRange("No.", Rec."Purchase Order No.");
-                    LPurchaseLine.SetRange("Line No.", Rec."Purchase Order Line No.");
-                    if LPurchaseLine.FindFirst() then begin
-                        if LPurchaseLine."Quantity Invoiced" > 0 then begin
-                            Error(ErrInvoiced);
-                            exit;
-                        end;
-                    end;
-
-                    LPurchaseArchiveLine.Reset();
-                    LPurchaseArchiveLine.SetRange("Document Type", LPurchaseArchiveLine."Document Type"::Order);
-                    LPurchaseArchiveLine.SetRange("No.", Rec."Purchase Order No.");
-                    LPurchaseArchiveLine.SetRange("Line No.", Rec."Purchase Order Line No.");
-                    if LPurchaseArchiveLine.FindFirst() then
-                        if LPurchaseArchiveLine."Quantity Invoiced" > 0 then begin
-                            Error(ErrArchived);
-                            exit;
-                        end;
-
-
 
                     if "Replaced Qty" >= Quantity then
                         Error('New Quantity must be less than %1', Quantity);
@@ -220,6 +189,7 @@ page 60025 "Pallet Change Quality"
     var
         PalletLineChangeQuality: Record "Pallet Line Change Quality";
         PalletChangeQuality: Record "Pallet Change Quality";
+
     begin
         PalletLineChangeQuality.reset;
         PalletLineChangeQuality.SetRange("User ID", UserId);
@@ -250,6 +220,7 @@ page 60025 "Pallet Change Quality"
             rec.setfilter("Pallet ID", 'X');
             //rec.setfilter("User ID", UserId);
         end;
+
 
         CurrPage.update;
     end;

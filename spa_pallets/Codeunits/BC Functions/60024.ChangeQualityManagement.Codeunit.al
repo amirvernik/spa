@@ -180,6 +180,8 @@ codeunit 60024 "Change Quality Management"
         PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
         PalletChangeQuality: Record "Pallet Change Quality";
         LineNoOriginal: Integer;
+        PalletLedgerEntry: Record "Pallet Ledger Entry";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
     begin
 
         PurchaseProcessSetup.get();
@@ -267,6 +269,33 @@ codeunit 60024 "Change Quality Management"
                             PalletLedgerFunctions.NegPalletLedgerEntryItem(ItemJournalLine, PalletLedgerType::"Quality Change");
                         end;
 
+                    LineNumber += 10000;
+
+                    LineNumber := GetLastEntry();
+                    PalletLedgerEntry.Init();
+                    PalletLedgerEntry."Entry No." := LineNumber;
+                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
+                    PalletLedgerEntry."Pallet ID" := pPalletLineChg."Pallet ID";
+                    PalletLedgerEntry."Pallet Line No." := pPalletLineChg."Line No.";
+                    PalletLedgerEntry."Document No." := pPalletLineChg."Purchase Order No.";
+                    //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
+                    PalletLedgerEntry.validate("Posting Date", Today);
+                    PalletLedgerEntry.validate("Item No.", pPalletLineChg."Item No.");
+                    if ItemRec.get(pPalletLineChg."Item No.") then
+                        PalletLedgerEntry."Item Description" := ItemRec.Description;
+                    PalletLedgerEntry."Variant Code" := pPalletLineChg."Variant Code";
+                    PalletLedgerEntry.validate("Location Code", pPalletLineChg."Location Code");
+                    PalletLedgerEntry.validate("Unit of Measure", pPalletLineChg."Unit of Measure");
+                    ItemUnitOfMeasure.reset;
+                    ItemUnitOfMeasure.setrange("Item No.", pPalletLineChg."Item No.");
+                    ItemUnitOfMeasure.setrange(code, pPalletLineChg."Unit of Measure");
+                    if ItemUnitOfMeasure.findfirst then
+                        PalletLedgerEntry.validate(Quantity, pPalletLineChg."Replaced Qty" * ItemUnitOfMeasure."Qty. per Unit of Measure")
+                    else
+                        PalletLedgerEntry.validate(Quantity, pPalletLineChg."Replaced Qty");
+                    PalletLedgerEntry."User ID" := userid;
+                    if PalletLedgerEntry.Quantity <> 0 then
+                        PalletLedgerEntry.Insert();
                     LineNumber += 10000;
                 end;
             until pPalletLineChg.next = 0;
@@ -387,8 +416,8 @@ codeunit 60024 "Change Quality Management"
             repeat
                 //if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
                 PalletLine.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.");
-                PalletLine.Quantity := pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty";
-                PalletLine."Remaining Qty" := pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty";
+                PalletLine.Quantity := pPalletLineChg."Replaced Qty";
+                PalletLine."Remaining Qty" := pPalletLineChg."Replaced Qty";
                 PalletLine.modify;
                 PalletFunctionsCU.CreatePosAdjustmentToPackingMaterials_PalletLine(PalletLine, pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty")
             until pPalletLineChg.next = 0;
@@ -459,6 +488,12 @@ codeunit 60024 "Change Quality Management"
                         if LPurchaseLine.FindLast() then begin
                             LPOLineNo := LPurchaseLine."Line No." + 10000;
 
+                            if LpalletLine.Get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.") then begin
+                                LpalletLine."Purchase Order Line No." := LPOLineNo;
+                                LpalletLine.Modify();
+                            end;
+
+
                             LPurchaseLine.Reset();
                             LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
                             LPurchaseLine.SetRange("Document No.", pPalletLineChg."Purchase Order No.");
@@ -523,22 +558,14 @@ codeunit 60024 "Change Quality Management"
                                 LPurchaseLine.Validate("Line Discount %", 100);
                                 LPurchaseLine.Modify();
 
-                                LpalletLine.Reset();
-                                LpalletLine.SetRange("Pallet ID", pPalletLineChg."Pallet ID");
-                                LpalletLine.SetRange("Purchase Order No.", LPurchaseLine."No.");
-                                LpalletLine.SetRange("Purchase Order Line No.", LPurchaseLine."Line No.");
-                                if LpalletLine.FindLast() then begin
-                                    LpalletLine."Purchase Order Line No." := LPOLineNo;
-                                    LpalletLine.Modify();
-
-                                    if LisReleased then
-                                        DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
-                                end;
+                                if LisReleased then
+                                    DocmentStatusMgmt.PerformManualRelease(LPurchaseHeader);
                             end;
                         end;
-
                     end;
+
                 end;
+
                 if pPalletLineChg.Quantity - pPalletLineChg."Replaced Qty" > 0 then
                     if PalletReservationEntry.get(pPalletLineChg."Pallet ID", pPalletLineChg."Line No.",
                         pPalletLineChg."Lot Number") then begin
@@ -685,31 +712,6 @@ codeunit 60024 "Change Quality Management"
                                     //PalletLine.Modify();
 
 
-                                    LineNumber := GetLastEntry();
-                                    PalletLedgerEntry.Init();
-                                    PalletLedgerEntry."Entry No." := LineNumber;
-                                    PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
-                                    PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
-                                    PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
-                                    PalletLedgerEntry."Document No." := PalletLine."Purchase Order No.";
-                                    //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
-                                    PalletLedgerEntry.validate("Posting Date", Today);
-                                    PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");
-                                    if ItemRec.get(PalletLine."Item No.") then
-                                        PalletLedgerEntry."Item Description" := ItemRec.Description;
-                                    PalletLedgerEntry."Variant Code" := PalletLine."Variant Code";
-                                    PalletLedgerEntry.validate("Location Code", PalletLine."Location Code");
-                                    PalletLedgerEntry.validate("Unit of Measure", PalletLine."Unit of Measure");
-                                    ItemUnitOfMeasure.reset;
-                                    ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");
-                                    ItemUnitOfMeasure.setrange(code, PalletLine."Unit of Measure");
-                                    if ItemUnitOfMeasure.findfirst then
-                                        PalletLedgerEntry.validate(Quantity, PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure")
-                                    else
-                                        PalletLedgerEntry.validate(Quantity, PalletLine.Quantity);
-                                    PalletLedgerEntry."User ID" := userid;
-                                    if PalletLedgerEntry.Quantity <> 0 then
-                                        PalletLedgerEntry.Insert();
 
                                     if ItemRec.get(LPurchaseLine."No.") then
                                         if itemrec."Lot Nos." <> '' then begin
@@ -758,6 +760,33 @@ codeunit 60024 "Change Quality Management"
                             end;
                             PalletLine."User ID" := UserId;
                             PalletLine.insert;
+
+                            LineNumber := GetLastEntry();
+                            PalletLedgerEntry.Init();
+                            PalletLedgerEntry."Entry No." := LineNumber;
+                            PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
+                            PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
+                            PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
+                            PalletLedgerEntry."Document No." := PalletLine."Purchase Order No.";
+                            //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
+                            PalletLedgerEntry.validate("Posting Date", Today);
+                            PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");
+                            if ItemRec.get(PalletLine."Item No.") then
+                                PalletLedgerEntry."Item Description" := ItemRec.Description;
+                            PalletLedgerEntry."Variant Code" := PalletLine."Variant Code";
+                            PalletLedgerEntry.validate("Location Code", PalletLine."Location Code");
+                            PalletLedgerEntry.validate("Unit of Measure", PalletLine."Unit of Measure");
+                            ItemUnitOfMeasure.reset;
+                            ItemUnitOfMeasure.setrange("Item No.", PalletLine."Item No.");
+                            ItemUnitOfMeasure.setrange(code, PalletLine."Unit of Measure");
+                            if ItemUnitOfMeasure.findfirst then
+                                PalletLedgerEntry.validate(Quantity, PalletLine.Quantity * ItemUnitOfMeasure."Qty. per Unit of Measure")
+                            else
+                                PalletLedgerEntry.validate(Quantity, PalletLine.Quantity);
+                            PalletLedgerEntry."User ID" := userid;
+                            if PalletLedgerEntry.Quantity <> 0 then
+                                PalletLedgerEntry.Insert();
+
                         end;
                     until PalletItemChgLine.next = 0;
 

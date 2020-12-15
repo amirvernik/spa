@@ -272,7 +272,10 @@ codeunit 60006 "Warehouse Shipment Management"
         LPurchaseHeader: Record "Purchase Header";
         enumPurchaseStatus: Enum "Purchase Document Status";
         isReleased: Boolean;
+        errorinpayback: Text;
+        Errmsgpayback: Label 'Please note that the following po numbers : %1 - have already be archived or fully invoiced. The po line price has not been updated.';
     begin
+        errorinpayback := '';
         //Move to Posted Pallet  - Working      
         WarehousePallet.setrange("Whse Shipment No.", WarehouseShipmentHeader."No.");
         if WarehousePallet.findset then
@@ -288,21 +291,34 @@ codeunit 60006 "Warehouse Shipment Management"
                         if LCustomerPostingGroup.FindFirst() then
                             if LPalletLine.Get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
                                 if LPurchaseLine.Get(LPurchaseLine."Document Type"::Order, LPalletLine."Purchase Order No.", LPalletLine."Purchase Order Line No.") and (LPalletLine."Purchase Order No." <> '') then begin
-                                    LPurchaseHeader.get(LPurchaseHeader."Document Type"::Order, LPalletLine."Purchase Order No.");
-                                    isReleased := false;
-                                    if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then begin
-                                        enumPurchaseStatus := LPurchaseHeader.Status;
-                                        LPurchaseHeader.Status := LPurchaseHeader.Status::Open;
-                                        LPurchaseHeader.Modify();
-                                        isReleased := true;
+                                    if LPurchaseLine."Quantity Invoiced" > 0 then begin
+                                        if errorinpayback = '' then
+                                            errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
+                                        else
+                                            errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                                    end else begin
 
+                                        LPurchaseHeader.get(LPurchaseHeader."Document Type"::Order, LPalletLine."Purchase Order No.");
+                                        isReleased := false;
+                                        if LPurchaseHeader.Status <> LPurchaseHeader.Status::Open then begin
+                                            enumPurchaseStatus := LPurchaseHeader.Status;
+                                            LPurchaseHeader.Status := LPurchaseHeader.Status::Open;
+                                            LPurchaseHeader.Modify();
+                                            isReleased := true;
+
+                                        end;
+                                        LPurchaseLine.Validate("Unit Cost", 0);
+                                        LPurchaseLine.Modify();
+                                        if isReleased then begin
+                                            LPurchaseHeader.Status := enumPurchaseStatus;
+                                            LPurchaseHeader.Modify();
+                                        end;
                                     end;
-                                    LPurchaseLine.Validate("Unit Cost", 0);
-                                    LPurchaseLine.Modify();
-                                    if isReleased then begin
-                                        LPurchaseHeader.Status := enumPurchaseStatus;
-                                        LPurchaseHeader.Modify();
-                                    end;
+                                end else begin
+                                    if errorinpayback = '' then
+                                        errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
+                                    else
+                                        errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
                                 end;
                     end;
                 PostedWarehousePallet.init;
@@ -312,6 +328,7 @@ codeunit 60006 "Warehouse Shipment Management"
 
             until WarehousePallet.next = 0;
 
+        if errorinpayback <> '' then Message(StrSubstNo(Errmsgpayback, errorinpayback));
     end;
 
     //On AFter Insert Sales Shipment Line 

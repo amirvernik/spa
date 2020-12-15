@@ -119,6 +119,8 @@ page 60006 "Pallet Card Subpage"
     }
 
 
+
+
     actions
     {
         area(Processing)
@@ -132,20 +134,49 @@ page 60006 "Pallet Card Subpage"
                 var
                     ChangeQualityPage: page "Pallet Change Quality";
                     MsgCannotChange: Label 'Change quality is available only for closed pallets and pallets that were not allocated to a dispatch process (Shipment)';
+                    ErrorReservation: Label 'Can`t perform this action as the pallet war already allocated to an open document (shipment, transfer order, etc.)';
+                    ErrArchived: Label 'The PO was already Archived, please change item quality manually';
+                    ErrInvoiced: Label 'The PO was already invoiced, please change item quality manually';
+                    LPurchaseArchiveLine: Record "Purchase Line Archive";
+                    LPurchaseLine: Record "Purchase Line";
+                    LPurchaseHeader: Record "Purchase Header";
                     LPalletHeader: Record "Pallet Header";
                 begin
-                    LPalletHeader.Reset();
-                    LPalletHeader.SetRange("Pallet ID", Rec."Pallet ID");
-                    LPalletHeader.FindFirst();
-                    if ((LPalletHeader."Pallet Status" = "Pallet Status"::Closed) and
-                            (LPalletHeader."Exist in warehouse shipment" = false))
-                            and (LPalletHeader."Exist in Transfer Order" = false) then begin
-                        ChangeQualityPage.SetPalletIDAndPalletLine(rec."Pallet ID", rec."Line No.");
-                        ChangeQualityPage.CalcChangeQuality(rec."Pallet ID", Rec."Line No.");
-                        ChangeQualityPage.run;
-                    end
-                    else
-                        message(MsgCannotChange);
+                    TestField("Purchase Order No.");
+                    if LPalletHeader.Get(Rec."Pallet ID") then
+                        IF LPalletHeader."Exist in Transfer Order" or LPalletHeader."Exist in warehouse shipment" then begin
+                            Error(ErrorReservation);
+                            exit;
+                        end;
+
+
+                    //if Rec."Purchase Order No." <> '' then begin
+                    LPurchaseLine.Reset();
+                    LPurchaseLine.SetRange("Document Type", LPurchaseLine."Document Type"::Order);
+                    LPurchaseLine.SetRange("Document No.", Rec."Purchase Order No.");
+                    LPurchaseLine.SetRange("Line No.", Rec."Purchase Order Line No.");
+                    if LPurchaseLine.FindFirst() then begin
+                        if LPurchaseLine."Quantity Invoiced" > 0 then begin
+                            Error(ErrInvoiced);
+                            exit;
+                        end;
+                    end else begin
+                        // end;
+                        LPurchaseArchiveLine.Reset();
+                        LPurchaseArchiveLine.SetRange("Document Type", LPurchaseArchiveLine."Document Type"::Order);
+                        LPurchaseArchiveLine.SetRange("Document No.", Rec."Purchase Order No.");
+                        LPurchaseArchiveLine.SetRange("Line No.", Rec."Purchase Order Line No.");
+                        if LPurchaseArchiveLine.FindFirst() then begin
+                            Error(ErrArchived);
+                            exit;
+                        end;
+
+                    end;
+
+                    ChangeQualityPage.SetPalletIDAndPalletLine(rec."Pallet ID", rec."Line No.");
+                    ChangeQualityPage.CalcChangeQuality(rec."Pallet ID", Rec."Line No.");
+                    ChangeQualityPage.run;
+
                 end;
             }
             group(Tracking)
@@ -181,7 +212,7 @@ page 60006 "Pallet Card Subpage"
                         ItemLedgerEntry.SETRANGE(Open, TRUE);
                         ItemLedgerEntry.SETRANGE("Location Code", rec."Location Code");
                         ItemLedgerEntry.SetFilter("Lot No.", '<>%1', '');
-                        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+                        ItemLedgerEntry.SetFilter("Entry Type", '=%1 | =%2', ItemLedgerEntry."Entry Type"::"Positive Adjmt.", ItemLedgerEntry."Entry Type"::Purchase);
                         if ItemLedgerEntry.findset then
                             repeat
                                 if not LotSelection.get(rec."Pallet ID",
@@ -284,6 +315,32 @@ page 60006 "Pallet Card Subpage"
             PalletOpen := false
         else
             PalletOpen := true;
+    end;
+
+    trigger OnDeleteRecord(): Boolean
+    var
+        ItemRec: Record Item;
+        PalletLine: Record "Pallet Line";
+        BoolCheck: Boolean;
+        Err001: label 'You cannot delete Pallet line, there is a Purchase line connectd to it';
+        PalletReservation: Record "Pallet reservation Entry";
+        Lbl001: label 'There are Reservation for Item %1 for Pallet Line, do you want to Delete Reservations?';
+        Lbl002: label 'Pallet Line did not delete';
+
+    begin
+
+        PalletReservation.reset;
+        PalletReservation.setrange("Pallet ID", rec."Pallet ID");
+        PalletReservation.setrange("Pallet Line", rec."Line No.");
+        if PalletReservation.findfirst then begin
+            if Confirm(StrSubstNo(Lbl001, rec."Item No.")) then begin
+                repeat
+                    PalletReservation.delete;
+                until PalletReservation.next = 0;
+            end
+            else
+                error(Lbl002);
+        end;
     end;
 
     var

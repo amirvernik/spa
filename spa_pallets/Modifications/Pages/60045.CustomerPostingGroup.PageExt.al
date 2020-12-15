@@ -4,7 +4,7 @@ pageextension 60047 PAgeExt_CustomerPostingGroup extends "Customer Posting Group
     {
         addlast(General)
         {
-            field("Pay-Pack"; "Pay-Pack")
+            field("Pay-Back"; "Pay-Pack")
             {
                 ApplicationArea = All;
             }

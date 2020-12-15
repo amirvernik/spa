@@ -134,7 +134,6 @@ page 60011 "Pallet List Select Whse Ship"
 
                     //Check Price list Availability
                     if PalletNumbers <> '' then begin
-                        PalletNumbers := CopyStr(PalletNumbers, 1, strlen(PalletNumbers) - 1);
                         error(PalletsError, PalletNumbers);
                     end;
                     //Check Price list Availability  
@@ -171,10 +170,10 @@ page 60011 "Pallet List Select Whse Ship"
         BoolOnlyOne: Boolean;
         DateToday: Date;
     begin
-
-        DateToday := SalesHeader."Requested Delivery Date";
+        PalletNumbers := '';
 
         SalesHeader.get(SalesHeader."Document Type"::Order, pOrderNo);
+        DateToday := SalesHeader."Requested Delivery Date";
         BoolAll := false;
         BoolOnlyOne := false;
         if salesline.get(Salesline."Document Type"::Order, pOrderNo, pOrderLine) then begin
@@ -200,8 +199,11 @@ page 60011 "Pallet List Select Whse Ship"
                     BoolOnlyOne := true;
             end;
         end;
-        if ((BoolAll = false) and (BoolOnlyOne = false)) then
-            PalletNumbers += pPalletID + ',';
+        if ((BoolAll = false) and (BoolOnlyOne = false)) and (StrPos(PalletNumbers, pPalletID) < 1) then
+            if PalletNumbers = '' then
+                PalletNumbers := pPalletID
+            else
+                PalletNumbers += ',' + pPalletID;
 
     end;
 

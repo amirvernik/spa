@@ -1305,8 +1305,8 @@ codeunit 60010 "UI Pallet Functions"
 
             PalletProcessSetup.get;
             lOneDrive := PalletProcessSetup."OneDrive Drive ID";
-            pContent := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/' + 'BC/Consignment Note' + '/' + StrSubstNo('Consignment Note %1.pdf', SalesOrderText) + ':/content';
-
+            // pContent := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/' + 'BC/Consignment Note' + '/' + StrSubstNo('Consignment Note %1.pdf', SalesOrderText) + ':/content';
+            pContent := 'https://sweetpotatoesaustralia-my.sharepoint.com/:b:/r/personal/prodware1_sweetpotatoesaustralia_com_au/Documents/BC/Consignment%20Note/' + 'Consignment%20Note%20' + SalesOrderText + '.pdf';
         end;
     end;
 

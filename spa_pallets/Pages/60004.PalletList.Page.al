@@ -192,6 +192,134 @@ page 60004 "Pallet List"
                 end;
 
             }
+            action("Fix Cancelled")//DELETE ME
+            {
+                ApplicationArea = All;
+                Visible = EnableTESTPROD1;
+                trigger OnAction()
+                var
+                    LPalletHeader: Record "Pallet Header";
+                    LPalletLine: Record "Pallet Line";
+                    LItemJournalLine: Record "Item Journal Line";
+                    PalletSetup: Record "Pallet Process Setup";
+                    ReservationEntry2: Record "Reservation Entry";
+                    LineNumber: Integer;
+                    RecItem: Record Item;
+                    RecGReservationEntry: Record "Reservation Entry";
+                    maxEntry: Integer;
+                    PalletLedgerType: Enum "Pallet Ledger Type";
+                    PalletLedgerFunctions: Codeunit "Pallet Ledger Functions";
+                begin
+                    PalletSetup.get();
+
+                    LItemJournalLine.reset;
+                    LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                    LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                    if LItemJournalLine.FindLast() then
+                        LineNumber := LItemJournalLine."Line No." + 10000
+                    else
+                        LineNumber := 10000;
+
+                    LPalletHeader.Reset();
+                    LPalletHeader.CopyFilters(Rec);
+                    if LPalletHeader.FindSet() then
+                        repeat
+                            LPalletHeader."Pallet Status" := LPalletHeader."Pallet Status"::Canceled;
+                            LPalletHeader.Modify();
+
+                            LItemJournalLine.reset;
+                            LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                            LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                            LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            if LItemJournalLine.FindSet() then
+                                LItemJournalLine.DeleteAll();
+
+                            LPalletLine.reset;
+                            LPalletLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            if LPalletLine.findset then
+                                repeat
+
+                                    LItemJournalLine.init;
+                                    LItemJournalLine."Journal Template Name" := 'ITEM';
+                                    LItemJournalLine."Journal Batch Name" := PalletSetup."Item Journal Batch";
+                                    LItemJournalLine."Line No." := LineNumber;
+                                    LItemJournalLine."Source Code" := 'ITEMJNL';
+                                    LItemJournalLine.insert(true);
+                                    LItemJournalLine."Entry Type" := LItemJournalLine."Entry Type"::"Negative Adjmt.";
+                                    LItemJournalLine.validate("Posting Date", Today);
+                                    LItemJournalLine."Document No." := LPalletLine."Purchase Order No.";
+                                    LItemJournalLine.Description := LPalletLine.Description;
+                                    LItemJournalLine."Lot No." := LPalletLine."Lot Number";
+                                    LItemJournalLine.validate("Item No.", LPalletLine."Item No.");
+                                    LItemJournalLine.validate("Variant Code", LPalletLine."Variant Code");
+                                    LItemJournalLine.validate("Location Code", LPalletLine."Location Code");
+                                    LItemJournalLine.validate("Pallet ID", LPalletLine."Pallet ID");
+                                    LItemJournalLine."Pallet Line No." := LPalletLine."Line No.";
+                                    LItemJournalLine.validate(Quantity, LPalletLine.Quantity);
+                                    LItemJournalLine.validate("Pallet ID", LPalletLine."Pallet ID");
+                                    LItemJournalLine."Pallet Type" := LPalletHeader."Pallet Type";
+                                    LItemJournalLine.modify;
+
+                                    LPalletLine."Exists on Warehouse Shipment" := true;
+                                    LPalletLine.modify;
+
+
+                                    if RecItem.get(LPalletLine."Item No.") then
+                                        if RecItem."Lot Nos." <> '' then begin
+                                            ReservationEntry2.reset;
+                                            if ReservationEntry2.findlast then
+                                                maxEntry := ReservationEntry2."Entry No." + 1;
+
+                                            RecGReservationEntry.init;
+                                            RecGReservationEntry."Entry No." := MaxEntry;
+                                            RecGReservationEntry."Reservation Status" := RecGReservationEntry."Reservation Status"::Prospect;
+                                            RecGReservationEntry."Creation Date" := Today;
+                                            RecGReservationEntry."Created By" := UserId;
+                                            RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
+                                            RecGReservationEntry."Expected Receipt Date" := Today;
+                                            RecGReservationEntry."Source Type" := 83;
+                                            RecGReservationEntry."Source Subtype" := 3;
+                                            RecGReservationEntry."Source ID" := 'ITEM';
+                                            RecGReservationEntry."Source Ref. No." := LineNumber;
+                                            RecGReservationEntry."Source Batch Name" := PalletSetup."Item Journal Batch";
+                                            RecGReservationEntry.validate("Item No.", LPalletLine."Item No.");
+                                            RecGReservationEntry.validate("Variant Code", LPalletLine."Variant Code");
+                                            RecGReservationEntry.validate("Location Code", LPalletLine."Location Code");
+                                            RecGReservationEntry.validate("Quantity (Base)", -1 *
+                                            LPalletLine.Quantity);
+                                            RecGReservationEntry.validate(Quantity, -1 *
+                                           LPalletLine.Quantity);
+                                            RecGReservationEntry.Positive := false;
+                                            RecGReservationEntry."Lot No." := LPalletLine."Lot Number";
+                                            RecGReservationEntry.insert;
+
+
+                                        end;
+                                    lineNumber += 100;
+                                    PalletLedgerFunctions.NegPalletLedgerEntryItem(LItemJournalLine, PalletLedgerType::"Pallet Cancelled");
+
+                                until LPalletLine.next = 0;
+
+                            LItemJournalLine.Reset();
+                            LItemJournalLine.SetRange("Journal Template Name", 'ITEM');
+                            LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                            LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            if LItemJournalLine.FindSet() then
+                                repeat
+                                    CODEUNIT.RUN(CODEUNIT::"Item Jnl.-Post Line", LItemJournalLine);
+                                until LItemJournalLine.Next() = 0;
+
+                            LItemJournalLine.reset;
+                            LItemJournalLine.setrange("Journal Template Name", 'ITEM');
+                            LItemJournalLine.setrange("Journal Batch Name", PalletSetup."Item Journal Batch");
+                            LItemJournalLine.SetRange("Pallet ID", LPalletHeader."Pallet ID");
+                            if LItemJournalLine.FindSet() then
+                                LItemJournalLine.DeleteAll();
+
+                        until LPalletHeader.Next() = 0;
+                end;
+
+            }
 
             action("Close Pallet")
             {

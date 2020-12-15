@@ -138,6 +138,7 @@ codeunit 60002 "Item Ledger Functions"
         PalletSetup: Record "Pallet Process Setup";
         LPalletLedgerEntry: Record "Pallet Ledger Entry";
     begin
+        SelectLatestVersion();
         PalletSetup.get;
         ItemLedgerEntry."Pallet ID" := ItemJournalLine."Pallet ID";
         ItemLedgerEntry."Pallet Line No." := ItemJournalLine."Pallet Line No.";
@@ -151,13 +152,27 @@ codeunit 60002 "Item Ledger Functions"
         LPalletLedgerEntry.Reset();
         LPalletLedgerEntry.SetRange("Pallet ID", ItemJournalLine."Pallet ID");
         LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
+
         LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+        LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
         if LPalletLedgerEntry.FindLast() then begin
             LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
             LPalletLedgerEntry.Modify();
         end;
+
         LPalletLedgerEntry.Reset();
         LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
+        LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
+        LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+        LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
+        if LPalletLedgerEntry.FindLast() then begin
+            LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+            LPalletLedgerEntry.Modify();
+        end;
+
+
+        LPalletLedgerEntry.Reset();
+        LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
         LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
         LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
         LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
