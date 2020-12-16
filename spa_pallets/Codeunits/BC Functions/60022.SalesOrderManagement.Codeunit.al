@@ -36,6 +36,8 @@ codeunit 60022 "Sales Orders Management"
 
     end;
 
+
+
     //On After Change Ship-to Address
     [EventSubscriber(ObjectType::table, database::"sales header", 'OnAfterValidateEvent', 'Ship-to Code', true, true)]
     local procedure OnAfterUpdateSalesShiptoAddress(var Rec: Record "Sales Header")
@@ -55,6 +57,17 @@ codeunit 60022 "Sales Orders Management"
                 rec.modify;
 
             end;
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeValidateEvent', 'Shipment Date', false, false)]
+    procedure OnBeforeValidateEventSalesLineShipmentDate(CurrFieldNo: Integer; var Rec: Record "Sales Line"; var xRec: Record "Sales Line")
+    var
+        LPalletFunctions: codeunit "UI Pallet Functions";
+    begin
+        if Rec."Document Type" = Rec."Document Type"::Order then begin
+            if (xRec."Shipment Date" = 0D) and (Rec."Shipment Date" <> 0D) then
+                Rec."Shipment Date" := LPalletFunctions.GetCurrTime();
         end;
     end;
 

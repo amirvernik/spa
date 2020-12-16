@@ -5,8 +5,8 @@ codeunit 60018 "Pallet Availability Functions"
     procedure FctCheckSelectedPallets(var PalletListSelect: Record "Pallet List Select"; ReqType: Text): Text
     var
         ShipmentNo: code[20];
-        TotalQtyOnPallets: Integer;
-        TotalQtyOnShipment: Integer;
+        TotalQtyOnPallets: Decimal;
+        TotalQtyOnShipment: Decimal;
         PalletLine: Record "Pallet Line";
         WarehouseShipmentLine: Record "Warehouse Shipment Line";
         Err001: Label 'Quantities on Selected pallets are Greater then Quantities on Warehouse shipment, Please Select Again';

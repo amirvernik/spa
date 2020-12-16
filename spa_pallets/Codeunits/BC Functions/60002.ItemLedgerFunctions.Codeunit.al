@@ -152,35 +152,43 @@ codeunit 60002 "Item Ledger Functions"
         LPalletLedgerEntry.Reset();
         LPalletLedgerEntry.SetRange("Pallet ID", ItemJournalLine."Pallet ID");
         LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
-
+        LPalletLedgerEntry.SetRange("Variant Code", ItemJournalLine."Variant Code");
+        LPalletLedgerEntry.SetRange("Pallet Line No.", ItemJournalLine."Pallet Line No.");
         LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
         LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
+        LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
+        LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
         if LPalletLedgerEntry.FindLast() then begin
             LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
             LPalletLedgerEntry.Modify();
+        end else begin
+
+            LPalletLedgerEntry.Reset();
+            LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
+            LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
+            LPalletLedgerEntry.SetRange("Variant Code", ItemJournalLine."Variant Code");
+            LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+            LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
+            // LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
+            // LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
+            if LPalletLedgerEntry.FindLast() then begin
+                LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                LPalletLedgerEntry.Modify();
+            end else begin
+                LPalletLedgerEntry.Reset();
+                LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
+                LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
+                LPalletLedgerEntry.SetRange("Variant Code", ItemJournalLine."Variant Code");
+                LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
+                // LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
+                LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
+                //LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
+                if LPalletLedgerEntry.FindLast() then begin
+                    LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+                    LPalletLedgerEntry.Modify();
+                end;
+            end;
         end;
-
-        LPalletLedgerEntry.Reset();
-        LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
-        LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
-        LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
-        LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
-        if LPalletLedgerEntry.FindLast() then begin
-            LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-            LPalletLedgerEntry.Modify();
-        end;
-
-
-        LPalletLedgerEntry.Reset();
-        LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
-        LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
-        LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
-        LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
-        if LPalletLedgerEntry.FindLast() then begin
-            LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
-            LPalletLedgerEntry.Modify();
-        end;
-
         if ItemJournalLine."Journal Template Name" = 'ITEM' then begin
             if ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Positive Adjmt." then begin
                 // PalletLedgerFunctions.PosPalletLedgerEntryItem(ItemLedgerEntry);

@@ -279,6 +279,7 @@ codeunit 60003 "Pallet Ledger Functions"
     //Pallet Ledger Entry Item Journal
     procedure PosPalletLedgerEntryItem(var ItemJournalLine: Record "Item Journal Line"; PalletLedgerEntryType: Enum "Pallet Ledger Type")
     var
+        LPalletLine: Record "Pallet Line";
         ItemUOM: Record "Item Unit of Measure";
     begin
         PalletLedgerEntry.LockTable();
@@ -305,6 +306,14 @@ codeunit 60003 "Pallet Ledger Functions"
         else
             PalletLedgerEntry.validate(Quantity, ItemJournalLine.Quantity);
         PalletLedgerEntry."User ID" := userid;
+        LPalletLine.Reset();
+        LPalletLine.SetRange("Pallet ID", PalletLedgerEntry."Pallet ID");
+        LPalletLine.SetRange("Item No.", PalletLedgerEntry."Item No.");
+        if LPalletLine.FindFirst() then begin
+            PalletLedgerEntry."Order Type" := 'Order';
+            PalletLedgerEntry."Order No." := LPalletLine."Purchase Order No.";
+            PalletLedgerEntry."Order Line No." := LPalletLine."Purchase Order Line No.";
+        end;
         if PalletLedgerEntry.Quantity <> 0 then
             PalletLedgerEntry.Insert();
 

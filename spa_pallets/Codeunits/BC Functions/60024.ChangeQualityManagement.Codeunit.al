@@ -286,6 +286,7 @@ codeunit 60024 "Change Quality Management"
                     PalletLedgerEntry."Variant Code" := pPalletLineChg."Variant Code";
                     PalletLedgerEntry.validate("Location Code", pPalletLineChg."Location Code");
                     PalletLedgerEntry.validate("Unit of Measure", pPalletLineChg."Unit of Measure");
+                    PalletLedgerEntry."Lot Number" := pPalletLineChg."Lot Number";
                     ItemUnitOfMeasure.reset;
                     ItemUnitOfMeasure.setrange("Item No.", pPalletLineChg."Item No.");
                     ItemUnitOfMeasure.setrange(code, pPalletLineChg."Unit of Measure");
@@ -768,6 +769,7 @@ codeunit 60024 "Change Quality Management"
                             PalletLedgerEntry."Pallet ID" := PalletLine."Pallet ID";
                             PalletLedgerEntry."Pallet Line No." := PalletLine."Line No.";
                             PalletLedgerEntry."Document No." := PalletLine."Purchase Order No.";
+                            PalletLedgerEntry."Lot Number" := PalletLine."Lot Number";
                             //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
                             PalletLedgerEntry.validate("Posting Date", Today);
                             PalletLedgerEntry.validate("Item No.", PalletLine."Item No.");

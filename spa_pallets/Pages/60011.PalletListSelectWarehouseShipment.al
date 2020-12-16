@@ -218,8 +218,8 @@ page 60011 "Pallet List Select Whse Ship"
         WarehousePallet: Record "Warehouse Pallet";
         LineNumber: Integer;
         ShipmentNumnber: code[20];
-        QuantityToUpdateShip: Integer;
-        QuantityRemain: Integer;
+        QuantityToUpdateShip: Decimal;
+        QuantityRemain: Decimal;
         Err001: label 'Item does not Exist on Shipment, Cant Import Pallet %1';
         Lbl001: Label 'Pallet/s Added successfuly';
         GlobalErrorText: Text;

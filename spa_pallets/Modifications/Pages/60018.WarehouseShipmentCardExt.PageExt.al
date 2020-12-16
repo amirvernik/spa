@@ -141,8 +141,32 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                     var
                         StickerNoteFunctions: Codeunit "Sticker note functions";
                         LWarehousepallet: Record "Warehouse Pallet";
+                        LPAlletHeader: Record "Pallet Header";
+                        PageSelectPallets: Page "Select Pallets";
+                        LPalletsFilterText: Text;
                     begin
-                        StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec, 'BC');
+                        LPalletsFilterText := '';
+                        LWarehousepallet.Reset();
+                        LWarehousepallet.SetRange("Whse Shipment No.", Rec."No.");
+                        if LWarehousepallet.FindSet() then
+                            repeat
+                                if LPalletsFilterText = '' then
+                                    LPalletsFilterText := LWarehousepallet."Pallet ID"
+                                else
+                                    LPalletsFilterText += '|' + LWarehousepallet."Pallet ID";
+                            until LWarehousepallet.Next() = 0;
+                        if LPalletsFilterText <> '' then begin
+                            LPAlletHeader.Reset();
+                            LPAlletHeader.SetFilter("Pallet ID", LPalletsFilterText);
+                            LPAlletHeader.FindSet();
+                            Clear(PageSelectPallets);
+                            PageSelectPallets.SetTableView(LPAlletHeader);
+                            PageSelectPallets.SetRecord(LPAlletHeader);
+                            PageSelectPallets.SetPageType('WarehouseShipment');
+                            PageSelectPallets.SetWarehouseShipment(Rec);
+                            PageSelectPallets.RunModal();
+                        end;
+                        // StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec, 'BC');
                         /* LWarehousepallet.Reset();
                          LWarehousepallet.SetRange("Whse Shipment No.", Rec."No.");
                          if LWarehousepallet.FindSet() then
@@ -161,10 +185,12 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
         ShowAddPallet := true;
         ShowRemovePallet := true;
         PalletsExists := true;
+        ShowPrint := true;
         WarehousePallets.reset;
         WarehousePallets.setrange("Whse Shipment No.", rec."No.");
         if not WarehousePallets.findset then begin
             PalletsExists := false;
+            ShowPrint := false;
             ShowRemovePallet := false;
         end;
         if UserSetup.get(UserId) then

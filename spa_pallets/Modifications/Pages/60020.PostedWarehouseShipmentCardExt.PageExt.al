@@ -26,8 +26,34 @@ pageextension 60020 PostedWarehouseShipmentCardExt extends "Posted Whse. Shipmen
                 trigger OnAction()
                 var
                     StickerNoteFunctions: Codeunit "Sticker note functions";
+                    LWarehousepallet: Record "Posted Warehouse Pallet";
+                    LPAlletHeader: Record "Pallet Header";
+                    PageSelectPallets: Page "Select Pallets";
+                    LPalletsFilterText: Text;
                 begin
-                    StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipment(rec, 'BC');
+                    LPalletsFilterText := '';
+                    LWarehousepallet.Reset();
+                    LWarehousepallet.SetRange("Whse Shipment No.", Rec."No.");
+                    if LWarehousepallet.FindSet() then
+                        repeat
+                            if LPalletsFilterText = '' then
+                                LPalletsFilterText := LWarehousepallet."Pallet ID"
+                            else
+                                LPalletsFilterText += '|' + LWarehousepallet."Pallet ID";
+                        until LWarehousepallet.Next() = 0;
+                    if LPalletsFilterText <> '' then begin
+                        LPAlletHeader.Reset();
+                        LPAlletHeader.SetFilter("Pallet ID", LPalletsFilterText);
+                        LPAlletHeader.FindSet();
+                        Clear(PageSelectPallets);
+                        PageSelectPallets.SetTableView(LPAlletHeader);
+                        PageSelectPallets.SetRecord(LPAlletHeader);
+                        PageSelectPallets.SetPageType('PostedWarehouseShipment');
+                        PageSelectPallets.SetPostedWarehouseShipment(Rec);
+                        PageSelectPallets.RunModal();
+                    end;
+
+                    //  StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipment(rec, 'BC');
                 end;
             }
             /*   action("ConsugnmentNoteReportfortest")

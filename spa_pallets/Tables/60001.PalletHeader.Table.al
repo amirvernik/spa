@@ -103,6 +103,11 @@ table 60001 "Pallet Header"
             Caption = 'Transfer Order';
             DataClassification = ToBeClassified;
         }
+        field(43; Check; Boolean)
+        {
+            Caption = 'Check';
+            DataClassification = ToBeClassified;
+        }
     }
 
     keys
