@@ -60,14 +60,34 @@ codeunit 60022 "Sales Orders Management"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeValidateEvent', 'Shipment Date', false, false)]
-    procedure OnBeforeValidateEventSalesLineShipmentDate(CurrFieldNo: Integer; var Rec: Record "Sales Line"; var xRec: Record "Sales Line")
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnAfterInsertEvent', '', false, false)]
+    procedure OnAfterInsertEventSalesHeader(RunTrigger: Boolean; var Rec: Record "Sales Header")
     var
         LPalletFunctions: codeunit "UI Pallet Functions";
     begin
         if Rec."Document Type" = Rec."Document Type"::Order then begin
-            if (xRec."Shipment Date" = 0D) and (Rec."Shipment Date" <> 0D) then
-                Rec."Shipment Date" := LPalletFunctions.GetCurrTime();
+            Rec."Shipment Date" := Rec."Posting Date";
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnBeforeValidateEvent', 'Requested Delivery Date', false, false)]
+    procedure OnBeforeValidateEventSalesHeaderShipmentDate(CurrFieldNo: Integer; var Rec: Record "Sales Header"; var xRec: Record "Sales Header")
+    var
+        LPalletFunctions: codeunit "UI Pallet Functions";
+    begin
+        if Rec."Document Type" = Rec."Document Type"::Order then begin
+            Rec."Shipment Date" := Rec."Requested Delivery Date";
+        end;
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnBeforeValidateEvent', 'Requested Delivery Date', false, false)]
+    procedure OnBeforeValidateEventSalesLineShipmentDate(CurrFieldNo: Integer; var Rec: Record "Sales Line"; var xRec: Record "Sales Line")
+    var
+    // LPalletFunctions: codeunit "UI Pallet Functions";
+    begin
+        if Rec."Document Type" = Rec."Document Type"::Order then begin
+            Rec."Shipment Date" := Rec."Requested Delivery Date";
         end;
     end;
 

@@ -1,6 +1,6 @@
 page 60038 "Select Pallets"
 {
-    PageType = NavigatePage;
+    PageType = StandardDialog;
     UsageCategory = Administration;
     SourceTable = "Pallet Header";
     ModifyAllowed = true;
@@ -30,7 +30,48 @@ page 60038 "Select Pallets"
                 }
             }
         }
+
     }
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        StickerNoteFunctions: Codeunit "Sticker note functions";
+        LPalletText: Text;
+    begin
+
+        if CloseAction = CloseAction::OK then
+            case PageType of
+                'WarehouseShipment':
+                    begin
+                        LPalletText := '';
+                        Rec.SetRange(Check, true);
+                        IF rec.FindSet() then begin
+                            repeat
+                                If LPalletText = '' then
+                                    LPalletText := Rec."Pallet ID"
+                                else
+                                    LPalletText += '|' + Rec."Pallet ID";
+                            until Rec.Next() = 0;
+                            StickerNoteFunctions.CreatePalletStickerNoteFromShipmentNew(GWarehouseShipment, LPalletText, 'BC');
+                        end;
+                    end;
+                'PostedWarehouseShipment':
+                    begin
+                        LPalletText := '';
+                        Rec.SetRange(Check, true);
+                        IF rec.FindSet() then begin
+                            repeat
+                                If LPalletText = '' then
+                                    LPalletText := Rec."Pallet ID"
+                                else
+                                    LPalletText += '|' + Rec."Pallet ID";
+                            until Rec.Next() = 0;
+                            StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipmentNew(GPostedWarehouseShipment, LPalletText, 'BC');
+                        end;
+                    end;
+            end;
+
+    end;
 
     trigger OnOpenPage();
     begin
@@ -38,42 +79,7 @@ page 60038 "Select Pallets"
             Rec.ModifyAll(Check, true);
     end;
 
-    trigger OnQueryClosePage(CloseAction: Action): Boolean
-    var
-        StickerNoteFunctions: Codeunit "Sticker note functions";
-        LPalletText: Text;
-    begin
-        case PageType of
-            'WarehouseShipment':
-                begin
-                    LPalletText := '';
-                    Rec.SetRange(Check, true);
-                    IF rec.FindSet() then begin
-                        repeat
-                            If LPalletText = '' then
-                                LPalletText := Rec."Pallet ID"
-                            else
-                                LPalletText += '|' + Rec."Pallet ID";
-                        until Rec.Next() = 0;
-                        StickerNoteFunctions.CreatePalletStickerNoteFromShipmentNew(GWarehouseShipment, LPalletText, 'BC');
-                    end;
-                end;
-            'PostedWarehouseShipment':
-                begin
-                    LPalletText := '';
-                    Rec.SetRange(Check, true);
-                    IF rec.FindSet() then begin
-                        repeat
-                            If LPalletText = '' then
-                                LPalletText := Rec."Pallet ID"
-                            else
-                                LPalletText += '|' + Rec."Pallet ID";
-                        until Rec.Next() = 0;
-                        StickerNoteFunctions.CreatePalletStickerNoteFromPostedShipmentNew(GPostedWarehouseShipment, LPalletText, 'BC');
-                    end;
-                end;
-        end;
-    end;
+
 
     procedure SetWarehouseShipment(pWarehouseShipment: Record "Warehouse Shipment Header")
     begin
@@ -87,12 +93,17 @@ page 60038 "Select Pallets"
 
     procedure SetPageType(pPageType: Text)
     begin
-        PageType := PageType;
+        PageType := pPageType;
     end;
+
+
 
     var
         PageType: Text;
         GPostedWarehouseShipment: Record "Posted Whse. Shipment Header";
         GWarehouseShipment: Record "Warehouse Shipment Header";
 
+
+
 }
+

@@ -148,43 +148,44 @@ codeunit 60002 "Item Ledger Functions"
         ItemLedgerEntry.Disposal := ItemJournalLine.Disposal;
         ItemLedgerEntry.modify;
 
-
         LPalletLedgerEntry.Reset();
-        LPalletLedgerEntry.SetRange("Pallet ID", ItemJournalLine."Pallet ID");
+        LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
         LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
         LPalletLedgerEntry.SetRange("Variant Code", ItemJournalLine."Variant Code");
-        LPalletLedgerEntry.SetRange("Pallet Line No.", ItemJournalLine."Pallet Line No.");
         LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
         LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
-        LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
-        LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
+        LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
+        // LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
+        // LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
         if LPalletLedgerEntry.FindLast() then begin
             LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+
             LPalletLedgerEntry.Modify();
         end else begin
-
             LPalletLedgerEntry.Reset();
-            LPalletLedgerEntry.SetRange("Document No.", ItemJournalLine."Document No.");
+            LPalletLedgerEntry.SetRange("Pallet ID", ItemJournalLine."Pallet ID");
             LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
             LPalletLedgerEntry.SetRange("Variant Code", ItemJournalLine."Variant Code");
+            LPalletLedgerEntry.SetRange("Pallet Line No.", ItemJournalLine."Pallet Line No.");
             LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
             LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
-            // LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
-            // LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
+            LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
+            LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
             if LPalletLedgerEntry.FindLast() then begin
                 LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+
                 LPalletLedgerEntry.Modify();
             end else begin
                 LPalletLedgerEntry.Reset();
+                LPalletLedgerEntry.SetCurrentKey("Lot Number", "Item No.", "Variant Code");
                 LPalletLedgerEntry.SetRange("Lot Number", ItemJournalLine."Lot No.");
                 LPalletLedgerEntry.SetRange("Item No.", ItemJournalLine."Item No.");
                 LPalletLedgerEntry.SetRange("Variant Code", ItemJournalLine."Variant Code");
                 LPalletLedgerEntry.SetRange("Item Ledger Entry No.", 0);
-                // LPalletLedgerEntry.SetRange("Unit of Measure", ItemJournalLine."Unit of Measure Code");
                 LPalletLedgerEntry.SetRange("Posting Date", ItemJournalLine."Posting Date");
-                //LPalletLedgerEntry.SetFilter(Quantity, '=%1 | =%2', -ItemJournalLine.Quantity, ItemJournalLine.Quantity);
                 if LPalletLedgerEntry.FindLast() then begin
                     LPalletLedgerEntry."Item Ledger Entry No." := ItemLedgerEntry."Entry No.";
+
                     LPalletLedgerEntry.Modify();
                 end;
             end;

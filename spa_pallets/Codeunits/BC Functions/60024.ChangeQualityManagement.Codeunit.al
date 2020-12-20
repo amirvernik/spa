@@ -234,6 +234,8 @@ codeunit 60024 "Change Quality Management"
                     ItemJournalLine.validate("Variant Code", pPalletLineChg."Variant Code");
                     ItemJournalLine.validate("Location Code", pPalletLineChg."Location Code");
                     ItemJournalLine.validate(Quantity, (pPalletLineChg.Quantity));
+                    ItemJournalLine."Order No." := pPalletLineChg."Purchase Order No.";
+                    ItemJournalLine."Order Line No." := pPalletLineChg."Purchase Order Line No.";
                     ItemJournalLine.modify;
                     //Create Reservation Entry
                     if ItemRec.get(pPalletLineChg."Item No.") then
@@ -276,7 +278,7 @@ codeunit 60024 "Change Quality Management"
                     PalletLedgerEntry."Entry No." := LineNumber;
                     PalletLedgerEntry."Entry Type" := PalletLedgerEntry."Entry Type"::"Quality Change";
                     PalletLedgerEntry."Pallet ID" := pPalletLineChg."Pallet ID";
-                    PalletLedgerEntry."Pallet Line No." := pPalletLineChg."Line No.";
+                    PalletLedgerEntry."Pallet Line No." := LineNoOriginal;
                     PalletLedgerEntry."Document No." := pPalletLineChg."Purchase Order No.";
                     //PalletLedgerEntry."Item Ledger Entry No." := ItemJournalLine."Entry No.";
                     PalletLedgerEntry.validate("Posting Date", Today);

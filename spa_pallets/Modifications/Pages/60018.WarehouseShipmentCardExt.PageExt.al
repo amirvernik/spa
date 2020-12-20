@@ -164,6 +164,7 @@ pageextension 60018 WarehouseShipmentCardExt extends "Warehouse Shipment"
                             PageSelectPallets.SetRecord(LPAlletHeader);
                             PageSelectPallets.SetPageType('WarehouseShipment');
                             PageSelectPallets.SetWarehouseShipment(Rec);
+
                             PageSelectPallets.RunModal();
                         end;
                         // StickerNoteFunctions.CreatePalletStickerNoteFromShipment(rec, 'BC');

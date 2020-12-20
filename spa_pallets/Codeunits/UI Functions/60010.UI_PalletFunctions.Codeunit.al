@@ -298,7 +298,7 @@ codeunit 60010 "UI Pallet Functions"
                     RecPurchPrice.reset;
                     RecPurchPrice.SetRange("Vendor No.", PurchaseHeader."Buy-from Vendor No.");
                     RecPurchPrice.setfilter("Ending Date", '=%1 | >=%2', 0D, GetCurrTime);
-                    RecPurchPrice.setfilter("Starting Date", '<=%1 | <=%2', 0D, GetCurrTime);
+                    RecPurchPrice.setfilter("Starting Date", '=%1 | <=%2', 0D, GetCurrTime);
                     RecPurchPrice.setfilter("Item No.", PalletLine."Item No.");
                     RecPurchPrice.setfilter("Variant Code", PalletLine."Variant Code");
                     RecPurchPrice.SetFilter("Unit of Measure Code", PalletLine."Unit of Measure");

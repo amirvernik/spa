@@ -98,6 +98,7 @@ table 60005 "Pallet Ledger Entry"
             Clustered = true;
         }
         key(PS; "Pallet ID") { }
+        key(PP; "Lot Number", "Item No.", "Variant Code") { }
     }
 
     var

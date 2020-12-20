@@ -341,8 +341,8 @@ codeunit 60000 "SPA Purchase Functions"
     begin
         PurchasePrice.reset;
         PurchasePrice.setrange("Vendor No.", pVendor);
-        PurchasePrice.setrange("Ending Date", 0D);
-        PurchasePrice.setfilter("Starting Date", '<=%1', pdate);
+        PurchasePrice.setfilter("Ending Date", '=%1 | >=%2', 0D, pDate);
+        PurchasePrice.setfilter("Starting Date", '=%1 | <=%2', 0D, pdate);
         PurchasePrice.setrange("Item No.", pItem);
         if PurchasePrice.findfirst then
             exit(PurchasePrice."Direct Unit Cost");
