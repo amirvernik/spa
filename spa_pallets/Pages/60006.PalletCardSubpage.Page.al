@@ -192,10 +192,13 @@ page 60006 "Pallet Card Subpage"
                     trigger OnAction();
                     var
                         PageLotSelection: Page "Lot Selection";
-                        LotSelection: Record "Lot Selection" temporary;
+                        LotSelection: Record "Lot Selection New" temporary;
                         ItemLedgerEntry: Record "Item Ledger Entry";
+                        LPalletLine: Record "Pallet Line";
                         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
                         Err001: Label 'There are no Lot to Select for Item %1, Location %2';
+                        LOrderNo: Code[20];
+                        LOrderLineNo: Integer;
                         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
                         PalletReservationEntry: Record "Pallet reservation Entry";
                     begin
@@ -215,8 +218,18 @@ page 60006 "Pallet Card Subpage"
                         ItemLedgerEntry.SetFilter("Entry Type", '=%1 | =%2', ItemLedgerEntry."Entry Type"::"Positive Adjmt.", ItemLedgerEntry."Entry Type"::Purchase);
                         if ItemLedgerEntry.findset then
                             repeat
+                                LOrderNo := '';
+                                LOrderLineNo := 0;
+                                PurchaseReceiptLine.Reset();
+                                PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");
+                                PurchaseReceiptLine.SetRange("Line No.", ItemLedgerEntry."Document Line No.");
+                                if PurchaseReceiptLine.FindFirst() then begin
+                                    LOrderNo := PurchaseReceiptLine."Order No.";
+                                    LOrderLineNo := PurchaseReceiptLine."Order Line No.";
+                                end;
+
                                 if not LotSelection.get(rec."Pallet ID",
-                                    rec."Line No.", ItemLedgerEntry."Lot No.") then begin
+                                    rec."Line No.", ItemLedgerEntry."Lot No.", LOrderNo, LOrderLineNo) then begin
                                     LotSelection.init;
                                     LotSelection."Pallet ID" := rec."Pallet ID";
                                     LotSelection."Pallet Line No." := rec."Line No.";
@@ -227,21 +240,24 @@ page 60006 "Pallet Card Subpage"
                                     LotSelection."Variant code" := ItemLedgerEntry."Variant Code";
                                     LotSelection."Expiration Date" := ItemLedgerEntry."Expiration Date";
                                     LotSelection."Quantity Available" := ItemLedgerEntry.Quantity;
-                                    PalletReservationEntry.Reset();
-                                    PalletReservationEntry.SetRange("Item No.", ItemLedgerEntry."Item No.");
-                                    PalletReservationEntry.SetRange("Lot No.", ItemLedgerEntry."Lot No.");
-                                    if PalletReservationEntry.FindSet() then begin
-                                        PalletReservationEntry.CalcSums(Quantity);
-                                        LotSelection."Quantity Available" -= PalletReservationEntry.Quantity;
+                                    LPalletLine.Reset();
+                                    LPalletLine.SetRange("Item No.", ItemLedgerEntry."Item No.");
+                                    LPalletLine.SetRange("Lot Number", ItemLedgerEntry."Lot No.");
+                                    LPalletLine.SetRange("Purchase Order No.", LOrderNo);
+                                    LPalletLine.SetRange("Purchase Order Line No.", LOrderLineNo);
+                                    if LPalletLine.FindSet() then begin
+                                        LPalletLine.CalcSums(Quantity);
+                                        LotSelection."Quantity Available" -= LPalletLine.Quantity;
                                     end;
-                                    LotSelection."Qty. to Reserve" := LotSelection."Quantity Available";
-                                    PurchaseReceiptLine.Reset();
-                                    PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");
-                                    PurchaseReceiptLine.SetRange("Line No.", ItemLedgerEntry."Document Line No.");
-                                    if PurchaseReceiptLine.FindFirst() then begin
-                                        LotSelection."Purchase Order" := PurchaseReceiptLine."Order No.";
-                                        LotSelection."Purchase Order Line" := PurchaseReceiptLine."Order Line No.";
-                                    end;
+                                    LotSelection."Qty. to Reserve" := ItemLedgerEntry.Quantity;
+                                    /* PurchaseReceiptLine.Reset();
+                                     PurchaseReceiptLine.SetRange("Document No.", ItemLedgerEntry."Document No.");
+                                     PurchaseReceiptLine.SetRange("Line No.", ItemLedgerEntry."Document Line No.");
+                                     if PurchaseReceiptLine.FindFirst() then begin*/
+                                    LotSelection."Purchase Order" := LOrderNo;
+                                    LotSelection."Purchase Order Line" := LOrderLineNo;
+                                    //end;
+
                                     LotSelection.insert;
                                 end else begin
                                     LotSelection.Quantity += ItemLedgerEntry.Quantity;
@@ -252,7 +268,7 @@ page 60006 "Pallet Card Subpage"
                             until ItemLedgerEntry.next = 0;
 
                         LotSelection.reset;
-                        LotSelection.setrange(LotSelection."Quantity Available", 0);
+                        LotSelection.SetFilter(LotSelection."Quantity Available", '<=0', 0);
                         if LotSelection.findset then
                             LotSelection.deleteall;
 

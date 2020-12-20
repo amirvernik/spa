@@ -1,7 +1,7 @@
-table 60009 "Lot Selection"
+table 60026 "Lot Selection New"
 {
     DataClassification = ToBeClassified;
-    Description = 'Deleted - new object is "Lot Selection New"';
+    Caption = 'Lot Selection';
 
     fields
     {
@@ -57,7 +57,7 @@ table 60009 "Lot Selection"
 
     keys
     {
-        key(PK; "Pallet ID", "Pallet Line No.", Lot)
+        key(PK; "Pallet ID", "Pallet Line No.", Lot, "Purchase Order", "Purchase Order Line")
         {
             Clustered = true;
         }

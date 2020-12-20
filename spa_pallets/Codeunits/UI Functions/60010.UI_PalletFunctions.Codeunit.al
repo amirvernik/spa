@@ -878,7 +878,7 @@ codeunit 60010 "UI Pallet Functions"
         ItemLedgerEntry: Record "Item Ledger Entry";
         JsonObj: JsonObject;
         JsonArr: JsonArray;
-        LotSelection: Record "Lot Selection" temporary;
+        LotSelection: Record "Lot Selection New" temporary;
         ItemTemp: Record Item temporary;
         PalletReservationFunctions: Codeunit "Pallet Reservation Functions";
         ReserevationEntry: Record "Reservation Entry";
@@ -1242,6 +1242,8 @@ codeunit 60010 "UI Pallet Functions"
         LSalesOrder: Record "Sales Header";
         LSalesOrderArchive: Record "Sales Header Archive";
         LTempBlob: Codeunit "Temp Blob";
+        Base64Convert: Codeunit "Base64 Convert";
+        Base64ConvertString: Text;
         LRecRef: RecordRef;
         SalesOrderText: Code[20];
         LOutStr: OutStream;
@@ -1256,6 +1258,7 @@ codeunit 60010 "UI Pallet Functions"
         OneDriveFunctions: Codeunit "OneDrive Functions";
         lOneDrive: text;
         PalletProcessSetup: Record "Pallet Process Setup";
+
     begin
         IF pFunction <> 'ConsignmentNote' THEN
             EXIT;
@@ -1302,11 +1305,16 @@ codeunit 60010 "UI Pallet Functions"
             LTempBlob.CreateInStream(LInstr);
             BearerToken := OneDriveFunctions.GetBearerToken();
             OneDriveFunctions.UploadFile('BC/Consignment Note', StrSubstNo('Consignment Note %1.pdf', SalesOrderText), BearerToken, LInstr);
+            //Base64ConvertString := '';
+            //  LInstr.ReadText(Base64ConvertString);
+            //    pContent := Base64Convert.ToBase64(Base64ConvertString);
 
             PalletProcessSetup.get;
             lOneDrive := PalletProcessSetup."OneDrive Drive ID";
-            // pContent := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/' + 'BC/Consignment Note' + '/' + StrSubstNo('Consignment Note %1.pdf', SalesOrderText) + ':/content';
+            //pContent := 'https://graph.microsoft.com/v1.0/drives/' + lOneDrive + '/root:/' + 'BC/Consignment Note' + '/' + StrSubstNo('Consignment Note %1.pdf', SalesOrderText) + ':/content';
             pContent := 'https://sweetpotatoesaustralia-my.sharepoint.com/:b:/r/personal/prodware1_sweetpotatoesaustralia_com_au/Documents/BC/Consignment%20Note/' + 'Consignment%20Note%20' + SalesOrderText + '.pdf';
+
+
         end;
     end;
 
@@ -1318,6 +1326,8 @@ codeunit 60010 "UI Pallet Functions"
         LSalesOrderArchive: Record "Sales Header Archive";
         LTempBlob: Codeunit "Temp Blob";
         LRecRef: RecordRef;
+        Base64Convert: Codeunit "Base64 Convert";
+        Base64ConvertString: Text;
         SalesOrderText: Code[20];
         LOutStr: OutStream;
         JsonObj: JsonObject;
@@ -1344,10 +1354,12 @@ codeunit 60010 "UI Pallet Functions"
         LTempBlob.CreateInStream(LInstr);
         BearerToken := OneDriveFunctions.GetBearerToken();
         OneDriveFunctions.UploadFile('Consignment Note', StrSubstNo('Consignment Note %1.pdf', SalesOrderText), BearerToken, LInstr);
+        Base64ConvertString := '';
+        LInstr.ReadText(Base64ConvertString);
 
         //LInstr.ReadText(Result);
         //Result := Base64ConvertCU.ToBase64(Result);
-        Message('DONE');
+        Message(Base64Convert.ToBase64(Base64ConvertString));
     end;
 
 }

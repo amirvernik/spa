@@ -467,18 +467,18 @@ codeunit 60001 "Pallet Functions"
                         packingmaterials."Line No." := GetLastEntryPacking(PalletHeader);
                         PackingMaterials.Description := BomComponent.Description;
                         PackingMaterials."Reusable Item" := BomComponent."Reusable item";
-                        /*if BomComponent."Fixed Value" then begin
+                        if BomComponent."Fixed Value" then begin
                             PackingMaterials.Quantity := BomComponent."Quantity per";
                             PackingMaterials."Fixed Value" := true;
-                        end else*/
-                        PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
+                        end else
+                            PackingMaterials.Quantity := BomComponent."Quantity per" * PalletLines.Quantity;
                         PackingMaterials."Unit of Measure Code" := BomComponent."Unit of Measure Code";
                         PackingMaterials."Location Code" := PalletHeader."Location Code";
                         PackingMaterials.insert;
 
                     end
                     else begin
-                        /*if PackingMaterials."Fixed Value" then begin
+                        if PackingMaterials."Fixed Value" then begin
                             if BomComponent."Fixed Value" then begin
                                 if BomComponent."Quantity per" > PackingMaterials.Quantity then
                                     PackingMaterials.Quantity := BomComponent."Quantity per";
@@ -489,12 +489,12 @@ codeunit 60001 "Pallet Functions"
                             if BomComponent."Fixed Value" then begin
                                 if BomComponent."Quantity per" > PackingMaterials.Quantity then
                                     PackingMaterials.Quantity := BomComponent."Quantity per";
-                            end else*/
-                        PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
-                        //end;
-                        PackingMaterials.modify;
+                            end else
+                                PackingMaterials.Quantity += BomComponent."Quantity per" * PalletLines.Quantity;
+                            //end;
+                            PackingMaterials.modify;
+                        end;
                     end;
-
 
 
                 until BomComponent.next = 0;
@@ -1511,7 +1511,10 @@ codeunit 60001 "Pallet Functions"
                 ItemJournalLine."Document Date" := Today;
                 ItemJournalLine.validate("Item No.", BOMComp."No.");
                 ItemJournalLine.validate("Location Code", pPalletLine."Location Code");
-                ItemJournalLine.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
+                if BOMComp."Fixed Value" then
+                    ItemJournalLine.validate(Quantity, BOMComp."Quantity per")
+                else
+                    ItemJournalLine.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
                 ItemJournalLine.validate("Pallet ID", pPalletLine."Pallet ID");
                 ItemJournalLine.modify;
 
@@ -1538,8 +1541,8 @@ codeunit 60001 "Pallet Functions"
                         RecGReservationEntry.validate("Location Code", pPalletLine."Location Code");
                         RecGReservationEntry."Item Tracking" := RecGReservationEntry."Item Tracking"::"Lot No.";
                         RecGReservationEntry.validate("Item No.", BOMComp."No.");
-                        RecGReservationEntry.validate("Quantity (Base)", BOMComp."Quantity per" * pQuantityToReturn);
-                        RecGReservationEntry.validate(Quantity, BOMComp."Quantity per" * pQuantityToReturn);
+                        RecGReservationEntry.validate("Quantity (Base)", ItemJournalLine.Quantity);
+                        RecGReservationEntry.validate(Quantity, ItemJournalLine.Quantity);
                         RecGReservationEntry.Positive := true;
                         RecGReservationEntry."Lot No." := pPalletLine."Lot Number";
                         RecGReservationEntry.insert;

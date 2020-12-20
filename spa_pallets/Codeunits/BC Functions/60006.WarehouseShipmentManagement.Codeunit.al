@@ -288,15 +288,17 @@ codeunit 60006 "Warehouse Shipment Management"
         errorinpayback: Text;
         PostedWarehousePallet: Record "Posted Warehouse Pallet";
         WarehousePallet: Record "Warehouse Pallet";
+        LboolExist: Boolean;
         PostPurchase: Codeunit "Purch.-Post";
-        Errmsgpayback: Label 'Please note that the following po numbers : %1 - have already be archived or fully invoiced. The po line price has not been updated.';
+        Errmsgpayback: Label 'Please note that the following pallet lines numbers : %1 - have already be archived or fully invoiced. The PO line price has not been updated.';
     begin
 
+        errorinpayback := '';
         PostedWarehouseShipment.Reset();
         PostedWarehouseShipment.SetCurrentKey("Whse. Shipment No.");
         PostedWarehouseShipment.SetRange("Whse. Shipment No.", Rec."No.");
         if PostedWarehouseShipment.FindLast() then begin
-            errorinpayback := '';
+
             PostedWarehousePallet.Reset();
             PostedWarehousePallet.setrange("Whse Shipment No.", PostedWarehouseShipment."No.");
             if PostedWarehousePallet.findset then begin
@@ -309,14 +311,14 @@ codeunit 60006 "Warehouse Shipment Management"
                         LCustomerPostingGroup.Reset();
                         LCustomerPostingGroup.SetRange(code, LCustomer."Customer Posting Group");
                         LCustomerPostingGroup.SetRange("Pay-Pack", true);
-                        if LCustomerPostingGroup.FindFirst() then
+                        if LCustomerPostingGroup.FindFirst() then begin
                             if LPalletLine.Get(PostedWarehousePallet."Pallet ID", PostedWarehousePallet."Pallet Line No.") then
                                 if LPurchaseLine.Get(LPurchaseLine."Document Type"::Order, LPalletLine."Purchase Order No.", LPalletLine."Purchase Order Line No.") and (LPalletLine."Purchase Order No." <> '') then begin
                                     if LPurchaseLine."Quantity Invoiced" > 0 then begin
                                         if errorinpayback = '' then
-                                            errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
+                                            errorinpayback := PostedWarehousePallet."Pallet ID" + '-' + Format(PostedWarehousePallet."Pallet Line No.")
                                         else
-                                            errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                                            errorinpayback += ', ' + PostedWarehousePallet."Pallet ID" + '-' + Format(PostedWarehousePallet."Pallet Line No.");
                                     end else begin
 
                                         LPurchaseHeader.get(LPurchaseHeader."Document Type"::Order, LPalletLine."Purchase Order No.");
@@ -338,23 +340,23 @@ codeunit 60006 "Warehouse Shipment Management"
                                     end;
                                 end else begin
                                     if errorinpayback = '' then
-                                        errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
+                                        errorinpayback := PostedWarehousePallet."Pallet ID" + '-' + Format(PostedWarehousePallet."Pallet Line No.")
                                     else
-                                        errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                                        errorinpayback += ', ' + PostedWarehousePallet."Pallet ID" + '-' + Format(PostedWarehousePallet."Pallet Line No.");
                                 end;
-                    end else begin
-                        if errorinpayback = '' then
-                            errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
-                        else
-                            errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                        end;
+                        /*else begin
+                            if errorinpayback = '' then
+                                errorinpayback := PostedWarehousePallet."Pallet ID" + '-' + Format(PostedWarehousePallet."Pallet Line No.")
+                            else
+                                errorinpayback += ', ' + PostedWarehousePallet."Pallet ID" + '-' + Format(PostedWarehousePallet."Pallet Line No.");
+                        end;*/
+
                     end;
-
-
                 until PostedWarehousePallet.next = 0;
             end;
         end else begin
 
-            errorinpayback := '';
             WarehousePallet.Reset();
             WarehousePallet.setrange("Whse Shipment No.", Rec."No.");
             if WarehousePallet.findset then begin
@@ -367,14 +369,14 @@ codeunit 60006 "Warehouse Shipment Management"
                         LCustomerPostingGroup.Reset();
                         LCustomerPostingGroup.SetRange(code, LCustomer."Customer Posting Group");
                         LCustomerPostingGroup.SetRange("Pay-Pack", true);
-                        if LCustomerPostingGroup.FindFirst() then
+                        if LCustomerPostingGroup.FindFirst() then begin
                             if LPalletLine.Get(WarehousePallet."Pallet ID", WarehousePallet."Pallet Line No.") then
                                 if LPurchaseLine.Get(LPurchaseLine."Document Type"::Order, LPalletLine."Purchase Order No.", LPalletLine."Purchase Order Line No.") and (LPalletLine."Purchase Order No." <> '') then begin
                                     if LPurchaseLine."Quantity Invoiced" > 0 then begin
                                         if errorinpayback = '' then
-                                            errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
+                                            errorinpayback := WarehousePallet."Pallet ID" + '-' + Format(WarehousePallet."Pallet Line No.")
                                         else
-                                            errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                                            errorinpayback += ', ' + WarehousePallet."Pallet ID" + '-' + Format(WarehousePallet."Pallet Line No.");
                                     end else begin
 
                                         LPurchaseHeader.get(LPurchaseHeader."Document Type"::Order, LPalletLine."Purchase Order No.");
@@ -396,17 +398,12 @@ codeunit 60006 "Warehouse Shipment Management"
                                     end;
                                 end else begin
                                     if errorinpayback = '' then
-                                        errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
+                                        errorinpayback := WarehousePallet."Pallet ID" + '-' + Format(WarehousePallet."Pallet Line No.")
                                     else
-                                        errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                                        errorinpayback += ', ' + WarehousePallet."Pallet ID" + '-' + Format(WarehousePallet."Pallet Line No.");
                                 end;
-                    end else begin
-                        if errorinpayback = '' then
-                            errorinpayback := LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.")
-                        else
-                            errorinpayback += ', ' + LPalletLine."Purchase Order No." + '-' + Format(LPalletLine."Purchase Order Line No.");
+                        end;
                     end;
-
 
                 until WarehousePallet.next = 0;
 

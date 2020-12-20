@@ -3,7 +3,7 @@ page 60013 "Lot Selection"
     PageType = list;
     UsageCategory = Lists;
     ApplicationArea = All;
-    SourceTable = "Lot Selection";
+    SourceTable = "Lot Selection New";
     Editable = true;
 
     layout
